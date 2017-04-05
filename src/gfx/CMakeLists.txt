@@ -8,7 +8,7 @@ set(SOURCES
 if(HAVE_D3D12)
     list(APPEND SOURCES
         d3d12/gfx-d3d12.h
-        d3d12/gfx-d3d12.c
+        d3d12/gfx-d3d12.cpp
     )
 endif()
 
