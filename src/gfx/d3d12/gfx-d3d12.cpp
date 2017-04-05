@@ -13,6 +13,8 @@ struct Gfx {
     bool initialized;
 };
 
+extern "C" {
+
 Gfx* gfxCreateD3D12(void)
 {
     Gfx* const G = (Gfx*)calloc(1, sizeof(*G));
@@ -24,3 +26,5 @@ void gfxDestroyD3D12(Gfx* G)
 {
     free(G);
 }
+
+} // extern "C"
