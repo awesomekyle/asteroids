@@ -29,6 +29,8 @@ if(HAVE_D3D12)
     target_link_libraries(${TARGET}
         PRIVATE
             d3d12
+            dxguid
+            dxgi
         PUBLIC
     )
 endif()

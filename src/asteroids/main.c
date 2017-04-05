@@ -30,6 +30,10 @@ static bool _InitializeApp(void)
     }
     return true;
 }
+static void _ShutdownApp(void)
+{
+    gfxDestroy(gGfx);
+}
 
 //////
 // GLFW callbacks
@@ -74,6 +78,7 @@ int main(int argc, char* argv[])
         glfwPollEvents();
     }
 
+    _ShutdownApp();
     glfwTerminate();
 
     return 0;
