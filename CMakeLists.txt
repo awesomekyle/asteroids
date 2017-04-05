@@ -28,6 +28,7 @@ else()
 endif()
 include(CheckIncludeFiles)
 check_include_files(pthread.h HAVE_PTHREAD_H)
+check_include_files(d3d12.h HAVE_D3D12)
 configure_file(config.h.in ${CMAKE_BINARY_DIR}/config.h)
 
 ######################

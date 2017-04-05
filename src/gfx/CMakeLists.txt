@@ -5,6 +5,13 @@ set(SOURCES
     gfx.c
 )
 
+if(HAVE_D3D12)
+    list(APPEND SOURCES
+        d3d12/gfx-d3d12.h
+        d3d12/gfx-d3d12.c
+    )
+endif()
+
 igpa_add_library(${TARGET} STATIC ${SOURCES})
 
 target_link_libraries(${TARGET}
@@ -17,3 +24,11 @@ target_include_directories(${TARGET}
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
+
+if(HAVE_D3D12)
+    target_link_libraries(${TARGET}
+        PRIVATE
+            d3d12
+        PUBLIC
+    )
+endif()

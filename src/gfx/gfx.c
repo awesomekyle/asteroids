@@ -1,19 +1,23 @@
+#include "config.h"
 #include "gfx/gfx.h"
 #include <stdbool.h>
 #include <stdlib.h>
-
-struct Gfx {
-    bool initialized;
-};
+#if HAVE_D3D12
+    #include "d3d12/gfx-d3d12.h"
+#endif
 
 Gfx* gfxCreate(void)
 {
-    Gfx* const G = (Gfx*)calloc(1, sizeof(*G));
-    G->initialized = true;
+    Gfx* G = NULL;
+    #if HAVE_D3D12
+        G = gfxCreateD3D12();
+    #endif
     return G;
 }
 
 void gfxDestroy(Gfx* G)
 {
-    free(G);
+    #if HAVE_D3D12
+        gfxDestroyD3D12(G);
+    #endif
 }

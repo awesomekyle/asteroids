@@ -24,4 +24,5 @@
 #endif /* UNREFERENCED */
 
 #cmakedefine HAVE_PTHREAD_H 1
+#cmakedefine HAVE_D3D12 1
 #cmakedefine HAVE_VULKAN @HAVE_VULKAN@
