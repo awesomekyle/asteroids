@@ -20,9 +20,7 @@ static void _GlfwErrorCallback(int error, char const* description)
 }
 static void _GlfwKeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    UNREFERENCED(scancode);
-    UNREFERENCED(action);
-    UNREFERENCED(mods);
+    UNREFERENCED(scancode); UNREFERENCED(action); UNREFERENCED(mods);
     if (key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose(window, 1);
     }
@@ -30,7 +28,7 @@ static void _GlfwKeyboardCallback(GLFWwindow* window, int key, int scancode, int
 
 int main(int argc, char* argv[])
 {
-    (void)argc; (void)argv;
+    UNREFERENCED(argc); UNREFERENCED(argv);
 
     // Initialize GLFW
     glfwSetErrorCallback(_GlfwErrorCallback);
