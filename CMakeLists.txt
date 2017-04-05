@@ -15,6 +15,7 @@ include(igpa-targets)
 ######################
 # 3rd party source   #
 ######################
+find_package(glfw)
 
 ######################
 # Configuration      #

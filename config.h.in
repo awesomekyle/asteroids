@@ -19,5 +19,9 @@
  */
 #pragma once
 
+#ifndef UNREFERENCED
+#define UNREFERENCED(v) (void)(v)
+#endif /* UNREFERENCED */
+
 #cmakedefine HAVE_PTHREAD_H 1
 #cmakedefine HAVE_VULKAN @HAVE_VULKAN@
