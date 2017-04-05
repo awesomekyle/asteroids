@@ -9,6 +9,7 @@ igpa_add_executable(${TARGET} ${SOURCES})
 target_link_libraries(${TARGET}
     PRIVATE
         glfw
+        gfx
     PUBLIC
 )
 
