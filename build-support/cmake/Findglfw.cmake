@@ -6,3 +6,8 @@ option(GLFW_BUILD_DOCS "Build the GLFW documentation" OFF)
 option(GLFW_INSTALL "Generate installation target" OFF)
 
 add_subdirectory(${GLFW_PATH})
+
+if(${CMAKE_CXX_COMPILER_ID} MATCHES GNU OR ${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
+    # GLFW uses deprecated functionality, so warnings are disabled
+    target_compile_options(glfw PRIVATE -w)
+endif()

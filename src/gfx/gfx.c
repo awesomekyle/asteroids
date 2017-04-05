@@ -17,6 +17,7 @@ Gfx* gfxCreate(void)
 
 void gfxDestroy(Gfx* G)
 {
+    (void)G;
     #if HAVE_D3D12
         gfxDestroyD3D12(G);
     #endif
