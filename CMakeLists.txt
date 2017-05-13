@@ -16,6 +16,7 @@ include(igpa-targets)
 # 3rd party source   #
 ######################
 find_package(glfw)
+find_package(catch)
 find_package(d3dx12)
 
 ######################
