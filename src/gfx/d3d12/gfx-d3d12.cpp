@@ -13,6 +13,9 @@ extern "C" {
 #endif
 #include <atlbase.h>
 
+static constexpr UINT kFramesInProgress = 3;
+static constexpr size_t kMaxBackBuffers = 4;
+
 struct Gfx {
     // Types
     struct Adapter {
@@ -31,7 +34,9 @@ struct Gfx {
     ID3D12Fence*        renderFence;
     uint64_t            lastFenceCompletion;
 
-    IDXGISwapChain3*    swapChain;
+    IDXGISwapChain3*        swapChain;
+    DXGI_SWAP_CHAIN_DESC1   swapChainDesc;
+    ID3D12Resource*         backBuffers[kMaxBackBuffers];
 
 #if defined(_DEBUG)
     IDXGIDebug1*        dxgiDebug;
@@ -45,15 +50,19 @@ struct Gfx {
 //////
 namespace {
 
-constexpr UINT kFramesInProgress = 3;
-
 template<class D>
-void _SetName(D* const object, char const* const name)
+void _SetName(D* object, char const* const format, ...)
 {
-    if (name) {
-        object->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strnlen(name, 128), name);
+    va_list args;
+    if (object && format) {
+        char buffer[128] = {};
+        va_start(args, format);
+        vsnprintf(buffer, sizeof(buffer), format, args);
+        va_end(args);
+        object->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strnlen(buffer, sizeof(buffer)), buffer);
     }
 }
+
 template<class D>
 ULONG _SafeRelease(D*& obj)
 {
@@ -250,6 +259,9 @@ Gfx* gfxCreateD3D12(void)
 void gfxDestroyD3D12(Gfx* G)
 {
     assert(G);
+    for (auto*& backBuffer : G->backBuffers) {
+        _SafeRelease(backBuffer);
+    }
     _SafeRelease(G->swapChain);
     _SafeRelease(G->renderFence);
     _SafeRelease(G->renderQueue);
@@ -306,11 +318,23 @@ bool gfxCreateSwapChain(Gfx* const G, void* const window)
     assert(SUCCEEDED(hr) && "Could not disable alt-enter");
 
     _SetName(G->swapChain, "DXGI Swap Chain");
+    G->swapChainDesc = swapChainDesc;
     return true;
 }
 void gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
 {
     _WaitForIdle(G);
+    for (auto*& backBuffer : G->backBuffers) {
+        _SafeRelease(backBuffer);
+    }
+    HRESULT hr = G->swapChain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+    assert(SUCCEEDED(hr) && "Could not resize buffers");
+    G->swapChain->GetDesc1(&G->swapChainDesc);
+    for (UINT ii = 0; ii < G->swapChainDesc.BufferCount; ++ii) {
+        hr = G->swapChain->GetBuffer(ii, IID_PPV_ARGS(&G->backBuffers[ii]));
+        assert(SUCCEEDED(hr) && "Could not get back buffer");
+        _SetName(G->backBuffers[ii], "Back Buffer %d", ii);
+    }
 }
 
 } // extern "C"
