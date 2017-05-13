@@ -14,6 +14,10 @@ extern "C" {
 
 namespace {
 
+// Global initialization
+int const glfwInitialized = glfwInit();
+int const glfwTerminationRegistered = atexit(glfwTerminate);
+
 void* NativeWindow(GLFWwindow* const window)
 {
 #if defined(_WIN32)
@@ -37,8 +41,10 @@ TEST_CASE("Gfx window interaction")
 {
     GIVEN("A Graphics object and OS window")
     {
-        // GLFW initialization
-        REQUIRE(glfwInit());
+        REQUIRE(glfwInitialized);
+        REQUIRE(glfwTerminationRegistered == 0);
+
+        // Create window
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         GLFWwindow* const window = glfwCreateWindow(10, 10, "Gfx Test", NULL, NULL);
         REQUIRE(window);
@@ -46,17 +52,29 @@ TEST_CASE("Gfx window interaction")
         Gfx* const G = gfxCreate();
         REQUIRE(G);
 
-        WHEN("A swap chain is created")
+        WHEN("resized with no swap chain")
+        {
+            bool const result = gfxResize(G, 10, 10);
+            THEN("the resize fails")
+            {
+                REQUIRE_FALSE(result);
+            }
+        }
+        WHEN("a swap chain is created")
         {
             bool const result = gfxCreateSwapChain(G, NativeWindow(window));
             THEN("the creation was successful")
             {
                 REQUIRE(result);
             }
+            THEN("the device can be resized")
+            {
+                REQUIRE(gfxResize(G, 10, 10));
+            }
         }
 
+        glfwDestroyWindow(window);
         gfxDestroy(G);
-        glfwTerminate();
     }
 }
 
