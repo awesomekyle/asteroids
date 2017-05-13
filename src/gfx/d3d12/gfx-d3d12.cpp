@@ -223,6 +223,8 @@ Gfx* gfxCreateD3D12(void)
     assert(SUCCEEDED(hr));
     hr = _CreateDevice(G);
     assert(SUCCEEDED(hr));
+    hr = _CreateQueues(G);
+    assert(SUCCEEDED(hr));
 
     return G;
 }
@@ -230,6 +232,8 @@ Gfx* gfxCreateD3D12(void)
 void gfxDestroyD3D12(Gfx* G)
 {
     assert(G);
+    _SafeRelease(G->renderFence);
+    _SafeRelease(G->renderQueue);
     _SafeRelease(G->device);
     for (auto& adapter : G->adapters) {
         _SafeRelease(adapter.adapter);
@@ -244,6 +248,13 @@ void gfxDestroyD3D12(Gfx* G)
         _SafeRelease(G->dxgiDebug);
     #endif // _DEBUG
     free(G);
+}
+
+bool gfxCreateSwapChain(Gfx* const G, void* const window)
+{
+    UNREFERENCED_PARAMETER(G);
+    UNREFERENCED_PARAMETER(window);
+    return true;
 }
 
 } // extern "C"

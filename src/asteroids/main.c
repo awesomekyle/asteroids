@@ -21,13 +21,22 @@ static Gfx* gGfx = NULL;
 //////
 // Functions
 //////
-static bool _InitializeApp(void)
+static bool _InitializeApp(GLFWwindow* const window)
 {
     gGfx = gfxCreate();
-    if(gGfx == NULL) {
+    if (gGfx == NULL) {
         assert(gGfx != NULL && "Could not create Gfx device");
         return false;
     }
+    #if defined(_WIN32)
+        bool const result = gfxCreateSwapChain(gGfx, glfwGetWin32Window(window));
+        if (result == false) {
+            assert(result == true && "Could not create swap chain for window");
+            return false;
+        }
+    #else
+        #warning "Not passing native window to Gfx"
+    #endif
     return true;
 }
 static void _ShutdownApp(void)
@@ -67,7 +76,7 @@ int main(int argc, char* argv[])
     glfwSetKeyCallback(window, _GlfwKeyboardCallback);
 
     // Initialize app
-    bool const result = _InitializeApp();
+    bool const result = _InitializeApp(window);
     if(result != true) {
         fprintf(stderr, "Could not initialize app\n");
         return 2;
