@@ -25,9 +25,13 @@ struct Gfx {
     Adapter         adapters[4];
     Adapter*        currentAdapter;
 
+    ID3D12Device*       device;
+    D3D_FEATURE_LEVEL   featureLevel;
+
 #if defined(_DEBUG)
-    IDXGIDebug1*    dxgi_debug;
-    IDXGIInfoQueue* dxgi_info_queue;
+    IDXGIDebug1*        dxgiDebug;
+    IDXGIInfoQueue*     dxgiInfoQueue;
+    ID3D12InfoQueue*    d3d12InfoQueue;
 #endif
 };
 
@@ -64,19 +68,19 @@ HRESULT _CreateDebugInterfaces(Gfx* const G)
     if (dxgiDebugModule) {
         auto const* const pDXGIGetDebugInterface = reinterpret_cast<decltype(&DXGIGetDebugInterface)>(GetProcAddress(dxgiDebugModule, "DXGIGetDebugInterface"));
         if (pDXGIGetDebugInterface) {
-            hr = pDXGIGetDebugInterface(IID_PPV_ARGS(&G->dxgi_debug));
+            hr = pDXGIGetDebugInterface(IID_PPV_ARGS(&G->dxgiDebug));
             assert(SUCCEEDED(hr) && "Could not create DXGIDebug interface");
-            hr = pDXGIGetDebugInterface(IID_PPV_ARGS(&G->dxgi_info_queue));
+            hr = pDXGIGetDebugInterface(IID_PPV_ARGS(&G->dxgiInfoQueue));
             assert(SUCCEEDED(hr) && "Could not create DXGIInfoQueue interface");
-            if (G->dxgi_debug) {
-                G->dxgi_debug->EnableLeakTrackingForThread();
+            if (G->dxgiDebug) {
+                G->dxgiDebug->EnableLeakTrackingForThread();
             }
-            if (G->dxgi_info_queue) {
-                G->dxgi_info_queue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, TRUE);
-                G->dxgi_info_queue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, TRUE);
-                G->dxgi_info_queue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_WARNING, FALSE);
-                G->dxgi_info_queue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_INFO, FALSE);
-                G->dxgi_info_queue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_MESSAGE, FALSE);
+            if (G->dxgiInfoQueue) {
+                G->dxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_ERROR, TRUE);
+                G->dxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+                G->dxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_WARNING, FALSE);
+                G->dxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_INFO, FALSE);
+                G->dxgiInfoQueue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_MESSAGE, FALSE);
             }
         }
     }
@@ -127,6 +131,61 @@ HRESULT _FindAdapters(Gfx* const G)
     }
     return hr;
 }
+HRESULT _CreateDevice(Gfx* const G)
+{
+    auto const d3d12Module = LoadLibraryA("d3d12.dll");
+    assert(d3d12Module && "Could not load d3d12.dll");
+#if defined(_DEBUG)
+    // create debug interface
+    auto const* pD3D12GetDebugInterface = decltype(&D3D12GetDebugInterface)(GetProcAddress(d3d12Module, "D3D12GetDebugInterface"));
+    CComPtr<ID3D12Debug> debugController;
+    if (SUCCEEDED(pD3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
+        debugController->EnableDebugLayer();
+    }
+#endif
+
+    HRESULT hr = S_OK;
+    auto const* pD3D12CreateDevice = decltype(&D3D12CreateDevice)(GetProcAddress(d3d12Module, "D3D12CreateDevice"));
+    for (auto& adapter : G->adapters) {
+        if (adapter.adapter == nullptr) {
+            break;
+        }
+        hr = pD3D12CreateDevice(adapter.adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&G->device));
+        if (SUCCEEDED(hr)) {
+            D3D_FEATURE_LEVEL const levels[] = {
+                D3D_FEATURE_LEVEL_9_1,
+                D3D_FEATURE_LEVEL_9_2,
+                D3D_FEATURE_LEVEL_9_3,
+                D3D_FEATURE_LEVEL_10_0,
+                D3D_FEATURE_LEVEL_10_1,
+                D3D_FEATURE_LEVEL_11_0,
+                D3D_FEATURE_LEVEL_11_1,
+                D3D_FEATURE_LEVEL_12_0,
+                D3D_FEATURE_LEVEL_12_1
+            };
+            D3D12_FEATURE_DATA_FEATURE_LEVELS featureLevels = {_countof(levels), levels};
+            hr = G->device->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &featureLevels, sizeof(featureLevels));
+            assert(SUCCEEDED(hr));
+            G->featureLevel = featureLevels.MaxSupportedFeatureLevel;
+            G->currentAdapter = &adapter;
+            G->device->SetStablePowerState(TRUE);
+            _SetName(G->device, "D3D12 device");
+            break;
+        }
+    }
+
+#if defined(_DEBUG)
+    G->device->QueryInterface(IID_PPV_ARGS(&G->d3d12InfoQueue));
+    if (G->d3d12InfoQueue) {
+        G->d3d12InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
+        G->d3d12InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+        G->d3d12InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, FALSE);
+        G->d3d12InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_INFO, FALSE);
+        G->d3d12InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_MESSAGE, FALSE);
+    }
+#endif
+    return hr;
+}
 
 } // anonymous
 
@@ -144,22 +203,27 @@ Gfx* gfxCreateD3D12(void)
     assert(SUCCEEDED(hr));
     hr = _FindAdapters(G);
     assert(SUCCEEDED(hr));
+    hr = _CreateDevice(G);
+    assert(SUCCEEDED(hr));
+
     return G;
 }
 
 void gfxDestroyD3D12(Gfx* G)
 {
     assert(G);
+    _SafeRelease(G->device);
     for (auto& adapter : G->adapters) {
         _SafeRelease(adapter.adapter);
     }
     _SafeRelease(G->factory);
     #if _DEBUG
-        _SafeRelease(G->dxgi_info_queue);
-        if (G->dxgi_debug) {
-            G->dxgi_debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+        _SafeRelease(G->d3d12InfoQueue);
+        _SafeRelease(G->dxgiInfoQueue);
+        if (G->dxgiDebug) {
+            G->dxgiDebug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
         }
-        _SafeRelease(G->dxgi_debug);
+        _SafeRelease(G->dxgiDebug);
     #endif // _DEBUG
     free(G);
 }
