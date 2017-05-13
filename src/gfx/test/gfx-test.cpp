@@ -110,6 +110,13 @@ TEST_CASE("Gfx command interface")
             THEN("it can be properly executed") {
                 REQUIRE(gfxExecuteCommandBuffer(cmdBuffer));
             }
+            THEN("render passes can be executed") {
+                float const clearColor[] = { 0, 0, 0, 1 };
+                gfxCmdBeginRenderPass(cmdBuffer,
+                                      kGfxInvalidHandle,
+                                      kGfxRenderPassActionClear,
+                                      clearColor);
+            }
         }
         WHEN("all command buffers are requested")
         {

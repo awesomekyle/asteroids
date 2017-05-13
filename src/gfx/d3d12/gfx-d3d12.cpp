@@ -502,4 +502,18 @@ bool gfxExecuteCommandBuffer(GfxCmdBuffer * B)
     return SUCCEEDED(hr);
 }
 
+void gfxCmdBeginRenderPass(GfxCmdBuffer * B,
+                           GfxRenderTarget renderTargetHandle,
+                           GfxRenderPassAction loadAction,
+                           float const clearColor[4])
+{
+    D3D12_CPU_DESCRIPTOR_HANDLE const rtDescriptor = { (SIZE_T)renderTargetHandle };
+    if (renderTargetHandle != kGfxInvalidHandle) {
+        B->list->OMSetRenderTargets(1, &rtDescriptor, false, nullptr);
+        if (loadAction == kGfxRenderPassActionClear) {
+            B->list->ClearRenderTargetView(rtDescriptor, clearColor, 0, nullptr);
+        }
+    }
+}
+
 } // extern "C"

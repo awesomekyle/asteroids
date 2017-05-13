@@ -11,7 +11,7 @@ typedef struct GfxCmdBuffer GfxCmdBuffer;
 enum {
     kGfxInvalidHandle = 0xFFFFFFFFFFFFFFFF,
 };
-typedef uintptr_t GfxRenderTarget;
+typedef intptr_t GfxRenderTarget;
 
 /// @brief Creates a new graphics device
 Gfx* gfxCreate(void);
@@ -48,3 +48,16 @@ void gfxResetCommandBuffer(GfxCmdBuffer* B);
 
 /// @brief Executes a command buffer on the GPU
 bool gfxExecuteCommandBuffer(GfxCmdBuffer* B);
+
+//------------------ Command Buffer Interface ----------------------------------
+
+typedef enum GfxRenderPassAction {
+    kGfxRenderPassActionClear,
+} GfxRenderPassAction;
+
+/// @brief Begins a "render pass", a collection of API calls that all occur on
+///     the same render target set.
+void gfxCmdBeginRenderPass(GfxCmdBuffer* B,
+                           GfxRenderTarget renderTargetHandle,
+                           GfxRenderPassAction loadAction,
+                           float const clearColor[4]);
