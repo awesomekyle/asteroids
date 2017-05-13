@@ -195,7 +195,7 @@ endfunction()
 function(igpa_add_executable IGPA_TARGET)
     cmake_parse_arguments(
         IGPA        # Save arguments with this prefix
-        "WIN32;32_AND_64_BIT"   # Options with no arguments
+        "WIN32;32_AND_64_BIT;ENABLE_RTTI_EXCEPTIONS"   # Options with no arguments
         "FOLDER"    # Options with a single argument
         "SOURCES"   # Options with multiple arguments
         ${ARGN}     # Arguments to parse
@@ -232,6 +232,27 @@ function(igpa_add_executable IGPA_TARGET)
 
     # Set default compile options.
     setup_compile_options(${IGPA_TARGET})
+
+    if(IGPA_ENABLE_RTTI_EXCEPTIONS)
+        message(STATUS "Exceptions on")
+        if(MSVC)
+            target_compile_options(${IGPA_TARGET}
+                PRIVATE
+                    "/GR"
+                    "/EHsc"
+            )
+            target_compile_definitions(${IGPA_TARGET}
+                PRIVATE
+                    -D_HAS_EXCEPTIONS=1
+            )
+        else()
+            target_compile_options(${IGPA_TARGET}
+                PRIVATE
+                    "-fno-rtti"
+                    "-fno-exceptions"
+            )
+        endif()
+    endif()
 
     get_property(TARGET_SOURCES TARGET ${IGPA_TARGET} PROPERTY SOURCES)
 

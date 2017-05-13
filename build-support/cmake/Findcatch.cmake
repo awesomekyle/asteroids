@@ -8,21 +8,7 @@ target_include_directories(catch
 set_default_target_folder(catch)
 
 function(igpa_add_catchtest target)
-    if(MSVC)
-         # Enable RTTI
-        string(REGEX REPLACE "/GR-" "/GR" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-         # Enable C++ exceptions
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc" PARENT_SCOPE)
-        add_definitions(-D_HAS_EXCEPTIONS=1)
-    else()
-         # Enable RTTI
-        string(REGEX REPLACE "-fno-rtti" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} )
-         # Enable C++ exceptions
-        string(REGEX REPLACE "-fno-exceptions" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" PARENT_SCOPE)
-    endif()
-
-    igpa_add_executable(${target} ${ARGN})
+    igpa_add_executable(${target} ENABLE_RTTI_EXCEPTIONS ${ARGN})
     target_link_libraries(${target} PRIVATE catch)
 
     if(CI_BUILD)
