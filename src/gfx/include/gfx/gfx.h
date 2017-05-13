@@ -7,6 +7,12 @@ typedef struct Gfx Gfx;
 /// Object representing a graphics command buffer/command list
 typedef struct GfxCmdBuffer GfxCmdBuffer;
 
+/// Opaque object handles
+enum {
+    kGfxInvalidHandle = 0xFFFFFFFFFFFFFFFF,
+};
+typedef uintptr_t GfxRenderTarget;
+
 /// @brief Creates a new graphics device
 Gfx* gfxCreate(void);
 /// @brief Terminates and destroys a graphics device
@@ -22,6 +28,9 @@ bool gfxCreateSwapChain(Gfx* G, void* window);
 /// @brief Called when the window is resized.
 /// @details Pass in window size in pixels, not points
 bool gfxResize(Gfx* G, int width, int height);
+
+/// @brief Returns the next back buffer
+GfxRenderTarget gfxGetBackBuffer(Gfx* G);
 
 /// @brief Returns an open, ready to use command buffer
 /// @return NULL if no command buffers are available

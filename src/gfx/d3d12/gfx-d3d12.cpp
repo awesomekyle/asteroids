@@ -446,6 +446,11 @@ bool gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
     gfxExecuteCommandBuffer(commandList);
     return true;
 }
+GfxRenderTarget gfxGetBackBuffer(Gfx* G)
+{
+    UINT const frameIndex = G->swapChain->GetCurrentBackBufferIndex();
+    return G->rtvHeap.CpuSlot(frameIndex).ptr;
+}
 GfxCmdBuffer* gfxGetCommandBuffer(Gfx * G)
 {
     assert(G);

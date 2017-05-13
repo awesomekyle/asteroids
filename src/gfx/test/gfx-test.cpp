@@ -71,6 +71,10 @@ TEST_CASE("Gfx window interaction")
             {
                 REQUIRE(gfxResize(G, 10, 10));
             }
+            THEN("back buffers can be obtained")
+            {
+                REQUIRE(gfxGetBackBuffer(G) != kGfxInvalidHandle);
+            }
         }
 
         glfwDestroyWindow(window);
