@@ -47,6 +47,7 @@ set(TEST_SOURCES
 igpa_add_catchtest(${TEST_TARGET} ${TEST_SOURCES})
 
 target_link_libraries(${TEST_TARGET}
-    PUBLIC
+    PRIVATE
+        glfw
         ${TARGET}
 )
