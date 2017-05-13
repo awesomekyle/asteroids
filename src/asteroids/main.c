@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <math.h>
 #if defined(_WIN32)
 #   define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined(__APPLE__)
@@ -132,6 +133,17 @@ int main(int argc, char* argv[])
         elapsedTime += deltaTime;
         color += deltaTime;
         glfwPollEvents();
+
+        float const clearColor[] = {
+            sinf(color) * 0.5f + 0.5f,
+            cosf(color*1.1f) * 0.5f + 0.5f,
+            sinf(color*0.7f) * cosf(0.9f) * 0.5f + 0.5f,
+            1.0f
+        };
+        GfxCmdBuffer* const buffer = gfxGetCommandBuffer(gGfx);
+        gfxCmdBeginRenderPass(buffer, gfxGetBackBuffer(gGfx), kGfxRenderPassActionClear, clearColor);
+        gfxCmdEndRenderPass(buffer);
+        gfxExecuteCommandBuffer(buffer);
     }
 
     _ShutdownApp();

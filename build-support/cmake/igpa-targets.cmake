@@ -113,6 +113,8 @@ function(setup_compile_options target)
                     /WX
                     /MP # Multi-processor compile
                     /sdl # Software Development Lifecycle security checks
+                    /wd4204 # non-constant aggregate initalizers (supported in
+                            # C99, which MSFT supports)
             )
         elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
             target_compile_options(${target}
