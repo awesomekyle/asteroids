@@ -449,17 +449,20 @@ bool gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
 GfxCmdBuffer* gfxGetCommandBuffer(Gfx * G)
 {
     assert(G);
-    for (uint32_t ii = 0; ii < kMaxCommandLists; ++ii) {
-        uint32_t const index = G->currentCommandList.fetch_add(1) & (kMaxCommandLists-1);
-        auto& commandList = G->commandLists[index];
-        if (G->renderFence->GetCompletedValue() >= commandList.completion) {
-            HRESULT const hr = commandList.list->Reset(commandList.allocator, nullptr);
-            assert(SUCCEEDED(hr) && "Could not reset command list");
-            commandList.completion = UINT64_MAX;
-            return &commandList;
-        }
+    uint_fast32_t const currIndex = G->currentCommandList.fetch_add(1) % kMaxCommandLists;
+    GfxCmdBuffer* const list = &G->commandLists[currIndex];
+    uint64_t const lastCompletedValue = G->renderFence->GetCompletedValue();
+    if(lastCompletedValue < list->completion) {
+        /// @TODO: This case needs to be handled
+        //assert(lastCompletedValue >= list->completion && "Oldest command buffer not yet completed. Continue through the queue?");
+        return nullptr;
     }
-    return nullptr;
+    list->completion = UINT64_MAX;
+    HRESULT hr = list->allocator->Reset();
+    assert(SUCCEEDED(hr) && "Could not reset allocator");
+    hr = list->list->Reset(list->allocator, nullptr);
+    assert(SUCCEEDED(hr) && "Could not reset command list");
+    return list;
 }
 int gfxNumAvailableCommandBuffers(Gfx * G)
 {
@@ -479,8 +482,6 @@ void gfxResetCommandBuffer(GfxCmdBuffer * B)
     assert(B);
     HRESULT hr = B->list->Close();
     assert(SUCCEEDED(hr) && "Could not close command list");
-    hr = B->list->Reset(B->allocator, nullptr);
-    assert(SUCCEEDED(hr) && "Could not reset command list");
     B->completion = 0;
 }
 
