@@ -13,6 +13,11 @@ extern "C" {
 #endif
 #include <atlbase.h>
 
+#pragma warning(push)
+#pragma warning(disable:4324) // structure was padded due to alignment specifier
+#include <d3dx12.h>
+#pragma warning(pop)
+
 static constexpr UINT kFramesInProgress = 3;
 static constexpr size_t kMaxBackBuffers = 4;
 

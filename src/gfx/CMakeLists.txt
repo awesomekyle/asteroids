@@ -31,6 +31,7 @@ if(HAVE_D3D12)
             d3d12
             dxguid
             dxgi
+            d3dx12
         PUBLIC
     )
 endif()
