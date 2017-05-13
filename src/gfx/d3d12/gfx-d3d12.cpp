@@ -411,6 +411,9 @@ bool gfxCreateSwapChain(Gfx* const G, void* const window)
 
     _SetName(G->swapChain, "DXGI Swap Chain");
     G->swapChainDesc = swapChainDesc;
+
+    gfxResize(G, G->swapChainDesc.Width, G->swapChainDesc.Height);
+
     return true;
 }
 bool gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
@@ -448,8 +451,47 @@ bool gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
 }
 GfxRenderTarget gfxGetBackBuffer(Gfx* G)
 {
+    assert(G);
     UINT const frameIndex = G->swapChain->GetCurrentBackBufferIndex();
     return G->rtvHeap.CpuSlot(frameIndex).ptr;
+}
+bool gfxPresent(Gfx * G)
+{
+    assert(G);
+    auto const currentIndex = G->swapChain->GetCurrentBackBufferIndex();
+    auto const nextIndex = (currentIndex + 1) % kFramesInProgress;
+
+    // set up barriers
+    D3D12_RESOURCE_BARRIER const barriers[] = {
+        CD3DX12_RESOURCE_BARRIER::Transition(G->backBuffers[currentIndex], D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT),
+        CD3DX12_RESOURCE_BARRIER::Transition(G->backBuffers[nextIndex], D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET),
+    };
+
+    // transition to present
+    GfxCmdBuffer* commandList = gfxGetCommandBuffer(G);
+    assert(commandList);
+    commandList->list->ResourceBarrier(1, barriers + 0);
+    bool result = gfxExecuteCommandBuffer(commandList);
+    assert(result);
+
+    if (G->swapChain) {
+        DXGI_PRESENT_PARAMETERS const params = {
+            0,
+            nullptr,
+            nullptr,
+            nullptr,
+        };
+        HRESULT const hr = G->swapChain->Present1(0, 0, &params);
+        assert(SUCCEEDED(hr));
+    }
+
+    // transition previous back buffer
+    commandList = gfxGetCommandBuffer(G);
+    assert(commandList);
+    commandList->list->ResourceBarrier(1, barriers + 1);
+    result = gfxExecuteCommandBuffer(commandList);
+    assert(result);
+    return true;
 }
 GfxCmdBuffer* gfxGetCommandBuffer(Gfx * G)
 {
@@ -507,6 +549,7 @@ void gfxCmdBeginRenderPass(GfxCmdBuffer * B,
                            GfxRenderPassAction loadAction,
                            float const clearColor[4])
 {
+    assert(B);
     D3D12_CPU_DESCRIPTOR_HANDLE const rtDescriptor = { (SIZE_T)renderTargetHandle };
     if (renderTargetHandle != kGfxInvalidHandle) {
         B->list->OMSetRenderTargets(1, &rtDescriptor, false, nullptr);

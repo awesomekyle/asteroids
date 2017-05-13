@@ -32,6 +32,9 @@ bool gfxResize(Gfx* G, int width, int height);
 /// @brief Returns the next back buffer
 GfxRenderTarget gfxGetBackBuffer(Gfx* G);
 
+/// @brief Presents the back buffer to the screen
+bool gfxPresent(Gfx* G);
+
 /// @brief Returns an open, ready to use command buffer
 /// @return NULL if no command buffers are available
 GfxCmdBuffer* gfxGetCommandBuffer(Gfx* G);

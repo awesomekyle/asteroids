@@ -75,6 +75,10 @@ TEST_CASE("Gfx window interaction")
             {
                 REQUIRE(gfxGetBackBuffer(G) != kGfxInvalidHandle);
             }
+            THEN("the back buffer can be presented")
+            {
+                REQUIRE(gfxPresent(G));
+            }
         }
 
         glfwDestroyWindow(window);
@@ -106,6 +110,7 @@ TEST_CASE("Gfx command interface")
                         REQUIRE(gfxNumAvailableCommandBuffers(G) == 128);
                     }
                 }
+                
             }
             THEN("it can be properly executed") {
                 REQUIRE(gfxExecuteCommandBuffer(cmdBuffer));

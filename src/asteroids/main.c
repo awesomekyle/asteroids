@@ -144,6 +144,8 @@ int main(int argc, char* argv[])
         gfxCmdBeginRenderPass(buffer, gfxGetBackBuffer(gGfx), kGfxRenderPassActionClear, clearColor);
         gfxCmdEndRenderPass(buffer);
         gfxExecuteCommandBuffer(buffer);
+
+        gfxPresent(gGfx);
     }
 
     _ShutdownApp();
