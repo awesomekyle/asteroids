@@ -468,5 +468,13 @@ int gfxNumAvailableCommandBuffers(Gfx * G)
     }
     return freeBuffers;
 }
+void gfxResetCommandBuffer(GfxCmdBuffer * B)
+{
+    HRESULT hr = B->list->Close();
+    assert(SUCCEEDED(hr) && "Could not close command list");
+    hr = B->list->Reset(B->allocator, nullptr);
+    assert(SUCCEEDED(hr) && "Could not reset command list");
+    B->completion = 0;
+}
 
 } // extern "C"

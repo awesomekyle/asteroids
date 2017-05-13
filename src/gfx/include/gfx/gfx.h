@@ -31,3 +31,8 @@ GfxCmdBuffer* gfxGetCommandBuffer(Gfx* G);
 /// @note This method is not atomic, due to threading, this number may not be
 ///     exact.
 int gfxNumAvailableCommandBuffers(Gfx* G);
+
+/// @brief Resets a command buffer to restore it to the Gfx device without
+///     execution
+/// @note After this call, the buffer should no longer be accessed
+void gfxResetCommandBuffer(GfxCmdBuffer* B);

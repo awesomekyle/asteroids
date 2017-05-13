@@ -92,8 +92,17 @@ TEST_CASE("Gfx command interface")
             {
                 REQUIRE(cmdBuffer);
                 REQUIRE(gfxNumAvailableCommandBuffers(G) == 127);
-            }
 
+                AND_WHEN("the command buffer is released")
+                {
+                    gfxResetCommandBuffer(cmdBuffer);
+
+                    THEN("the buffer is added back to the pool")
+                    {
+                        REQUIRE(gfxNumAvailableCommandBuffers(G) == 128);
+                    }
+                }
+            }
         }
         WHEN("all command buffers are requested")
         {
