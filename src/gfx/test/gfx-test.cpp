@@ -116,6 +116,7 @@ TEST_CASE("Gfx command interface")
                                       kGfxInvalidHandle,
                                       kGfxRenderPassActionClear,
                                       clearColor);
+                gfxCmdEndRenderPass(cmdBuffer);
             }
         }
         WHEN("all command buffers are requested")

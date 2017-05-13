@@ -516,4 +516,8 @@ void gfxCmdBeginRenderPass(GfxCmdBuffer * B,
     }
 }
 
+void gfxCmdEndRenderPass(GfxCmdBuffer* /*B*/)
+{
+}
+
 } // extern "C"

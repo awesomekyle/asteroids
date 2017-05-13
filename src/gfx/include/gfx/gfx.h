@@ -61,3 +61,4 @@ void gfxCmdBeginRenderPass(GfxCmdBuffer* B,
                            GfxRenderTarget renderTargetHandle,
                            GfxRenderPassAction loadAction,
                            float const clearColor[4]);
+void gfxCmdEndRenderPass(GfxCmdBuffer* B);
