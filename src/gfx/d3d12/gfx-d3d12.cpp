@@ -27,6 +27,8 @@ struct Gfx {
 
     ID3D12Device*       device;
     D3D_FEATURE_LEVEL   featureLevel;
+    ID3D12CommandQueue* renderQueue;
+    ID3D12Fence*        renderFence;
 
 #if defined(_DEBUG)
     IDXGIDebug1*        dxgiDebug;
@@ -184,6 +186,22 @@ HRESULT _CreateDevice(Gfx* const G)
         G->d3d12InfoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_MESSAGE, FALSE);
     }
 #endif
+    return hr;
+}
+HRESULT _CreateQueues(Gfx* const G)
+{
+    D3D12_COMMAND_QUEUE_DESC const queueDesc = {
+        D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
+        0,
+        D3D12_COMMAND_QUEUE_FLAGS::D3D12_COMMAND_QUEUE_FLAG_NONE,
+        0
+    };
+    HRESULT hr = G->device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&G->renderQueue));
+    assert(SUCCEEDED(hr) && "Could not create queue");
+    _SetName(G->renderQueue, "Render Queue");
+    hr = G->device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&G->renderFence));
+    assert(SUCCEEDED(hr) && "Could not create render fence");
+    _SetName(G->renderFence, "Render Fence");
     return hr;
 }
 
