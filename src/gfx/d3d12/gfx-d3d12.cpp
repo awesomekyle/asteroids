@@ -24,6 +24,7 @@ static constexpr size_t kMaxBackBuffers = 4;
 static constexpr size_t kMaxCommandLists = 128;
 
 struct GfxCmdBuffer {
+    Gfx* G;
     ID3D12CommandAllocator*     allocator;
     ID3D12GraphicsCommandList*  list;
     uint64_t    completion;
@@ -324,6 +325,7 @@ Gfx* gfxCreateD3D12(void)
     // Command lists
     for (size_t ii = 0; ii < kMaxCommandLists; ++ii) {
         auto& commandList = G->commandLists[ii];
+        commandList.G = G;
         hr = G->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
                                                IID_PPV_ARGS(&commandList.allocator));
         assert(SUCCEEDED(hr) && "Could not create allocator");
@@ -438,9 +440,12 @@ bool gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
                                                               D3D12_RESOURCE_STATE_PRESENT,
                                                               D3D12_RESOURCE_STATE_RENDER_TARGET);
 
+    // make back buffer presentable
+    GfxCmdBuffer* const commandList = gfxGetCommandBuffer(G);
+    commandList->list->ResourceBarrier(1, &barrier);
+    gfxExecuteCommandBuffer(commandList);
     return true;
 }
-GfxCmdBuffer * gfxGetCommandBuffer(Gfx * G)
 GfxCmdBuffer* gfxGetCommandBuffer(Gfx * G)
 {
     assert(G);
@@ -458,6 +463,7 @@ GfxCmdBuffer* gfxGetCommandBuffer(Gfx * G)
 }
 int gfxNumAvailableCommandBuffers(Gfx * G)
 {
+    assert(G);
     int freeBuffers = 0;
     for (uint32_t ii = 0; ii < kMaxCommandLists; ++ii) {
         uint32_t const index = G->currentCommandList.fetch_add(1) & (kMaxCommandLists-1);
@@ -470,11 +476,24 @@ int gfxNumAvailableCommandBuffers(Gfx * G)
 }
 void gfxResetCommandBuffer(GfxCmdBuffer * B)
 {
+    assert(B);
     HRESULT hr = B->list->Close();
     assert(SUCCEEDED(hr) && "Could not close command list");
     hr = B->list->Reset(B->allocator, nullptr);
     assert(SUCCEEDED(hr) && "Could not reset command list");
     B->completion = 0;
+}
+
+bool gfxExecuteCommandBuffer(GfxCmdBuffer * B)
+{
+    assert(B);
+    Gfx* const G = B->G;
+    HRESULT const hr = B->list->Close();
+    assert(SUCCEEDED(hr) && "Could not close command list");
+    G->renderQueue->ExecuteCommandLists(1, CommandListCast(&B->list));
+    B->completion = G->lastFenceCompletion++;
+    G->renderQueue->Signal(G->renderFence, B->completion);
+    return SUCCEEDED(hr);
 }
 
 } // extern "C"

@@ -36,3 +36,6 @@ int gfxNumAvailableCommandBuffers(Gfx* G);
 ///     execution
 /// @note After this call, the buffer should no longer be accessed
 void gfxResetCommandBuffer(GfxCmdBuffer* B);
+
+/// @brief Executes a command buffer on the GPU
+bool gfxExecuteCommandBuffer(GfxCmdBuffer* B);
