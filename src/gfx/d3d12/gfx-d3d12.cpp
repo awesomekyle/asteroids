@@ -18,8 +18,36 @@ extern "C" {
 #include <d3dx12.h>
 #pragma warning(pop)
 
-static constexpr UINT kFramesInProgress = 3;
-static constexpr size_t kMaxBackBuffers = 4;
+namespace {
+
+constexpr UINT kFramesInProgress = 3;
+constexpr size_t kMaxBackBuffers = 4;
+
+///////////////////////////////////////
+// helper structs
+struct DescriptorHeap {
+    ID3D12DescriptorHeap*       heap;
+    D3D12_DESCRIPTOR_HEAP_DESC  desc;
+    D3D12_DESCRIPTOR_HEAP_TYPE  type;
+    CD3DX12_CPU_DESCRIPTOR_HANDLE cpuStart;
+    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuStart;
+    UINT handleSize;
+
+    inline D3D12_CPU_DESCRIPTOR_HANDLE CpuSlot(int slot)
+    {
+        return CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuStart, slot, handleSize);
+    }
+    inline D3D12_GPU_DESCRIPTOR_HANDLE GpuSlot(int slot)
+    {
+        return CD3DX12_GPU_DESCRIPTOR_HANDLE(gpuStart, slot, handleSize);
+    }
+    operator ID3D12DescriptorHeap* ()
+    {
+        return heap;
+    }
+};
+
+} // anonymous
 
 struct Gfx {
     // Types
@@ -42,6 +70,8 @@ struct Gfx {
     IDXGISwapChain3*        swapChain;
     DXGI_SWAP_CHAIN_DESC1   swapChainDesc;
     ID3D12Resource*         backBuffers[kMaxBackBuffers];
+
+    DescriptorHeap  rtvHeap;
 
 #if defined(_DEBUG)
     IDXGIDebug1*        dxgiDebug;
@@ -237,6 +267,26 @@ void _WaitForIdle(Gfx* const G)
         ;
 }
 
+DescriptorHeap CreateDescriptorHeap(ID3D12Device* device,
+    D3D12_DESCRIPTOR_HEAP_DESC const& desc,
+    char const* name = nullptr)
+{
+    DescriptorHeap heap = {};
+    HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap.heap));
+    assert(SUCCEEDED(hr));
+    _SetName(heap.heap, name);
+
+    heap.desc = desc;
+    heap.type = desc.Type;
+    heap.handleSize = device->GetDescriptorHandleIncrementSize(desc.Type);
+    heap.cpuStart = heap.heap->GetCPUDescriptorHandleForHeapStart();
+    if (desc.Flags | D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) {
+        heap.gpuStart = heap.heap->GetGPUDescriptorHandleForHeapStart();
+    }
+    return heap;
+}
+
+
 } // anonymous
 
 
@@ -258,12 +308,19 @@ Gfx* gfxCreateD3D12(void)
     hr = _CreateQueues(G);
     assert(SUCCEEDED(hr));
 
+    D3D12_DESCRIPTOR_HEAP_DESC const rtvHeapDesc = {
+        D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 128,
+        D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0
+    };
+    G->rtvHeap = CreateDescriptorHeap(G->device, rtvHeapDesc, "RTV Heap");
+
     return G;
 }
 
 void gfxDestroyD3D12(Gfx* G)
 {
     assert(G);
+    _SafeRelease(G->rtvHeap.heap);
     for (auto*& backBuffer : G->backBuffers) {
         _SafeRelease(backBuffer);
     }
@@ -326,8 +383,12 @@ bool gfxCreateSwapChain(Gfx* const G, void* const window)
     G->swapChainDesc = swapChainDesc;
     return true;
 }
-void gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
+bool gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
 {
+    assert(G);
+    if(G->swapChain == nullptr) {
+        return false;
+    }
     _WaitForIdle(G);
     for (auto*& backBuffer : G->backBuffers) {
         _SafeRelease(backBuffer);
@@ -339,7 +400,10 @@ void gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
         hr = G->swapChain->GetBuffer(ii, IID_PPV_ARGS(&G->backBuffers[ii]));
         assert(SUCCEEDED(hr) && "Could not get back buffer");
         _SetName(G->backBuffers[ii], "Back Buffer %d", ii);
+        auto const backBufferSlot = G->rtvHeap.CpuSlot(ii);
+        G->device->CreateRenderTargetView(G->backBuffers[ii], nullptr, backBufferSlot);
     }
+    return true;
 }
 
 } // extern "C"
