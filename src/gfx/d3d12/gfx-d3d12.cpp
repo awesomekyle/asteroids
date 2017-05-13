@@ -66,6 +66,7 @@ ULONG _SafeRelease(D*& obj)
 
 HRESULT _CreateDebugInterfaces(Gfx* const G)
 {
+    assert(G);
     HRESULT hr = S_OK;
     (void)G;
 #if defined(_DEBUG)
@@ -95,6 +96,7 @@ HRESULT _CreateDebugInterfaces(Gfx* const G)
 }
 HRESULT _CreateFactory(Gfx* const G)
 {
+    assert(G);
     auto const dxgiModule = LoadLibraryA("dxgi.dll");
     assert(dxgiModule && "Could not load dxgi.dll");
     auto const* pCreateDXGIFactory2 = reinterpret_cast<decltype(&CreateDXGIFactory2)>(GetProcAddress(dxgiModule, "CreateDXGIFactory2"));
@@ -110,6 +112,7 @@ HRESULT _CreateFactory(Gfx* const G)
 }
 HRESULT _FindAdapters(Gfx* const G)
 {
+    assert(G);
     HRESULT hr = S_OK;
     for (UINT ii = 0; ii < _countof(G->adapters); ++ii) {
         auto& adapter = G->adapters[ii];
@@ -139,6 +142,7 @@ HRESULT _FindAdapters(Gfx* const G)
 }
 HRESULT _CreateDevice(Gfx* const G)
 {
+    assert(G);
     auto const d3d12Module = LoadLibraryA("d3d12.dll");
     assert(d3d12Module && "Could not load d3d12.dll");
 #if defined(_DEBUG)
@@ -194,6 +198,7 @@ HRESULT _CreateDevice(Gfx* const G)
 }
 HRESULT _CreateQueues(Gfx* const G)
 {
+    assert(G);
     D3D12_COMMAND_QUEUE_DESC const queueDesc = {
         D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
         0,
@@ -257,6 +262,7 @@ void gfxDestroyD3D12(Gfx* G)
 
 bool gfxCreateSwapChain(Gfx* const G, void* const window)
 {
+    assert(G);
     if (window == nullptr) {
         return false;
     }
