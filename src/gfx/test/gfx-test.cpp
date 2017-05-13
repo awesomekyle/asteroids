@@ -103,6 +103,9 @@ TEST_CASE("Gfx command interface")
                     }
                 }
             }
+            THEN("it can be properly executed") {
+                REQUIRE(gfxExecuteCommandBuffer(cmdBuffer));
+            }
         }
         WHEN("all command buffers are requested")
         {
