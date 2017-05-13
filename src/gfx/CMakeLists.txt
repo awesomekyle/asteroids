@@ -35,3 +35,18 @@ if(HAVE_D3D12)
         PUBLIC
     )
 endif()
+
+########
+# test #
+########
+set(TEST_TARGET ${TARGET}-test)
+set(TEST_SOURCES
+    test/gfx-test.cpp
+)
+
+igpa_add_catchtest(${TEST_TARGET} ${TEST_SOURCES})
+
+target_link_libraries(${TEST_TARGET}
+    PUBLIC
+        ${TARGET}
+)

@@ -3,7 +3,7 @@ set(CATCH_PATH ${CMAKE_SOURCE_DIR}/3rd-party/Catch-1.9.3)
 add_library(catch STATIC ${CATCH_PATH}/catch.cpp)
 target_include_directories(catch
     PUBLIC
-        ${CATCH_PATH}/include
+        ${CATCH_PATH}
 )
 set_default_target_folder(catch)
 
@@ -22,7 +22,7 @@ function(igpa_add_catchtest target)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" PARENT_SCOPE)
     endif()
 
-    ipga_add_executable(${target} ${ARGN})
+    igpa_add_executable(${target} ${ARGN})
     target_link_libraries(${target} PRIVATE catch)
 
     if(CI_BUILD)
