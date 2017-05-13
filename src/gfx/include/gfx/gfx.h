@@ -15,3 +15,7 @@ void gfxDestroy(Gfx* G);
 ///          Windows Vulkan: vkSwapChainKHR
 /// @param[in] window Native window handle (Windows: HWND, macOS: NSWindow*)
 bool gfxCreateSwapChain(Gfx* G, void* window);
+
+/// @brief Called when the window is resized.
+/// @details Pass in window size in pixels, not points
+void gfxResize(Gfx* G, int width, int height);

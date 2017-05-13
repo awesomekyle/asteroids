@@ -14,6 +14,14 @@
 #include "gfx/gfx.h"
 
 //////
+// Constants
+//////
+enum {
+    kWindowWidth  = 1920,
+    kWindowHeight = 1080,
+};
+
+//////
 // Variables
 //////
 static Gfx* gGfx = NULL;
@@ -44,6 +52,21 @@ static void _ShutdownApp(void)
     gfxDestroy(gGfx);
 }
 
+static float _GetWindowScale(GLFWwindow* window)
+{
+    int windowWidth = 0;
+    int framebufferWidth = 0;
+    glfwGetWindowSize(window, &windowWidth, NULL);
+    glfwGetFramebufferSize(window, &framebufferWidth, NULL);
+    return framebufferWidth/(float)windowWidth;
+}
+static void _SetFramebufferSize(GLFWwindow* window, int width, int height)
+{
+    float const scale = _GetWindowScale(window);
+    glfwSetWindowSize(window, (int)(width/scale), (int)(height/scale));
+}
+
+
 //////
 // GLFW callbacks
 //////
@@ -57,6 +80,11 @@ static void _GlfwKeyboardCallback(GLFWwindow* window, int key, int scancode, int
     if (key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose(window, 1);
     }
+}
+static void _GlfwFramebufferSizeCallback(GLFWwindow* window, int width, int height)
+{
+    UNREFERENCED(window);
+    gfxResize(gGfx, width, height);
 }
 
 int main(int argc, char* argv[])
@@ -74,6 +102,9 @@ int main(int argc, char* argv[])
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     GLFWwindow* const window = glfwCreateWindow(800, 600, "Asteroids", NULL, NULL);
     glfwSetKeyCallback(window, _GlfwKeyboardCallback);
+    glfwSetFramebufferSizeCallback(window, _GlfwFramebufferSizeCallback);
+
+    _SetFramebufferSize(window, kWindowWidth, kWindowHeight); // make the callback happen
 
     // Initialize app
     bool const result = _InitializeApp(window);

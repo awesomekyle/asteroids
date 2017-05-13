@@ -299,5 +299,8 @@ bool gfxCreateSwapChain(Gfx* const G, void* const window)
     _SetName(G->swapChain, "DXGI Swap Chain");
     return true;
 }
+void gfxResize(Gfx* const /*G*/, int const /*width*/, int const /*height*/)
+{
+}
 
 } // extern "C"
