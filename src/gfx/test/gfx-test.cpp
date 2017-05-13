@@ -93,6 +93,15 @@ TEST_CASE("Gfx command interface")
                 REQUIRE(cmdBuffer);
             }
         }
+        WHEN("all command buffers are requested")
+        {
+            for (size_t ii = 0; ii < 128; ii++) {
+                gfxGetCommandBuffer(G);
+            }
+            THEN("requesting another fails") {
+                REQUIRE(gfxGetCommandBuffer(G) == nullptr);
+            }
+        }
 
         gfxDestroy(G);
     }
