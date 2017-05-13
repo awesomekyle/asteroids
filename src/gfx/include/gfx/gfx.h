@@ -7,10 +7,8 @@ typedef struct Gfx Gfx;
 /// Object representing a graphics command buffer/command list
 typedef struct GfxCmdBuffer GfxCmdBuffer;
 
-/// Opaque object handles
-enum {
-    kGfxInvalidHandle = 0xFFFFFFFFFFFFFFFF,
-};
+/// Opaque object handle
+uint64_t const kGfxInvalidHandle = 0xFFFFFFFFFFFFFFFF;
 typedef intptr_t GfxRenderTarget;
 
 /// @brief Creates a new graphics device

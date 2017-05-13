@@ -248,8 +248,8 @@ function(igpa_add_executable IGPA_TARGET)
         else()
             target_compile_options(${IGPA_TARGET}
                 PRIVATE
-                    "-fno-rtti"
-                    "-fno-exceptions"
+                    "-frtti"
+                    "-fexceptions"
             )
         endif()
     endif()

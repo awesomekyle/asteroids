@@ -22,6 +22,8 @@ void* NativeWindow(GLFWwindow* const window)
 {
 #if defined(_WIN32)
     return glfwGetWin32Window(window);
+#elif defined(__APPLE__)
+    return glfwGetCocoaWindow(window);
 #else
     #warning "Not passing native window to Gfx"
     return nullptr;
