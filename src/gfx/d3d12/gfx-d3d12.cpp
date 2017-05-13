@@ -441,6 +441,7 @@ bool gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
     return true;
 }
 GfxCmdBuffer * gfxGetCommandBuffer(Gfx * G)
+GfxCmdBuffer* gfxGetCommandBuffer(Gfx * G)
 {
     assert(G);
     for (uint32_t ii = 0; ii < kMaxCommandLists; ++ii) {
@@ -454,6 +455,18 @@ GfxCmdBuffer * gfxGetCommandBuffer(Gfx * G)
         }
     }
     return nullptr;
+}
+int gfxNumAvailableCommandBuffers(Gfx * G)
+{
+    int freeBuffers = 0;
+    for (uint32_t ii = 0; ii < kMaxCommandLists; ++ii) {
+        uint32_t const index = G->currentCommandList.fetch_add(1) & (kMaxCommandLists-1);
+        auto& commandList = G->commandLists[index];
+        if (G->renderFence->GetCompletedValue() >= commandList.completion) {
+            freeBuffers++;
+        }
+    }
+    return freeBuffers;
 }
 
 } // extern "C"

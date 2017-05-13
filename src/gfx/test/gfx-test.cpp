@@ -91,7 +91,9 @@ TEST_CASE("Gfx command interface")
             THEN("a valid command buffer is returned")
             {
                 REQUIRE(cmdBuffer);
+                REQUIRE(gfxNumAvailableCommandBuffers(G) == 127);
             }
+
         }
         WHEN("all command buffers are requested")
         {

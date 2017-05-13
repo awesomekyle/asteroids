@@ -26,3 +26,8 @@ bool gfxResize(Gfx* G, int width, int height);
 /// @brief Returns an open, ready to use command buffer
 /// @return NULL if no command buffers are available
 GfxCmdBuffer* gfxGetCommandBuffer(Gfx* G);
+
+/// @brief Returns a rough guess of currently available command buffers
+/// @note This method is not atomic, due to threading, this number may not be
+///     exact.
+int gfxNumAvailableCommandBuffers(Gfx* G);
