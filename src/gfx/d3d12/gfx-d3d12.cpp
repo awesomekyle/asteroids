@@ -30,6 +30,8 @@ struct Gfx {
     ID3D12CommandQueue* renderQueue;
     ID3D12Fence*        renderFence;
 
+    IDXGISwapChain3*    swapChain;
+
 #if defined(_DEBUG)
     IDXGIDebug1*        dxgiDebug;
     IDXGIInfoQueue*     dxgiInfoQueue;
@@ -41,6 +43,8 @@ struct Gfx {
 // Helper methods
 //////
 namespace {
+
+constexpr UINT kFramesInProgress = 3;
 
 template<class D>
 void _SetName(D* const object, char const* const name)
@@ -232,6 +236,7 @@ Gfx* gfxCreateD3D12(void)
 void gfxDestroyD3D12(Gfx* G)
 {
     assert(G);
+    _SafeRelease(G->swapChain);
     _SafeRelease(G->renderFence);
     _SafeRelease(G->renderQueue);
     _SafeRelease(G->device);
@@ -252,8 +257,40 @@ void gfxDestroyD3D12(Gfx* G)
 
 bool gfxCreateSwapChain(Gfx* const G, void* const window)
 {
-    UNREFERENCED_PARAMETER(G);
-    UNREFERENCED_PARAMETER(window);
+    if (window == nullptr) {
+        return false;
+    }
+    HWND hwnd = static_cast<HWND>(window);
+    DXGI_SWAP_CHAIN_DESC1 const swapChainDesc = {
+        0, // Width
+        0, // Height
+        DXGI_FORMAT_B8G8R8A8_UNORM, // Format
+        FALSE, // Stereo
+        {
+            1, // Count
+            0, // Quality
+        }, // SampleDesc
+        DXGI_USAGE_RENDER_TARGET_OUTPUT, // BufferUsage
+        kFramesInProgress, // BufferCount
+        DXGI_SCALING_NONE, // Scaling
+        DXGI_SWAP_EFFECT_FLIP_DISCARD, // SwapEffect
+        DXGI_ALPHA_MODE_UNSPECIFIED, // AlphaMode
+        0, // Flags
+    };
+    CComPtr<IDXGISwapChain1> swapchain1 = nullptr;
+    HRESULT hr = G->factory->CreateSwapChainForHwnd(G->renderQueue,
+                                                    hwnd,
+                                                    &swapChainDesc,
+                                                    nullptr,
+                                                    nullptr,
+                                                    &swapchain1);
+    assert(SUCCEEDED(hr) && "Could not create swap chain");
+    hr = swapchain1->QueryInterface(IID_PPV_ARGS(&G->swapChain));
+    assert(SUCCEEDED(hr) && "Could not get swapchain3");
+    hr = G->factory->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER);
+    assert(SUCCEEDED(hr) && "Could not disable alt-enter");
+
+    _SetName(G->swapChain, "DXGI Swap Chain");
     return true;
 }
 
