@@ -113,8 +113,24 @@ int main(int argc, char* argv[])
     }
     _SetFramebufferSize(window, kWindowWidth, kWindowHeight); // make the resize happen
 
+    int frameCount = 0;
+    float elapsedTime = 0.0f;
+    uint64_t prevTime = glfwGetTimerValue();
+
+    float color = 0.0f;
     // main loop
     while (!glfwWindowShouldClose(window)) {
+        uint64_t const currTime = glfwGetTimerValue();
+        float const deltaTime = (currTime - prevTime)/(float)(glfwGetTimerFrequency());
+        prevTime = currTime;
+        if(elapsedTime > 0.5f) {
+            fprintf(stdout, "FPS: %d\n", frameCount*2);
+            frameCount = 0;
+            elapsedTime -= 0.5f;
+        }
+        frameCount++;
+        elapsedTime += deltaTime;
+        color += deltaTime;
         glfwPollEvents();
     }
 
