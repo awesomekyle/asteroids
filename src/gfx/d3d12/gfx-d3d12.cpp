@@ -29,6 +29,7 @@ struct Gfx {
     D3D_FEATURE_LEVEL   featureLevel;
     ID3D12CommandQueue* renderQueue;
     ID3D12Fence*        renderFence;
+    uint64_t            lastFenceCompletion;
 
     IDXGISwapChain3*    swapChain;
 
@@ -213,6 +214,14 @@ HRESULT _CreateQueues(Gfx* const G)
     _SetName(G->renderFence, "Render Fence");
     return hr;
 }
+void _WaitForIdle(Gfx* const G)
+{
+    assert(G);
+    G->lastFenceCompletion++;
+    G->renderQueue->Signal(G->renderFence, G->lastFenceCompletion);
+    while (G->renderFence->GetCompletedValue() < G->lastFenceCompletion)
+        ;
+}
 
 } // anonymous
 
@@ -299,8 +308,9 @@ bool gfxCreateSwapChain(Gfx* const G, void* const window)
     _SetName(G->swapChain, "DXGI Swap Chain");
     return true;
 }
-void gfxResize(Gfx* const /*G*/, int const /*width*/, int const /*height*/)
+void gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
 {
+    _WaitForIdle(G);
 }
 
 } // extern "C"

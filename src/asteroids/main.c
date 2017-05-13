@@ -104,7 +104,6 @@ int main(int argc, char* argv[])
     glfwSetKeyCallback(window, _GlfwKeyboardCallback);
     glfwSetFramebufferSizeCallback(window, _GlfwFramebufferSizeCallback);
 
-    _SetFramebufferSize(window, kWindowWidth, kWindowHeight); // make the callback happen
 
     // Initialize app
     bool const result = _InitializeApp(window);
@@ -112,6 +111,7 @@ int main(int argc, char* argv[])
         fprintf(stderr, "Could not initialize app\n");
         return 2;
     }
+    _SetFramebufferSize(window, kWindowWidth, kWindowHeight); // make the resize happen
 
     // main loop
     while (!glfwWindowShouldClose(window)) {
