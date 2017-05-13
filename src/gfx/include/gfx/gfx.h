@@ -2,7 +2,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-typedef struct Gfx Gfx; ///< Object representing a graphics device (ID3D11Device, vkDevice, MTLDevice)
+/// Object representing a graphics device (ID3D11Device, vkDevice, MTLDevice)
+typedef struct Gfx Gfx;
+/// Object representing a graphics command buffer/command list
+typedef struct GfxCmdBuffer GfxCmdBuffer;
 
 /// @brief Creates a new graphics device
 Gfx* gfxCreate(void);
@@ -19,3 +22,7 @@ bool gfxCreateSwapChain(Gfx* G, void* window);
 /// @brief Called when the window is resized.
 /// @details Pass in window size in pixels, not points
 bool gfxResize(Gfx* G, int width, int height);
+
+/// @brief Returns an open, ready to use command buffer
+/// @return NULL if no command buffers are available
+GfxCmdBuffer* gfxGetCommandBuffer(Gfx* G);

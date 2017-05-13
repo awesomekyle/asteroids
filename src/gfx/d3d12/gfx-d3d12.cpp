@@ -5,6 +5,7 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <atomic>
 #include <d3d12.h>
 #include <d3d11.h>
 #include <dxgi1_4.h>
@@ -18,36 +19,15 @@ extern "C" {
 #include <d3dx12.h>
 #pragma warning(pop)
 
-namespace {
+static constexpr UINT kFramesInProgress = 3;
+static constexpr size_t kMaxBackBuffers = 4;
+static constexpr size_t kMaxCommandLists = 128;
 
-constexpr UINT kFramesInProgress = 3;
-constexpr size_t kMaxBackBuffers = 4;
-
-///////////////////////////////////////
-// helper structs
-struct DescriptorHeap {
-    ID3D12DescriptorHeap*       heap;
-    D3D12_DESCRIPTOR_HEAP_DESC  desc;
-    D3D12_DESCRIPTOR_HEAP_TYPE  type;
-    CD3DX12_CPU_DESCRIPTOR_HANDLE cpuStart;
-    CD3DX12_GPU_DESCRIPTOR_HANDLE gpuStart;
-    UINT handleSize;
-
-    inline D3D12_CPU_DESCRIPTOR_HANDLE CpuSlot(int slot)
-    {
-        return CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuStart, slot, handleSize);
-    }
-    inline D3D12_GPU_DESCRIPTOR_HANDLE GpuSlot(int slot)
-    {
-        return CD3DX12_GPU_DESCRIPTOR_HANDLE(gpuStart, slot, handleSize);
-    }
-    operator ID3D12DescriptorHeap* ()
-    {
-        return heap;
-    }
+struct GfxCmdBuffer {
+    ID3D12CommandAllocator*     allocator;
+    ID3D12GraphicsCommandList*  list;
+    uint64_t    completion;
 };
-
-} // anonymous
 
 struct Gfx {
     // Types
@@ -55,6 +35,27 @@ struct Gfx {
         IDXGIAdapter3*      adapter;
         DXGI_ADAPTER_DESC2  desc;
         DXGI_QUERY_VIDEO_MEMORY_INFO    memory_info;
+    };
+    struct DescriptorHeap {
+        ID3D12DescriptorHeap*       heap;
+        D3D12_DESCRIPTOR_HEAP_DESC  desc;
+        D3D12_DESCRIPTOR_HEAP_TYPE  type;
+        CD3DX12_CPU_DESCRIPTOR_HANDLE cpuStart;
+        CD3DX12_GPU_DESCRIPTOR_HANDLE gpuStart;
+        UINT handleSize;
+
+        inline D3D12_CPU_DESCRIPTOR_HANDLE CpuSlot(int slot)
+        {
+            return CD3DX12_CPU_DESCRIPTOR_HANDLE(cpuStart, slot, handleSize);
+        }
+        inline D3D12_GPU_DESCRIPTOR_HANDLE GpuSlot(int slot)
+        {
+            return CD3DX12_GPU_DESCRIPTOR_HANDLE(gpuStart, slot, handleSize);
+        }
+        operator ID3D12DescriptorHeap* ()
+        {
+            return heap;
+        }
     };
 
     IDXGIFactory4*  factory;
@@ -73,6 +74,10 @@ struct Gfx {
 
     DescriptorHeap  rtvHeap;
 
+    // command lists
+    GfxCmdBuffer commandLists[kMaxCommandLists];
+    std::atomic<uint32_t>   currentCommandList;
+
 #if defined(_DEBUG)
     IDXGIDebug1*        dxgiDebug;
     IDXGIInfoQueue*     dxgiInfoQueue;
@@ -86,7 +91,7 @@ struct Gfx {
 namespace {
 
 template<class D>
-void _SetName(D* object, char const* const format, ...)
+void _SetName(D* object, char const* format, ...)
 {
     va_list args;
     if (object && format) {
@@ -267,11 +272,11 @@ void _WaitForIdle(Gfx* const G)
         ;
 }
 
-DescriptorHeap CreateDescriptorHeap(ID3D12Device* device,
+Gfx::DescriptorHeap CreateDescriptorHeap(ID3D12Device* device,
     D3D12_DESCRIPTOR_HEAP_DESC const& desc,
     char const* name = nullptr)
 {
-    DescriptorHeap heap = {};
+    Gfx::DescriptorHeap heap = {};
     HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap.heap));
     assert(SUCCEEDED(hr));
     _SetName(heap.heap, name);
@@ -297,6 +302,7 @@ Gfx* gfxCreateD3D12(void)
     Gfx* const G = (Gfx*)calloc(1, sizeof(*G));
     assert(G && "Could not allocate space for a D3D12 Gfx device");
     HRESULT hr = S_OK;
+
     hr = _CreateDebugInterfaces(G);
     assert(SUCCEEDED(hr));
     hr = _CreateFactory(G);
@@ -308,11 +314,28 @@ Gfx* gfxCreateD3D12(void)
     hr = _CreateQueues(G);
     assert(SUCCEEDED(hr));
 
+    // Descriptor heaps
     D3D12_DESCRIPTOR_HEAP_DESC const rtvHeapDesc = {
         D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 128,
         D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0
     };
     G->rtvHeap = CreateDescriptorHeap(G->device, rtvHeapDesc, "RTV Heap");
+
+    // Command lists
+    for (size_t ii = 0; ii < kMaxCommandLists; ++ii) {
+        auto& commandList = G->commandLists[ii];
+        hr = G->device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                               IID_PPV_ARGS(&commandList.allocator));
+        assert(SUCCEEDED(hr) && "Could not create allocator");
+        hr = G->device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                          commandList.allocator, nullptr,
+                                          IID_PPV_ARGS(&commandList.list));
+        assert(SUCCEEDED(hr) && "Could not create allocator");
+        hr = commandList.list->Close();
+        assert(SUCCEEDED(hr) && "Could not close empty command list");
+        _SetName(commandList.allocator, "Command Allocator %zu", ii);
+        _SetName(commandList.list, "Command list %zu", ii);
+    }
 
     return G;
 }
@@ -320,6 +343,11 @@ Gfx* gfxCreateD3D12(void)
 void gfxDestroyD3D12(Gfx* G)
 {
     assert(G);
+    _WaitForIdle(G);
+    for (auto& commandList : G->commandLists) {
+        _SafeRelease(commandList.allocator);
+        _SafeRelease(commandList.list);
+    }
     _SafeRelease(G->rtvHeap.heap);
     for (auto*& backBuffer : G->backBuffers) {
         _SafeRelease(backBuffer);
@@ -403,7 +431,29 @@ bool gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
         auto const backBufferSlot = G->rtvHeap.CpuSlot(ii);
         G->device->CreateRenderTargetView(G->backBuffers[ii], nullptr, backBufferSlot);
     }
+    // transition current back buffer to render target
+    UINT const currentIndex = G->swapChain->GetCurrentBackBufferIndex();
+    ID3D12Resource* const currentBackBuffer = G->backBuffers[currentIndex];
+    auto const barrier = CD3DX12_RESOURCE_BARRIER::Transition(currentBackBuffer,
+                                                              D3D12_RESOURCE_STATE_PRESENT,
+                                                              D3D12_RESOURCE_STATE_RENDER_TARGET);
+
     return true;
+}
+GfxCmdBuffer * gfxGetCommandBuffer(Gfx * G)
+{
+    assert(G);
+    for (uint32_t ii = 0; ii < kMaxCommandLists; ++ii) {
+        uint32_t const index = G->currentCommandList.fetch_add(1) & (kMaxCommandLists-1);
+        auto& commandList = G->commandLists[index];
+        if (G->renderFence->GetCompletedValue() >= commandList.completion) {
+            HRESULT const hr = commandList.list->Reset(commandList.allocator, nullptr);
+            assert(SUCCEEDED(hr) && "Could not reset command list");
+            commandList.completion = UINT64_MAX;
+            return &commandList;
+        }
+    }
+    return nullptr;
 }
 
 } // extern "C"

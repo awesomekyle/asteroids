@@ -77,5 +77,25 @@ TEST_CASE("Gfx window interaction")
         gfxDestroy(G);
     }
 }
+TEST_CASE("Gfx command interface")
+{
+    GIVEN("A graphics object")
+    {
+        // Gfx initialization
+        Gfx* const G = gfxCreate();
+        REQUIRE(G);
+
+        WHEN("a command buffer is requested")
+        {
+            GfxCmdBuffer* const cmdBuffer = gfxGetCommandBuffer(G);
+            THEN("a valid command buffer is returned")
+            {
+                REQUIRE(cmdBuffer);
+            }
+        }
+
+        gfxDestroy(G);
+    }
+}
 
 } // anonymous
