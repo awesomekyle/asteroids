@@ -45,6 +45,7 @@ if(HAVE_METAL)
     target_link_libraries(${TARGET}
         PRIVATE
             ${METAL_LIB}
+            ${QUARTZCORE_LIB}
     )
     target_compile_options(${TARGET}
         PRIVATE

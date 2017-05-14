@@ -2,22 +2,36 @@
 #include "gfx-metal.h"
 #include <assert.h>
 #include <stddef.h>
+#import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 #import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
+
+enum {
+    kMaxCommandLists = 128,
+};
 
 struct Gfx
 {
-    id<MTLDevice>   device;
+    id<MTLDevice>       device;
+    id<MTLCommandQueue> renderQueue;
+
+    NSWindow*       window;
+    CAMetalLayer*   layer;
 };
 
 Gfx* gfxCreateMetal(void)
 {
     Gfx* const G = calloc(1, sizeof(*G));
     G->device = MTLCreateSystemDefaultDevice();
+    G->renderQueue = [G->device newCommandQueueWithMaxCommandBufferCount:kMaxCommandLists];
     return G;
 }
 void gfxDestroyMetal(Gfx* G)
 {
     assert(G);
+    [G->layer release];
+    [G->renderQueue release];
     [G->device release];
     free(G);
 }
@@ -25,8 +39,13 @@ void gfxDestroyMetal(Gfx* G)
 bool gfxCreateSwapChain(Gfx* G, void* window)
 {
     assert(G);
-    (void)window;
-    return false;
+    assert(window);
+    NSWindow* const cocoaWindow = window;
+    G->window = cocoaWindow;
+    G->layer = [CAMetalLayer layer];
+
+    cocoaWindow.contentView.layer = G->layer;
+    return true;
 }
 
 bool gfxResize(Gfx* G, int width, int height)
