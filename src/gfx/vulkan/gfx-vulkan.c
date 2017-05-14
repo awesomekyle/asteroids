@@ -43,7 +43,7 @@ struct Gfx {
     VkQueue     renderQueue;
 
     VkSurfaceKHR    surface;
-
+    VkSemaphore     swapChainSemaphore;
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
 #endif
@@ -305,6 +305,7 @@ Gfx* gfxVulkanCreate(void)
 void gfxVulkanDestroy(Gfx* G)
 {
     assert(G);
+    vkDestroySemaphore(G->device, G->swapChainSemaphore, NULL);
     vkDestroySurfaceKHR(G->instance, G->surface, NULL);
     vkDeviceWaitIdle(G->device);
     vkDestroyDevice(G->device, NULL);
@@ -330,10 +331,10 @@ bool gfxVulkanCreateSwapChain(Gfx* G, void* window, void* application)
         .hwnd = window
     };
 
-    VkResult const result = vkCreateWin32SurfaceKHR(G->instance,
-                                                    &surfaceCreateInfo,
-                                                    NULL,
-                                                    &G->surface);
+    VkResult result = vkCreateWin32SurfaceKHR(G->instance,
+                                              &surfaceCreateInfo,
+                                              NULL,
+                                              &G->surface);
     assert(VK_SUCCEEDED(result) && "Could not create surface");
 
     // Check that the queue supports present
@@ -341,6 +342,18 @@ bool gfxVulkanCreateSwapChain(Gfx* G, void* window, void* application)
     vkGetPhysicalDeviceSurfaceSupportKHR(G->physicalDevice, G->queueIndex,
                                          G->surface, &presentSupported);
     assert(presentSupported && "Present not supported on selected queue");
+
+    // create semaphore
+    VkSemaphoreCreateInfo const semaphoreInfo = {
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        .pNext = NULL,
+        .flags = 0
+    };
+    result = vkCreateSemaphore(G->device,
+                               &semaphoreInfo,
+                               NULL,
+                               &G->swapChainSemaphore);
+    assert(VK_SUCCEEDED(result) && "Could not create semaphore");
 
     return VK_SUCCEEDED(result);
 #else
