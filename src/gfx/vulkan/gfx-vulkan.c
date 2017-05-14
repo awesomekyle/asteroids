@@ -44,6 +44,8 @@ struct Gfx {
 
     VkSurfaceKHR    surface;
     VkSemaphore     swapChainSemaphore;
+    VkSurfaceCapabilitiesKHR surfaceCapabilities;
+    VkSurfaceFormatKHR surfaceFormat;
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
 #endif
@@ -354,6 +356,55 @@ bool gfxVulkanCreateSwapChain(Gfx* G, void* window, void* application)
                                NULL,
                                &G->swapChainSemaphore);
     assert(VK_SUCCEEDED(result) && "Could not create semaphore");
+
+    // Get surface capabilities
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(G->physicalDevice, G->surface,
+                                                       &G->surfaceCapabilities);
+    assert(VK_SUCCEEDED(result) && "Could not get surface capabilities");
+
+    // Get supported formats
+    VkSurfaceFormatKHR surfaceFormats[32] = { 0 };
+    uint32_t numFormats = 0;
+
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(G->physicalDevice, G->surface,
+                                                  &numFormats, NULL);
+    assert(VK_SUCCEEDED(result));
+    assert(numFormats <= ARRAY_COUNT(surfaceFormats) && "not enough room for all formats");
+    numFormats = minu32(numFormats, ARRAY_COUNT(surfaceFormats));
+    result = vkGetPhysicalDeviceSurfaceFormatsKHR(G->physicalDevice, G->surface,
+                                                  &numFormats, surfaceFormats);
+    assert(VK_SUCCEEDED(result));
+
+    // Get supported present modes
+    VkPresentModeKHR presentModes[32] = { 0 };
+    uint32_t numPresentModes = 0;
+
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(G->physicalDevice, G->surface,
+                                                       &numPresentModes, NULL);
+    assert(VK_SUCCEEDED(result));
+    assert(numPresentModes <= ARRAY_COUNT(presentModes) && "not enough room for all formats");
+    numPresentModes = minu32(numPresentModes, ARRAY_COUNT(presentModes));
+    result = vkGetPhysicalDeviceSurfacePresentModesKHR(G->physicalDevice, G->surface,
+                                                       &numPresentModes, presentModes);
+    assert(VK_SUCCEEDED(result));
+
+    // Select properties
+    for (uint32_t ii = 0; ii < numFormats; ++ii) {
+        if (surfaceFormats[ii].format == VK_FORMAT_B8G8R8A8_SRGB) {
+            G->surfaceFormat = surfaceFormats[ii];
+            break;
+        }
+    }
+    assert(G->surfaceFormat.format != VK_FORMAT_UNDEFINED);
+    assert(G->surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT && "Cannot clear surface");
+    VkImageUsageFlags const imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT & VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+    VkSurfaceTransformFlagsKHR const transformFlags = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR; // TODO: check support
+    VkPresentModeKHR const presentMode = VK_PRESENT_MODE_MAILBOX_KHR; // TODO: check support
+    uint32_t const numImages = G->surfaceCapabilities.minImageCount + 1;
+    (void)numImages;
+    (void)presentMode;
+    (void)imageUsageFlags;
+    (void)transformFlags;
 
     return VK_SUCCEEDED(result);
 #else
