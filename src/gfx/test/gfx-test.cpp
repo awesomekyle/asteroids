@@ -15,6 +15,7 @@ extern "C" {
 namespace {
 
 // Global initialization
+constexpr GfxApi kTestApi = kGfxApiDefault;
 int const glfwInitialized = glfwInit();
 int const glfwTerminationRegistered = atexit(glfwTerminate);
 
@@ -34,7 +35,7 @@ TEST_CASE("Gfx lifetime")
 {
     SECTION("Gfx can be created and destroyed")
     {
-        Gfx* const G = gfxCreate(kGfxApiDefault);
+        Gfx* const G = gfxCreate(kTestApi);
         REQUIRE(G);
         gfxDestroy(G);
     }
@@ -51,7 +52,7 @@ TEST_CASE("Gfx window interaction")
         GLFWwindow* const window = glfwCreateWindow(10, 10, "Gfx Test", NULL, NULL);
         REQUIRE(window);
         // Gfx initialization
-        Gfx* const G = gfxCreate(kGfxApiDefault);
+        Gfx* const G = gfxCreate(kTestApi);
         REQUIRE(G);
 
         WHEN("resized with no swap chain")
@@ -92,7 +93,7 @@ TEST_CASE("Gfx command interface")
     GIVEN("A graphics object")
     {
         // Gfx initialization
-        Gfx* const G = gfxCreate(kGfxApiDefault);
+        Gfx* const G = gfxCreate(kTestApi);
         REQUIRE(G);
 
         WHEN("a command buffer is requested")
