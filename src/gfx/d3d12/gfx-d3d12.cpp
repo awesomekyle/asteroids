@@ -1,5 +1,6 @@
 extern "C" {
 #include "gfx/gfx.h"
+#include "gfx-d3d12.h"
 } // extern "C"
 #include <stdbool.h>
 #include <stdlib.h>
@@ -298,7 +299,7 @@ Gfx::DescriptorHeap CreateDescriptorHeap(ID3D12Device* device,
 
 extern "C" {
 
-Gfx* gfxCreateD3D12(void)
+Gfx* gfxD3D12Create(void)
 {
     Gfx* const G = (Gfx*)calloc(1, sizeof(*G));
     assert(G && "Could not allocate space for a D3D12 Gfx device");
@@ -342,7 +343,7 @@ Gfx* gfxCreateD3D12(void)
     return G;
 }
 
-void gfxDestroyD3D12(Gfx* G)
+void gfxD3D12Destroy(Gfx* G)
 {
     assert(G);
     _WaitForIdle(G);
@@ -373,7 +374,7 @@ void gfxDestroyD3D12(Gfx* G)
     free(G);
 }
 
-bool gfxCreateSwapChain(Gfx* const G, void* const window)
+bool gfxD3D12CreateSwapChain(Gfx* const G, void* const window)
 {
     assert(G);
     if (window == nullptr) {
@@ -412,11 +413,11 @@ bool gfxCreateSwapChain(Gfx* const G, void* const window)
     _SetName(G->swapChain, "DXGI Swap Chain");
     G->swapChainDesc = swapChainDesc;
 
-    gfxResize(G, G->swapChainDesc.Width, G->swapChainDesc.Height);
+    gfxD3D12Resize(G, G->swapChainDesc.Width, G->swapChainDesc.Height);
 
     return true;
 }
-bool gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
+bool gfxD3D12Resize(Gfx* const G, int const /*width*/, int const /*height*/)
 {
     assert(G);
     if(G->swapChain == nullptr) {
@@ -444,18 +445,18 @@ bool gfxResize(Gfx* const G, int const /*width*/, int const /*height*/)
                                                               D3D12_RESOURCE_STATE_RENDER_TARGET);
 
     // make back buffer presentable
-    GfxCmdBuffer* const commandList = gfxGetCommandBuffer(G);
+    GfxCmdBuffer* const commandList = gfxD3D12GetCommandBuffer(G);
     commandList->list->ResourceBarrier(1, &barrier);
-    gfxExecuteCommandBuffer(commandList);
+    gfxD3D12ExecuteCommandBuffer(commandList);
     return true;
 }
-GfxRenderTarget gfxGetBackBuffer(Gfx* G)
+GfxRenderTarget gfxD3D12GetBackBuffer(Gfx* G)
 {
     assert(G);
     UINT const frameIndex = G->swapChain->GetCurrentBackBufferIndex();
     return G->rtvHeap.CpuSlot(frameIndex).ptr;
 }
-bool gfxPresent(Gfx * G)
+bool gfxD3D12Present(Gfx * G)
 {
     assert(G);
     auto const currentIndex = G->swapChain->GetCurrentBackBufferIndex();
@@ -468,10 +469,10 @@ bool gfxPresent(Gfx * G)
     };
 
     // transition to present
-    GfxCmdBuffer* commandList = gfxGetCommandBuffer(G);
+    GfxCmdBuffer* commandList = gfxD3D12GetCommandBuffer(G);
     assert(commandList);
     commandList->list->ResourceBarrier(1, barriers + 0);
-    bool result = gfxExecuteCommandBuffer(commandList);
+    bool result = gfxD3D12ExecuteCommandBuffer(commandList);
     assert(result);
 
     if (G->swapChain) {
@@ -486,14 +487,14 @@ bool gfxPresent(Gfx * G)
     }
 
     // transition previous back buffer
-    commandList = gfxGetCommandBuffer(G);
+    commandList = gfxD3D12GetCommandBuffer(G);
     assert(commandList);
     commandList->list->ResourceBarrier(1, barriers + 1);
-    result = gfxExecuteCommandBuffer(commandList);
+    result = gfxD3D12ExecuteCommandBuffer(commandList);
     assert(result);
     return true;
 }
-GfxCmdBuffer* gfxGetCommandBuffer(Gfx * G)
+GfxCmdBuffer* gfxD3D12GetCommandBuffer(Gfx * G)
 {
     assert(G);
     uint_fast32_t const currIndex = G->currentCommandList.fetch_add(1) % kMaxCommandLists;
@@ -511,7 +512,7 @@ GfxCmdBuffer* gfxGetCommandBuffer(Gfx * G)
     assert(SUCCEEDED(hr) && "Could not reset command list");
     return list;
 }
-int gfxNumAvailableCommandBuffers(Gfx * G)
+int gfxD3D12NumAvailableCommandBuffers(Gfx * G)
 {
     assert(G);
     int freeBuffers = 0;
@@ -524,7 +525,7 @@ int gfxNumAvailableCommandBuffers(Gfx * G)
     }
     return freeBuffers;
 }
-void gfxResetCommandBuffer(GfxCmdBuffer * B)
+void gfxD3D12ResetCommandBuffer(GfxCmdBuffer * B)
 {
     assert(B);
     HRESULT hr = B->list->Close();
@@ -532,7 +533,7 @@ void gfxResetCommandBuffer(GfxCmdBuffer * B)
     B->completion = 0;
 }
 
-bool gfxExecuteCommandBuffer(GfxCmdBuffer * B)
+bool gfxD3D12ExecuteCommandBuffer(GfxCmdBuffer * B)
 {
     assert(B);
     Gfx* const G = B->G;
@@ -544,7 +545,7 @@ bool gfxExecuteCommandBuffer(GfxCmdBuffer * B)
     return SUCCEEDED(hr);
 }
 
-void gfxCmdBeginRenderPass(GfxCmdBuffer * B,
+void gfxD3D12CmdBeginRenderPass(GfxCmdBuffer * B,
                            GfxRenderTarget renderTargetHandle,
                            GfxRenderPassAction loadAction,
                            float const clearColor[4])
@@ -559,7 +560,7 @@ void gfxCmdBeginRenderPass(GfxCmdBuffer * B,
     }
 }
 
-void gfxCmdEndRenderPass(GfxCmdBuffer* /*B*/)
+void gfxD3D12CmdEndRenderPass(GfxCmdBuffer* /*B*/)
 {
 }
 
