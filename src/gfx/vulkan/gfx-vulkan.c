@@ -17,9 +17,6 @@
 #include "../gfx-internal.h"
 #include "gfx-vulkan-helper.h"
 
-#define ARRAY_COUNT(a) (sizeof(a)/sizeof(a[0]))
-#define VK_SUCCEEDED(res) (res == VK_SUCCESS)
-
 enum {
     kMaxPhysicalDevices = 8,
 };
@@ -40,6 +37,7 @@ struct Gfx {
     uint32_t            numPhysicalDevices;
 
     VkPhysicalDevice    physicalDevice;
+    uint32_t            queueIndex;
 
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
@@ -250,6 +248,12 @@ Gfx* gfxVulkanCreate(void)
     result = _CreateInstance(G);
     assert(VK_SUCCEEDED(result));
     result = _GetPhysicalDevices(G);
+    assert(VK_SUCCEEDED(result));
+
+    result = FindBestPhysicalDevice(G->availablePhysicalDevices,
+                                    G->numPhysicalDevices,
+                                    &G->physicalDevice,
+                                    &G->queueIndex);
     assert(VK_SUCCEEDED(result));
 
     G->table = &GfxVulkanTable;
