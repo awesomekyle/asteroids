@@ -4,14 +4,14 @@
 #define ARRAY_COUNT(a) (sizeof(a)/sizeof(a[0]))
 #define VK_SUCCEEDED(res) (res == VK_SUCCESS)
 
-inline uint32_t maxu32(uint32_t a, uint32_t b)
+inline uint32_t maxu32(uint32_t const a, uint32_t const b)
 {
     if (a > b) {
         return a;
     }
     return b;
 }
-inline uint32_t minu32(uint32_t a, uint32_t b)
+inline uint32_t minu32(uint32_t const a, uint32_t const b)
 {
     if (a < b) {
         return a;

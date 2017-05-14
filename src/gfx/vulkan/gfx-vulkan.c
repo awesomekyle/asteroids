@@ -39,6 +39,8 @@ struct Gfx {
     VkPhysicalDevice    physicalDevice;
     uint32_t            queueIndex;
 
+    VkDevice device;
+
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
 #endif
@@ -236,6 +238,38 @@ static VkResult _GetPhysicalDevices(Gfx* const G)
     assert(VK_SUCCEEDED(result) && "Could not get physical devices");
     return result;
 }
+static VkResult _CreateDevice(Gfx* const G)
+{
+    float const queuePriorities[] = { 1.0f };
+    VkDeviceQueueCreateInfo const queueInfo = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext = NULL,
+        .flags = 0,
+        .queueFamilyIndex = G->queueIndex,
+        .queueCount = 1,
+        .pQueuePriorities = queuePriorities,
+    };
+    char const* const knownExtensions[] = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME, // TODO: Check this is supported
+    };
+    VkDeviceCreateInfo const deviceInfo = {
+        .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+        .pNext = NULL,
+        .flags = 0,
+        .queueCreateInfoCount = 1,
+        .pQueueCreateInfos = &queueInfo,
+        .enabledLayerCount = 0,
+        .ppEnabledLayerNames = NULL,
+        .enabledExtensionCount = 1,
+        .ppEnabledExtensionNames = knownExtensions,
+        .pEnabledFeatures = 0,
+    };
+    VkResult const result = vkCreateDevice(G->physicalDevice,
+                                           &deviceInfo,
+                                           NULL,
+                                           &G->device);
+    return result;
+}
 
 Gfx* gfxVulkanCreate(void)
 {
@@ -256,6 +290,9 @@ Gfx* gfxVulkanCreate(void)
                                     &G->queueIndex);
     assert(VK_SUCCEEDED(result));
 
+    result = _CreateDevice(G);
+    assert(VK_SUCCEEDED(result));
+
     G->table = &GfxVulkanTable;
     return G;
 }
@@ -263,6 +300,7 @@ Gfx* gfxVulkanCreate(void)
 void gfxVulkanDestroy(Gfx* G)
 {
     assert(G);
+    vkDestroyDevice(G->device, NULL);
 #if defined(_DEBUG)
     PFN_vkDestroyDebugReportCallbackEXT const pvkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)(vkGetInstanceProcAddr(G->instance, "vkDestroyDebugReportCallbackEXT"));
     if (pvkDestroyDebugReportCallbackEXT) {

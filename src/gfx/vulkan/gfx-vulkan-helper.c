@@ -5,10 +5,10 @@ enum {
     kMaxQueues = 64,
 };
 
-static uint32_t _FindBestQueue(VkQueueFamilyProperties const* queueProperties,
-                               uint32_t numQueues,
-                               uint32_t minRequiredQueues,
-                               VkQueueFlags requiredFlags)
+static uint32_t _FindBestQueue(VkQueueFamilyProperties const* const queueProperties,
+                               uint32_t const numQueues,
+                               uint32_t const minRequiredQueues,
+                               VkQueueFlags const requiredFlags)
 {
     for (uint32_t ii = 0; ii < numQueues; ii++) {
         if (queueProperties[ii].queueCount >= minRequiredQueues &&
