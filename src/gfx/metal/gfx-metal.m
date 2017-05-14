@@ -15,6 +15,7 @@ enum {
 struct GfxCmdBuffer
 {
     id<MTLCommandBuffer> buffer;
+    id<MTLRenderCommandEncoder> renderEncoder;
     Gfx*    G;
 };
 
@@ -27,6 +28,8 @@ struct Gfx
     CAMetalLayer*   layer;
 
     atomic_int availableCommandBuffers;
+
+    id<CAMetalDrawable> currentDrawable;
 };
 
 Gfx* gfxCreateMetal(void)
@@ -55,8 +58,12 @@ bool gfxCreateSwapChain(Gfx* G, void* window)
     G->window = cocoaWindow;
     G->layer = [CAMetalLayer layer];
     G->layer.device = G->device;
+    G->layer.opaque = true;
+    G->layer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
 
+    cocoaWindow.contentView.wantsLayer = true;
     cocoaWindow.contentView.layer = G->layer;
+    
     return true;
 }
 
@@ -77,13 +84,17 @@ bool gfxResize(Gfx* G, int width, int height)
 GfxRenderTarget gfxGetBackBuffer(Gfx* G)
 {
     assert(G);
-    return (GfxRenderTarget)[G->layer nextDrawable];
+    if(G->currentDrawable == nil) {
+        G->currentDrawable = [G->layer nextDrawable];
+    }
+    return (GfxRenderTarget)G->currentDrawable.texture;
 }
 
 bool gfxPresent(Gfx* G)
 {
     assert(G);
-    [[G->layer nextDrawable] present];
+    [G->currentDrawable present];
+    G->currentDrawable = nil;
     return true;
 }
 
@@ -132,12 +143,23 @@ void gfxCmdBeginRenderPass(GfxCmdBuffer* B,
                            float const clearColor[4])
 {
     assert(B);
-    (void)renderTargetHandle;
-    (void)loadAction;
-    (void)clearColor;
+    MTLRenderPassDescriptor* const descriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+    assert(descriptor);
+    if (renderTargetHandle != kGfxInvalidHandle) {
+        MTLRenderPassColorAttachmentDescriptor* const attachment = descriptor.colorAttachments[0];
+        attachment.texture = (id<MTLTexture>)renderTargetHandle;
+        attachment.storeAction = MTLStoreActionStore;
+        if (loadAction == kGfxRenderPassActionClear) {
+            assert(clearColor);
+            attachment.loadAction = MTLLoadActionClear;
+            attachment.clearColor = MTLClearColorMake(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+        }
+    }
+    id<MTLRenderCommandEncoder> encoder = [B->buffer renderCommandEncoderWithDescriptor:descriptor];
+    B->renderEncoder = encoder;
 }
 void gfxCmdEndRenderPass(GfxCmdBuffer* B)
 {
     assert(B);
-
+    [B->renderEncoder endEncoding];
 }
