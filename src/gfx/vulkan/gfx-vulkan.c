@@ -39,7 +39,8 @@ struct Gfx {
     VkPhysicalDevice    physicalDevice;
     uint32_t            queueIndex;
 
-    VkDevice device;
+    VkDevice    device;
+    VkQueue     renderQueue;
 
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
@@ -293,6 +294,8 @@ Gfx* gfxVulkanCreate(void)
     result = _CreateDevice(G);
     assert(VK_SUCCEEDED(result));
 
+    vkGetDeviceQueue(G->device, G->queueIndex, 0, &G->renderQueue);
+
     G->table = &GfxVulkanTable;
     return G;
 }
@@ -300,6 +303,7 @@ Gfx* gfxVulkanCreate(void)
 void gfxVulkanDestroy(Gfx* G)
 {
     assert(G);
+    vkDeviceWaitIdle(G->device);
     vkDestroyDevice(G->device, NULL);
 #if defined(_DEBUG)
     PFN_vkDestroyDebugReportCallbackEXT const pvkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)(vkGetInstanceProcAddr(G->instance, "vkDestroyDebugReportCallbackEXT"));
