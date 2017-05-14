@@ -42,6 +42,8 @@ struct Gfx {
     VkDevice    device;
     VkQueue     renderQueue;
 
+    VkSurfaceKHR    surface;
+
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
 #endif
@@ -208,7 +210,7 @@ static VkResult _CreateInstance(Gfx* G)
 #if defined(_DEBUG)
     PFN_vkCreateDebugReportCallbackEXT const pvkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)(vkGetInstanceProcAddr(G->instance, "vkCreateDebugReportCallbackEXT"));
     VkDebugReportFlagsEXT const debugFlags = VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
-                                             VK_DEBUG_REPORT_DEBUG_BIT_EXT |
+                                             //VK_DEBUG_REPORT_DEBUG_BIT_EXT |
                                              VK_DEBUG_REPORT_ERROR_BIT_EXT |
                                              // VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
                                              VK_DEBUG_REPORT_WARNING_BIT_EXT;
@@ -303,6 +305,7 @@ Gfx* gfxVulkanCreate(void)
 void gfxVulkanDestroy(Gfx* G)
 {
     assert(G);
+    vkDestroySurfaceKHR(G->instance, G->surface, NULL);
     vkDeviceWaitIdle(G->device);
     vkDestroyDevice(G->device, NULL);
 #if defined(_DEBUG)
@@ -317,10 +320,33 @@ void gfxVulkanDestroy(Gfx* G)
 
 bool gfxVulkanCreateSwapChain(Gfx* G, void* window, void* application)
 {
-    (void)G;
-    (void)window;
-    (void)application;
-    return true;
+    assert(G);
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+    VkWin32SurfaceCreateInfoKHR const surfaceCreateInfo = {
+        .sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,
+        .pNext = NULL,
+        .flags = 0,
+        .hinstance = application,
+        .hwnd = window
+    };
+
+    VkResult const result = vkCreateWin32SurfaceKHR(G->instance,
+                                                    &surfaceCreateInfo,
+                                                    NULL,
+                                                    &G->surface);
+    assert(VK_SUCCEEDED(result) && "Could not create surface");
+
+    // Check that the queue supports present
+    VkBool32 presentSupported = VK_FALSE;
+    vkGetPhysicalDeviceSurfaceSupportKHR(G->physicalDevice, G->queueIndex,
+                                         G->surface, &presentSupported);
+    assert(presentSupported && "Present not supported on selected queue");
+
+    return VK_SUCCEEDED(result);
+#else
+#warning "No swap chain implementation"
+    return false
+#endif
 }
 bool gfxVulkanResize(Gfx* G, int width, int height)
 {

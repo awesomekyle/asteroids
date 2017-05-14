@@ -56,7 +56,8 @@ VkResult FindBestPhysicalDevice(VkPhysicalDevice const* availableDevices,
                                              &numAvailableQueues,
                                              queueProperties);
 
-    uint32_t const queueIndex = _FindBestQueue(queueProperties, numAvailableQueues, 1, VK_QUEUE_GRAPHICS_BIT);
+    uint32_t const queueIndex = _FindBestQueue(queueProperties, numAvailableQueues,
+                                               1, VK_QUEUE_GRAPHICS_BIT);
 
     if (queueIndex == UINT32_MAX) {
         assert(queueIndex != UINT32_MAX && "Could not find queue with correct properties");
