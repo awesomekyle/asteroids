@@ -13,25 +13,23 @@
 #endif
 #include "gfx-internal.h"
 
-struct Gfx
-{
+struct Gfx {
     GfxTable const* table;
 };
-struct GfxCmdBuffer
-{
+struct GfxCmdBuffer {
     GfxCmdBufferTable const* table;
 };
 
 static GfxApi _PlatformDefaultApi()
 {
-    #if defined(_WIN32)
-        return kGfxApiD3D12;
-    #elif defined(__APPLE__)
-        return kGfxApiMetal;
-    #else
-        #error Must specify default API
-        return kGfxApiUnknown;
-    #endif
+#if defined(_WIN32)
+    return kGfxApiD3D12;
+#elif defined(__APPLE__)
+    return kGfxApiMetal;
+#else
+#error Must specify default API
+    return kGfxApiUnknown;
+#endif
 }
 
 Gfx* gfxCreate(GfxApi api)
@@ -39,22 +37,21 @@ Gfx* gfxCreate(GfxApi api)
     if (api == kGfxApiDefault) {
         api = _PlatformDefaultApi();
     }
-    switch (api)
-    {
+    switch (api) {
 #if HAVE_D3D12
-    case kGfxApiD3D12:
-        return gfxD3D12Create();
+        case kGfxApiD3D12:
+            return gfxD3D12Create();
 #endif
 #if HAVE_VULKAN
-    case kGfxApiVulkan:
-        return gfxVulkanCreate();
+        case kGfxApiVulkan:
+            return gfxVulkanCreate();
 #endif
 #if HAVE_METAL
-    case kGfxApiMetal:
-        return gfxCreateMetal();
+        case kGfxApiMetal:
+            return gfxCreateMetal();
 #endif
-    default:
-        break;
+        default:
+            break;
     }
     return NULL;
 }
@@ -62,19 +59,19 @@ Gfx* gfxCreate(GfxApi api)
 void gfxDestroy(Gfx* G)
 {
     (void)G;
-    #if HAVE_D3D12
-        //gfxD3D12Destroy(G);
-        G->table->Destroy(G);
-    #endif
-    #if HAVE_METAL
-        gfxDestroyMetal(G);
-    #endif
+#if HAVE_D3D12
+    //gfxD3D12Destroy(G);
+    G->table->Destroy(G);
+#endif
+#if HAVE_METAL
+    gfxDestroyMetal(G);
+#endif
 }
 
 
-bool gfxCreateSwapChain(Gfx* G, void* window)
+bool gfxCreateSwapChain(Gfx* G, void* window, void* application)
 {
-    return G->table->CreateSwapChain(G, window);
+    return G->table->CreateSwapChain(G, window, application);
 }
 
 bool gfxResize(Gfx* G, int width, int height)

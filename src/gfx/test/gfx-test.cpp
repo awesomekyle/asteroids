@@ -26,24 +26,31 @@ void* NativeWindow(GLFWwindow* const window)
 #elif defined(__APPLE__)
     return glfwGetCocoaWindow(window);
 #else
-    #warning "Not passing native window to Gfx"
+#warning "Not passing native window to Gfx"
+    return nullptr;
+#endif
+}
+void* NativeInstance(void)
+{
+#if defined(_WIN32)
+    return GetModuleHandle(NULL);
+#else
+#warning "Not passing native application"
     return nullptr;
 #endif
 }
 
 TEST_CASE("Gfx lifetime")
 {
-    SECTION("Gfx can be created and destroyed")
-    {
+    SECTION("Gfx can be created and destroyed") {
         Gfx* const G = gfxCreate(kTestApi);
         REQUIRE(G);
         gfxDestroy(G);
     }
 }
-TEST_CASE("Gfx window interaction", "[!hide]")
+TEST_CASE("Gfx window interaction")
 {
-    GIVEN("A Graphics object and OS window")
-    {
+    GIVEN("A Graphics object and OS window") {
         REQUIRE(glfwInitialized);
         REQUIRE(glfwTerminationRegistered == 0);
 
@@ -55,31 +62,26 @@ TEST_CASE("Gfx window interaction", "[!hide]")
         Gfx* const G = gfxCreate(kTestApi);
         REQUIRE(G);
 
-        WHEN("resized with no swap chain")
-        {
+        WHEN("resized with no swap chain") {
             bool const result = gfxResize(G, 10, 10);
-            THEN("the resize fails")
-            {
+            THEN("the resize fails") {
                 REQUIRE_FALSE(result);
             }
         }
-        WHEN("a swap chain is created")
-        {
-            bool const result = gfxCreateSwapChain(G, NativeWindow(window));
-            THEN("the creation was successful")
-            {
+        WHEN("a swap chain is created") {
+            bool const result = gfxCreateSwapChain(G,
+                                                   NativeWindow(window),
+                                                   NativeInstance());
+            THEN("the creation was successful") {
                 REQUIRE(result);
             }
-            THEN("the device can be resized")
-            {
+            THEN("the device can be resized") {
                 REQUIRE(gfxResize(G, 10, 10));
             }
-            THEN("back buffers can be obtained")
-            {
+            THEN("back buffers can be obtained") {
                 REQUIRE(gfxGetBackBuffer(G) != kGfxInvalidHandle);
             }
-            THEN("the back buffer can be presented")
-            {
+            THEN("the back buffer can be presented") {
                 REQUIRE(gfxPresent(G));
             }
         }
@@ -90,26 +92,21 @@ TEST_CASE("Gfx window interaction", "[!hide]")
 }
 TEST_CASE("Gfx command interface", "[!hide]")
 {
-    GIVEN("A graphics object")
-    {
+    GIVEN("A graphics object") {
         // Gfx initialization
         Gfx* const G = gfxCreate(kTestApi);
         REQUIRE(G);
 
-        WHEN("a command buffer is requested")
-        {
+        WHEN("a command buffer is requested") {
             GfxCmdBuffer* const cmdBuffer = gfxGetCommandBuffer(G);
-            THEN("a valid command buffer is returned")
-            {
+            THEN("a valid command buffer is returned") {
                 REQUIRE(cmdBuffer);
                 REQUIRE(gfxNumAvailableCommandBuffers(G) == 127);
 
-                AND_WHEN("the command buffer is released")
-                {
+                AND_WHEN("the command buffer is released") {
                     gfxResetCommandBuffer(cmdBuffer);
 
-                    THEN("the buffer is added back to the pool")
-                    {
+                    THEN("the buffer is added back to the pool") {
                         REQUIRE(gfxNumAvailableCommandBuffers(G) == 128);
                     }
                 }
@@ -128,8 +125,7 @@ TEST_CASE("Gfx command interface", "[!hide]")
                 gfxExecuteCommandBuffer(cmdBuffer);
             }
         }
-        WHEN("all command buffers are requested")
-        {
+        WHEN("all command buffers are requested") {
             for (size_t ii = 0; ii < 128; ii++) {
                 gfxGetCommandBuffer(G);
             }

@@ -37,10 +37,20 @@ static void* _PlatformWindow(GLFWwindow* const window)
 #elif defined(__APPLE__)
     return glfwGetCocoaWindow(window);
 #else
-    #warning "Not passing native window to Gfx"
+#warning "Not passing native window to Gfx"
     return NULL;
 #endif
 }
+static void* NativeInstance(void)
+{
+#if defined(_WIN32)
+    return GetModuleHandle(NULL);
+#else
+#warning "Not passing native application"
+    return nullptr;
+#endif
+}
+
 static bool _InitializeApp(GLFWwindow* const window)
 {
     gGfx = gfxCreate(kGfxApiVulkan);
@@ -48,7 +58,9 @@ static bool _InitializeApp(GLFWwindow* const window)
         assert(gGfx != NULL && "Could not create Gfx device");
         return false;
     }
-    bool const result = gfxCreateSwapChain(gGfx, _PlatformWindow(window));
+    bool const result = gfxCreateSwapChain(gGfx,
+                                           _PlatformWindow(window),
+                                           NativeInstance());
     if (result == false) {
         assert(result == true && "Could not create swap chain for window");
         return false;
@@ -66,12 +78,12 @@ static float _GetWindowScale(GLFWwindow* window)
     int framebufferWidth = 0;
     glfwGetWindowSize(window, &windowWidth, NULL);
     glfwGetFramebufferSize(window, &framebufferWidth, NULL);
-    return framebufferWidth/(float)windowWidth;
+    return framebufferWidth / (float)windowWidth;
 }
 static void _SetFramebufferSize(GLFWwindow* window, int width, int height)
 {
     float const scale = _GetWindowScale(window);
-    glfwSetWindowSize(window, (int)(width/scale), (int)(height/scale));
+    glfwSetWindowSize(window, (int)(width / scale), (int)(height / scale));
 }
 
 
@@ -84,7 +96,9 @@ static void _GlfwErrorCallback(int error, char const* description)
 }
 static void _GlfwKeyboardCallback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    UNREFERENCED(scancode); UNREFERENCED(action); UNREFERENCED(mods);
+    UNREFERENCED(scancode);
+    UNREFERENCED(action);
+    UNREFERENCED(mods);
     if (key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose(window, 1);
     }
@@ -97,7 +111,8 @@ static void _GlfwFramebufferSizeCallback(GLFWwindow* window, int width, int heig
 
 int main(int argc, char* argv[])
 {
-    UNREFERENCED(argc); UNREFERENCED(argv);
+    UNREFERENCED(argc);
+    UNREFERENCED(argv);
 
     // Initialize GLFW
     glfwSetErrorCallback(_GlfwErrorCallback);
@@ -115,7 +130,7 @@ int main(int argc, char* argv[])
 
     // Initialize app
     bool const result = _InitializeApp(window);
-    if(result != true) {
+    if (result != true) {
         fprintf(stderr, "Could not initialize app\n");
         return 2;
     }
@@ -129,10 +144,10 @@ int main(int argc, char* argv[])
     // main loop
     while (!glfwWindowShouldClose(window)) {
         uint64_t const currTime = glfwGetTimerValue();
-        float const deltaTime = (currTime - prevTime)/(float)(glfwGetTimerFrequency());
+        float const deltaTime = (currTime - prevTime) / (float)(glfwGetTimerFrequency());
         prevTime = currTime;
-        if(elapsedTime > 0.5f) {
-            fprintf(stdout, "FPS: %d\n", frameCount*2);
+        if (elapsedTime > 0.5f) {
+            fprintf(stdout, "FPS: %d\n", frameCount * 2);
             frameCount = 0;
             elapsedTime -= 0.5f;
         }
@@ -143,8 +158,8 @@ int main(int argc, char* argv[])
 
         float const clearColor[] = {
             sinf(color) * 0.5f + 0.5f,
-            cosf(color*1.1f) * 0.5f + 0.5f,
-            sinf(color*0.7f) * cosf(0.9f) * 0.5f + 0.5f,
+            cosf(color * 1.1f) * 0.5f + 0.5f,
+            sinf(color * 0.7f)* cosf(0.9f) * 0.5f + 0.5f,
             1.0f
         };
         GfxCmdBuffer* const buffer = gfxGetCommandBuffer(gGfx);

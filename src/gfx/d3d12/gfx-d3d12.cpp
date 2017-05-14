@@ -382,9 +382,10 @@ void gfxD3D12Destroy(Gfx* G)
     free(G);
 }
 
-bool gfxD3D12CreateSwapChain(Gfx* const G, void* const window)
+bool gfxD3D12CreateSwapChain(Gfx* const G, void* const window, void* const application)
 {
     assert(G);
+    (void)application;
     if (window == nullptr) {
         return false;
     }

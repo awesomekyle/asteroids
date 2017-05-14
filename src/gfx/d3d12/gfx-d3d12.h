@@ -14,7 +14,7 @@ Gfx* gfxD3D12Create(void);
 Gfx* gfxD3D12Create(void);
 void gfxD3D12Destroy(Gfx* G);
 
-bool gfxD3D12CreateSwapChain(Gfx* G, void* window);
+bool gfxD3D12CreateSwapChain(Gfx* G, void* window, void* application);
 
 bool gfxD3D12Resize(Gfx* G, int width, int height);
 

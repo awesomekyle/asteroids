@@ -315,10 +315,11 @@ void gfxVulkanDestroy(Gfx* G)
     free(G);
 }
 
-bool gfxVulkanCreateSwapChain(Gfx* G, void* window)
+bool gfxVulkanCreateSwapChain(Gfx* G, void* window, void* application)
 {
     (void)G;
     (void)window;
+    (void)application;
     return true;
 }
 bool gfxVulkanResize(Gfx* G, int width, int height)

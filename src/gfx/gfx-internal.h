@@ -3,7 +3,7 @@
 
 typedef struct {
     void (*Destroy)(Gfx* G);
-    bool (*CreateSwapChain)(Gfx* G, void* window);
+    bool (*CreateSwapChain)(Gfx* G, void* window, void* application);
     bool (*Resize)(Gfx* G, int width, int height);
     GfxRenderTarget (*GetBackBuffer)(Gfx* G);
     bool (*Present)(Gfx* G);

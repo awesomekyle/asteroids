@@ -30,7 +30,8 @@ void gfxDestroy(Gfx* G);
 ///          macOS Metal: CAMetalLayer
 ///          Windows Vulkan: vkSwapChainKHR
 /// @param[in] window Native window handle (Windows: HWND, macOS: NSWindow*)
-bool gfxCreateSwapChain(Gfx* G, void* window);
+/// @param[in] application Native application handle (Windows: HINSTANCE, macOS: NSApplication*)
+bool gfxCreateSwapChain(Gfx* G, void* window, void* application);
 
 /// @brief Called when the window is resized.
 /// @details Pass in window size in pixels, not points

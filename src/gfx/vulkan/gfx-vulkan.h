@@ -14,7 +14,7 @@ Gfx* gfxVulkanCreate(void);
 Gfx* gfxVulkanCreate(void);
 void gfxVulkanDestroy(Gfx* G);
 
-bool gfxVulkanCreateSwapChain(Gfx* G, void* window);
+bool gfxVulkanCreateSwapChain(Gfx* G, void* window, void* application);
 
 bool gfxVulkanResize(Gfx* G, int width, int height);
 

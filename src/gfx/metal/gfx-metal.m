@@ -50,10 +50,11 @@ void gfxDestroyMetal(Gfx* G)
     free(G);
 }
 
-bool gfxCreateSwapChain(Gfx* G, void* window)
+bool gfxCreateSwapChain(Gfx* G, void* window, void* application)
 {
     assert(G);
     assert(window);
+    (void)application;
     NSWindow* const cocoaWindow = window;
     G->window = cocoaWindow;
     G->layer = [CAMetalLayer layer];
@@ -63,7 +64,7 @@ bool gfxCreateSwapChain(Gfx* G, void* window)
 
     cocoaWindow.contentView.wantsLayer = true;
     cocoaWindow.contentView.layer = G->layer;
-    
+
     return true;
 }
 
