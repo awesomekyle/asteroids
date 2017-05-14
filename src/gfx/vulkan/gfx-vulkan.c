@@ -427,7 +427,6 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
     VkPresentModeKHR const presentMode = VK_PRESENT_MODE_MAILBOX_KHR; // TODO: check support
     uint32_t const numImages = G->surfaceCapabilities.minImageCount + 1;
 
-    VkSwapchainKHR newSwapChain = VK_NULL_HANDLE;
     VkSwapchainCreateInfoKHR const swapChainInfo = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext = NULL,
@@ -448,6 +447,7 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
         .clipped = VK_TRUE,
         .oldSwapchain = G->swapChain,
     };
+    VkSwapchainKHR newSwapChain = VK_NULL_HANDLE;
     result = vkCreateSwapchainKHR(G->device, &swapChainInfo, NULL, &newSwapChain);
     assert(VK_SUCCEEDED(result) && "Could not create swap chain");
     if (G->swapChain != VK_NULL_HANDLE) {
@@ -462,7 +462,15 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
 GfxRenderTarget gfxVulkanGetBackBuffer(Gfx* G)
 {
     assert(G);
-    return kGfxInvalidHandle;
+    uint32_t imageIndex = 0;
+    VkResult const result = vkAcquireNextImageKHR(G->device, G->swapChain, UINT64_MAX,
+                                                  G->swapChainSemaphore, VK_NULL_HANDLE, &imageIndex);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        gfxResize(G, 0, 0);
+        return gfxVulkanGetBackBuffer(G);
+    }
+    assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
+    return imageIndex;
 }
 bool gfxVulkanPresent(Gfx* G)
 {
