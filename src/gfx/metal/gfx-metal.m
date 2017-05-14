@@ -2,6 +2,25 @@
 #include "gfx-metal.h"
 #include <assert.h>
 #include <stddef.h>
+#import <Metal/Metal.h>
+
+struct Gfx
+{
+    id<MTLDevice>   device;
+};
+
+Gfx* gfxCreateMetal(void)
+{
+    Gfx* const G = calloc(1, sizeof(*G));
+    G->device = MTLCreateSystemDefaultDevice();
+    return G;
+}
+void gfxDestroyMetal(Gfx* G)
+{
+    assert(G);
+    [G->device release];
+    free(G);
+}
 
 bool gfxCreateSwapChain(Gfx* G, void* window)
 {

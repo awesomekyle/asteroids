@@ -46,6 +46,10 @@ if(HAVE_METAL)
         PRIVATE
             ${METAL_LIB}
     )
+    target_compile_options(${TARGET}
+        PRIVATE
+            -fno-objc-arc
+    )
 endif()
 
 ########
