@@ -234,7 +234,6 @@ function(igpa_add_executable IGPA_TARGET)
     setup_compile_options(${IGPA_TARGET})
 
     if(IGPA_ENABLE_RTTI_EXCEPTIONS)
-        message(STATUS "Exceptions on")
         if(MSVC)
             target_compile_options(${IGPA_TARGET}
                 PRIVATE

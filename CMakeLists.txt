@@ -28,10 +28,7 @@ if(Vulkan_FOUND)
 endif()
 include(CheckIncludeFiles)
 
-find_library(D3D12_LIB D3D12)
-if(D3D12_LIB)
-    set(HAVE_D3D12 1)
-endif()
+check_include_files(d3d12.h HAVE_D3D12)
 
 find_library(METAL_LIB Metal)
 if (METAL_LIB)
