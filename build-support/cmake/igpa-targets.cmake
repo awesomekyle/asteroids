@@ -115,6 +115,7 @@ function(setup_compile_options target)
                     /sdl # Software Development Lifecycle security checks
                     /wd4204 # non-constant aggregate initalizers (supported in
                             # C99, which MSFT supports)
+                    /wd4221 # Address of automatic variables - legal in C99
             )
         elseif(${CMAKE_CXX_COMPILER_ID} MATCHES Clang)
             target_compile_options(${target}

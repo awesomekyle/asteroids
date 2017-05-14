@@ -5,6 +5,9 @@
 #if HAVE_D3D12
 #   include "d3d12/gfx-d3d12.h"
 #endif
+#if HAVE_VULKAN
+#   include "vulkan/gfx-vulkan.h"
+#endif
 #if HAVE_METAL
 #   include "metal/gfx-metal.h"
 #endif
@@ -40,7 +43,11 @@ Gfx* gfxCreate(GfxApi api)
     {
 #if HAVE_D3D12
     case kGfxApiD3D12:
-        return(Gfx*)gfxD3D12Create();
+        return gfxD3D12Create();
+#endif
+#if HAVE_VULKAN
+    case kGfxApiVulkan:
+        return gfxVulkanCreate();
 #endif
 #if HAVE_METAL
     case kGfxApiMetal:

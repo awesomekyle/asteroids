@@ -15,7 +15,7 @@ extern "C" {
 namespace {
 
 // Global initialization
-constexpr GfxApi kTestApi = kGfxApiDefault;
+constexpr GfxApi kTestApi = kGfxApiVulkan;
 int const glfwInitialized = glfwInit();
 int const glfwTerminationRegistered = atexit(glfwTerminate);
 
@@ -40,7 +40,7 @@ TEST_CASE("Gfx lifetime")
         gfxDestroy(G);
     }
 }
-TEST_CASE("Gfx window interaction")
+TEST_CASE("Gfx window interaction", "[!hide]")
 {
     GIVEN("A Graphics object and OS window")
     {
@@ -88,7 +88,7 @@ TEST_CASE("Gfx window interaction")
         gfxDestroy(G);
     }
 }
-TEST_CASE("Gfx command interface")
+TEST_CASE("Gfx command interface", "[!hide]")
 {
     GIVEN("A graphics object")
     {
