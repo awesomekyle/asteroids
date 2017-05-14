@@ -23,14 +23,22 @@ find_package(d3dx12)
 # Configuration      #
 ######################
 find_package(Vulkan)
-if(NOT Vulkan_FOUND)
-    message(WARNING "Vulkan not found on system. Building without Vulkan support")
-else()
+if(Vulkan_FOUND)
     set(HAVE_VULKAN 1)
 endif()
 include(CheckIncludeFiles)
-check_include_files(pthread.h HAVE_PTHREAD_H)
-check_include_files(d3d12.h HAVE_D3D12)
+
+find_library(D3D12_LIB D3D12)
+if(D3D12_LIB)
+    set(HAVE_D3D12 1)
+endif()
+
+find_library(METAL_LIB Metal)
+if (METAL_LIB)
+    find_library(QUARTZCORE_LIB QuartzCore)
+    set(HAVE_METAL 1)
+endif()
+
 configure_file(config.h.in ${CMAKE_BINARY_DIR}/config.h)
 
 ######################

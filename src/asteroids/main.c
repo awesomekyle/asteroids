@@ -43,6 +43,12 @@ static bool _InitializeApp(GLFWwindow* const window)
             assert(result == true && "Could not create swap chain for window");
             return false;
         }
+    #elif defined(__APPLE__)
+        bool const result = gfxCreateSwapChain(gGfx, glfwGetCocoaWindow(window));
+        if (result == false) {
+            assert(result == true && "Could not create swap chain for window");
+            return false;
+        }
     #else
         #warning "Not passing native window to Gfx"
     #endif

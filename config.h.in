@@ -24,5 +24,6 @@
 #endif /* UNREFERENCED */
 
 #cmakedefine HAVE_PTHREAD_H 1
-#cmakedefine HAVE_D3D12 1
+#cmakedefine HAVE_D3D12 @HAVE_D3D12@
+#cmakedefine HAVE_METAL @HAVE_METAL@
 #cmakedefine HAVE_VULKAN @HAVE_VULKAN@

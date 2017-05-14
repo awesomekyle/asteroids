@@ -11,6 +11,12 @@ if(HAVE_D3D12)
         d3d12/gfx-d3d12.cpp
     )
 endif()
+if(HAVE_METAL)
+    list(APPEND SOURCES
+        metal/gfx-metal.h
+        metal/gfx-metal.m
+    )
+endif()
 
 igpa_add_library(${TARGET} STATIC ${SOURCES})
 
@@ -33,6 +39,12 @@ if(HAVE_D3D12)
             dxgi
             d3dx12
         PUBLIC
+    )
+endif()
+if(HAVE_METAL)
+    target_link_libraries(${TARGET}
+        PRIVATE
+            ${METAL_LIB}
     )
 endif()
 

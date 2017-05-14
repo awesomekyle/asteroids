@@ -8,7 +8,7 @@ typedef struct Gfx Gfx;
 typedef struct GfxCmdBuffer GfxCmdBuffer;
 
 /// Opaque object handle
-uint64_t const kGfxInvalidHandle = 0xFFFFFFFFFFFFFFFF;
+static intptr_t const kGfxInvalidHandle = -1;
 typedef intptr_t GfxRenderTarget;
 
 /// @brief Creates a new graphics device
