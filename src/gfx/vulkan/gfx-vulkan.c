@@ -15,9 +15,14 @@
 #include <vulkan/vk_platform.h>
 
 #include "../gfx-internal.h"
+#include "gfx-vulkan-helper.h"
 
 #define ARRAY_COUNT(a) (sizeof(a)/sizeof(a[0]))
 #define VK_SUCCEEDED(res) (res == VK_SUCCESS)
+
+enum {
+    kMaxPhysicalDevices = 8,
+};
 
 struct GfxCmdBuffer {
     GfxCmdBufferTable const* table;
@@ -30,7 +35,11 @@ struct Gfx {
     VkExtensionProperties   availableExtensions[32];
     uint32_t  numAvailableExtensions;
 
-    VkInstance  instance;
+    VkInstance          instance;
+    VkPhysicalDevice    availablePhysicalDevices[kMaxPhysicalDevices];
+    uint32_t            numPhysicalDevices;
+
+    VkPhysicalDevice    physicalDevice;
 
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
@@ -129,6 +138,7 @@ static VkBool32 VKAPI_CALL _DebugCallback(VkDebugReportFlagsEXT flags,
 
 static VkResult _GetExtensions(Gfx* G)
 {
+    assert(G);
     G->numAvailableExtensions = ARRAY_COUNT(G->availableExtensions);
     VkResult const result = vkEnumerateInstanceExtensionProperties(NULL,
                                                                    &G->numAvailableExtensions,
@@ -138,6 +148,7 @@ static VkResult _GetExtensions(Gfx* G)
 }
 static VkResult _CreateInstance(Gfx* G)
 {
+    assert(G);
     // Check for required extensions
     char const* const desiredExtensions[] = {
         VK_KHR_SURFACE_EXTENSION_NAME,
@@ -216,6 +227,17 @@ static VkResult _CreateInstance(Gfx* G)
 
     return result;
 }
+static VkResult _GetPhysicalDevices(Gfx* const G)
+{
+    assert(G);
+    G->numPhysicalDevices = ARRAY_COUNT(G->availablePhysicalDevices);
+    VkResult result = vkEnumeratePhysicalDevices(G->instance, &G->numPhysicalDevices, NULL);
+    assert(VK_SUCCEEDED(result));
+    assert(G->numPhysicalDevices <= ARRAY_COUNT(G->availablePhysicalDevices));
+    result = vkEnumeratePhysicalDevices(G->instance, &G->numPhysicalDevices, G->availablePhysicalDevices);
+    assert(VK_SUCCEEDED(result) && "Could not get physical devices");
+    return result;
+}
 
 Gfx* gfxVulkanCreate(void)
 {
@@ -226,6 +248,8 @@ Gfx* gfxVulkanCreate(void)
     result = _GetExtensions(G);
     assert(VK_SUCCEEDED(result));
     result = _CreateInstance(G);
+    assert(VK_SUCCEEDED(result));
+    result = _GetPhysicalDevices(G);
     assert(VK_SUCCEEDED(result));
 
     G->table = &GfxVulkanTable;

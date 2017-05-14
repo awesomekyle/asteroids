@@ -16,6 +16,8 @@ if(HAVE_VULKAN)
     list(APPEND SOURCES
         vulkan/gfx-vulkan.h
         vulkan/gfx-vulkan.c
+        vulkan/gfx-vulkan-helper.h
+        vulkan/gfx-vulkan-helper.c
     )
 endif()
 if(HAVE_METAL)
