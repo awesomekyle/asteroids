@@ -34,7 +34,7 @@ TEST_CASE("Gfx lifetime")
 {
     SECTION("Gfx can be created and destroyed")
     {
-        Gfx* const G = gfxCreate();
+        Gfx* const G = gfxCreate(kGfxApiDefault);
         REQUIRE(G);
         gfxDestroy(G);
     }
@@ -51,7 +51,7 @@ TEST_CASE("Gfx window interaction")
         GLFWwindow* const window = glfwCreateWindow(10, 10, "Gfx Test", NULL, NULL);
         REQUIRE(window);
         // Gfx initialization
-        Gfx* const G = gfxCreate();
+        Gfx* const G = gfxCreate(kGfxApiDefault);
         REQUIRE(G);
 
         WHEN("resized with no swap chain")
@@ -92,7 +92,7 @@ TEST_CASE("Gfx command interface")
     GIVEN("A graphics object")
     {
         // Gfx initialization
-        Gfx* const G = gfxCreate();
+        Gfx* const G = gfxCreate(kGfxApiDefault);
         REQUIRE(G);
 
         WHEN("a command buffer is requested")
@@ -112,7 +112,7 @@ TEST_CASE("Gfx command interface")
                         REQUIRE(gfxNumAvailableCommandBuffers(G) == 128);
                     }
                 }
-                
+
             }
             THEN("it can be properly executed") {
                 REQUIRE(gfxExecuteCommandBuffer(cmdBuffer));

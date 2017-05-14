@@ -30,28 +30,29 @@ static Gfx* gGfx = NULL;
 //////
 // Functions
 //////
+static void* _PlatformWindow(GLFWwindow* const window)
+{
+#if defined(_WIN32)
+    return glfwGetWin32Window(window);
+#elif defined(__APPLE__)
+    return glfwGetCocoaWindow(window);
+#else
+    #warning "Not passing native window to Gfx"
+    return NULL;
+#endif
+}
 static bool _InitializeApp(GLFWwindow* const window)
 {
-    gGfx = gfxCreate();
+    gGfx = gfxCreate(kGfxApiDefault);
     if (gGfx == NULL) {
         assert(gGfx != NULL && "Could not create Gfx device");
         return false;
     }
-    #if defined(_WIN32)
-        bool const result = gfxCreateSwapChain(gGfx, glfwGetWin32Window(window));
-        if (result == false) {
-            assert(result == true && "Could not create swap chain for window");
-            return false;
-        }
-    #elif defined(__APPLE__)
-        bool const result = gfxCreateSwapChain(gGfx, glfwGetCocoaWindow(window));
-        if (result == false) {
-            assert(result == true && "Could not create swap chain for window");
-            return false;
-        }
-    #else
-        #warning "Not passing native window to Gfx"
-    #endif
+    bool const result = gfxCreateSwapChain(gGfx, _PlatformWindow(window));
+    if (result == false) {
+        assert(result == true && "Could not create swap chain for window");
+        return false;
+    }
     return true;
 }
 static void _ShutdownApp(void)

@@ -10,16 +10,37 @@
 #endif
 #include "gfx-internal.h"
 
-Gfx* gfxCreate(void)
+static GfxApi _PlatformDefaultApi()
 {
-    Gfx* G = NULL;
-    #if HAVE_D3D12
-        G = (Gfx*)gfxD3D12Create();
+    #if defined(_WIN32)
+        return kGfxApiD3D12;
+    #elif defined(__APPLE__)
+        return kGfxApiMetal;
+    #else
+        #error Must specify default API
+        return kGfxApiUnknown;
     #endif
-    #if HAVE_METAL
-        G = gfxCreateMetal();
-    #endif
-    return G;
+}
+
+Gfx* gfxCreate(GfxApi api)
+{
+    if (api == kGfxApiDefault) {
+        api = _PlatformDefaultApi();
+    }
+    switch (api)
+    {
+#if HAVE_D3D12
+    case kGfxApiD3D12:
+        return(Gfx*)gfxD3D12Create();
+#endif
+#if HAVE_METAL
+    case kGfxApiMetal:
+        return gfxCreateMetal();
+#endif
+    default:
+        break;
+    }
+    return NULL;
 }
 
 void gfxDestroy(Gfx* G)

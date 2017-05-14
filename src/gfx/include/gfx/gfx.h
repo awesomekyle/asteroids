@@ -2,6 +2,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+typedef enum GfxApi {
+    kGfxApiDefault = 0,
+    kGfxApiD3D12,
+    kGfxApiMetal,
+
+    kGfxApiUnknown = -1,
+} GfxApi;
+
 /// Object representing a graphics device (ID3D11Device, vkDevice, MTLDevice)
 typedef struct Gfx Gfx;
 /// Object representing a graphics command buffer/command list
@@ -12,7 +20,7 @@ static intptr_t const kGfxInvalidHandle = -1;
 typedef intptr_t GfxRenderTarget;
 
 /// @brief Creates a new graphics device
-Gfx* gfxCreate(void);
+Gfx* gfxCreate(GfxApi api);
 /// @brief Terminates and destroys a graphics device
 void gfxDestroy(Gfx* G);
 
