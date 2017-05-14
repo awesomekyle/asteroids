@@ -10,6 +10,15 @@
 #endif
 #include "gfx-internal.h"
 
+struct Gfx
+{
+    GfxTable const* table;
+};
+struct GfxCmdBuffer
+{
+    GfxCmdBufferTable const* table;
+};
+
 static GfxApi _PlatformDefaultApi()
 {
     #if defined(_WIN32)

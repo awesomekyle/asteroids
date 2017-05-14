@@ -12,6 +12,12 @@ if(HAVE_D3D12)
         d3d12/gfx-d3d12.cpp
     )
 endif()
+if(HAVE_VULKAN)
+    list(APPEND SOURCES
+        vulkan/gfx-vulkan.h
+        vulkan/gfx-vulkan.c
+    )
+endif()
 if(HAVE_METAL)
     list(APPEND SOURCES
         metal/gfx-metal.h
@@ -39,6 +45,17 @@ if(HAVE_D3D12)
             dxguid
             dxgi
             d3dx12
+        PUBLIC
+    )
+endif()
+if(HAVE_VULKAN)
+    target_include_directories(${TARGET}
+        PRIVATE
+            ${Vulkan_INCLUDE_DIR}
+    )
+    target_link_libraries(${TARGET}
+        PRIVATE
+            ${Vulkan_LIBRARY}
         PUBLIC
     )
 endif()

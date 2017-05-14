@@ -6,6 +6,7 @@ typedef enum GfxApi {
     kGfxApiDefault = 0,
     kGfxApiD3D12,
     kGfxApiMetal,
+    kGfxApiVulkan,
 
     kGfxApiUnknown = -1,
 } GfxApi;

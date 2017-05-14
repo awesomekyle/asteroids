@@ -19,12 +19,3 @@ typedef struct {
                                float const clearColor[4]);
     void (*CmdEndRenderPass)(GfxCmdBuffer* B);
 } GfxCmdBufferTable;
-
-struct Gfx
-{
-    GfxTable const* table;
-};
-struct GfxCmdBuffer
-{
-    GfxCmdBufferTable const* table;
-};
