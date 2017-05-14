@@ -124,7 +124,7 @@ HRESULT _CreateDebugInterfaces(Gfx* const G)
     // create debug interfaces
     auto const dxgiDebugModule = LoadLibraryA("dxgidebug.dll");
     if (dxgiDebugModule) {
-        auto const* const pDXGIGetDebugInterface = reinterpret_cast<decltype(&DXGIGetDebugInterface)>(GetProcAddress(dxgiDebugModule, "DXGIGetDebugInterface"));
+        decltype(&DXGIGetDebugInterface) const pDXGIGetDebugInterface = (decltype(&DXGIGetDebugInterface))(GetProcAddress(dxgiDebugModule, "DXGIGetDebugInterface"));
         if (pDXGIGetDebugInterface) {
             hr = pDXGIGetDebugInterface(IID_PPV_ARGS(&G->dxgiDebug));
             assert(SUCCEEDED(hr) && "Could not create DXGIDebug interface");
@@ -150,7 +150,7 @@ HRESULT _CreateFactory(Gfx* const G)
     assert(G);
     auto const dxgiModule = LoadLibraryA("dxgi.dll");
     assert(dxgiModule && "Could not load dxgi.dll");
-    auto const* pCreateDXGIFactory2 = reinterpret_cast<decltype(&CreateDXGIFactory2)>(GetProcAddress(dxgiModule, "CreateDXGIFactory2"));
+    decltype(&CreateDXGIFactory2) const pCreateDXGIFactory2 = (decltype(&CreateDXGIFactory2))(GetProcAddress(dxgiModule, "CreateDXGIFactory2"));
     assert(pCreateDXGIFactory2 && "Could not load CreateDXGIFactory2 address");
     UINT const factoryFlags =
 #if defined(_DEBUG)
@@ -198,7 +198,7 @@ HRESULT _CreateDevice(Gfx* const G)
     assert(d3d12Module && "Could not load d3d12.dll");
 #if defined(_DEBUG)
     // create debug interface
-    auto const* pD3D12GetDebugInterface = decltype(&D3D12GetDebugInterface)(GetProcAddress(d3d12Module, "D3D12GetDebugInterface"));
+    decltype(&D3D12GetDebugInterface) const pD3D12GetDebugInterface = decltype(&D3D12GetDebugInterface)(GetProcAddress(d3d12Module, "D3D12GetDebugInterface"));
     CComPtr<ID3D12Debug> debugController;
     if (SUCCEEDED(pD3D12GetDebugInterface(IID_PPV_ARGS(&debugController)))) {
         debugController->EnableDebugLayer();
@@ -206,7 +206,7 @@ HRESULT _CreateDevice(Gfx* const G)
 #endif
 
     HRESULT hr = S_OK;
-    auto const* pD3D12CreateDevice = decltype(&D3D12CreateDevice)(GetProcAddress(d3d12Module, "D3D12CreateDevice"));
+    decltype(&D3D12CreateDevice) const pD3D12CreateDevice = decltype(&D3D12CreateDevice)(GetProcAddress(d3d12Module, "D3D12CreateDevice"));
     for (auto& adapter : G->adapters) {
         if (adapter.adapter == nullptr) {
             break;
