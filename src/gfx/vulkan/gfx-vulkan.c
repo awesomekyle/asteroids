@@ -46,6 +46,9 @@ struct Gfx {
     VkSemaphore     swapChainSemaphore;
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
     VkSurfaceFormatKHR surfaceFormat;
+
+    VkSwapchainKHR swapChain;
+
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
 #endif
@@ -307,6 +310,7 @@ Gfx* gfxVulkanCreate(void)
 void gfxVulkanDestroy(Gfx* G)
 {
     assert(G);
+    vkDestroySwapchainKHR(G->device, G->swapChain, NULL);
     vkDestroySemaphore(G->device, G->swapChainSemaphore, NULL);
     vkDestroySurfaceKHR(G->instance, G->surface, NULL);
     vkDeviceWaitIdle(G->device);
@@ -397,14 +401,9 @@ bool gfxVulkanCreateSwapChain(Gfx* G, void* window, void* application)
     }
     assert(G->surfaceFormat.format != VK_FORMAT_UNDEFINED);
     assert(G->surfaceCapabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT && "Cannot clear surface");
-    VkImageUsageFlags const imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT & VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    VkSurfaceTransformFlagsKHR const transformFlags = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR; // TODO: check support
-    VkPresentModeKHR const presentMode = VK_PRESENT_MODE_MAILBOX_KHR; // TODO: check support
-    uint32_t const numImages = G->surfaceCapabilities.minImageCount + 1;
-    (void)numImages;
-    (void)presentMode;
-    (void)imageUsageFlags;
-    (void)transformFlags;
+
+    // Trigger creation
+    gfxVulkanResize(G, 0, 0);
 
     return VK_SUCCEEDED(result);
 #else
@@ -415,6 +414,47 @@ bool gfxVulkanCreateSwapChain(Gfx* G, void* window, void* application)
 bool gfxVulkanResize(Gfx* G, int width, int height)
 {
     assert(G);
+    if (G->surface == VK_NULL_HANDLE) {
+        return false;
+    }
+    VkResult result = VK_SUCCESS;
+    // Get surface capabilities
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(G->physicalDevice, G->surface,
+                                                       &G->surfaceCapabilities);
+    assert(VK_SUCCEEDED(result) && "Could not get surface capabilities");
+
+    VkImageUsageFlags const imageUsageFlags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT; // TODO: check support
+    VkPresentModeKHR const presentMode = VK_PRESENT_MODE_MAILBOX_KHR; // TODO: check support
+    uint32_t const numImages = G->surfaceCapabilities.minImageCount + 1;
+
+    VkSwapchainKHR newSwapChain = VK_NULL_HANDLE;
+    VkSwapchainCreateInfoKHR const swapChainInfo = {
+        .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+        .pNext = NULL,
+        .flags = 0,
+        .surface = G->surface,
+        .minImageCount = numImages,
+        .imageFormat = G->surfaceFormat.format,
+        .imageColorSpace = G->surfaceFormat.colorSpace,
+        .imageExtent = G->surfaceCapabilities.currentExtent,
+        .imageArrayLayers = 1,
+        .imageUsage = imageUsageFlags,
+        .imageSharingMode = VK_SHARING_MODE_EXCLUSIVE,
+        .queueFamilyIndexCount = 0,
+        .pQueueFamilyIndices = NULL,
+        .preTransform = G->surfaceCapabilities.currentTransform,
+        .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+        .presentMode = presentMode,
+        .clipped = VK_TRUE,
+        .oldSwapchain = G->swapChain,
+    };
+    result = vkCreateSwapchainKHR(G->device, &swapChainInfo, NULL, &newSwapChain);
+    assert(VK_SUCCEEDED(result) && "Could not create swap chain");
+    if (G->swapChain != VK_NULL_HANDLE) {
+        vkDestroySwapchainKHR(G->device, G->swapChain, NULL);
+    }
+    G->swapChain = newSwapChain;
+
     (void)width;
     (void)height;
     return true;
