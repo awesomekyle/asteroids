@@ -2,6 +2,7 @@ set(TARGET gfx)
 
 set(SOURCES
     include/gfx/gfx.h
+    gfx-internal.h
     gfx.c
 )
 

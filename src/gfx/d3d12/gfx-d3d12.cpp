@@ -20,18 +20,21 @@ extern "C" {
 #include <d3dx12.h>
 #pragma warning(pop)
 
+#include "../gfx-internal.h"
+
 static constexpr UINT kFramesInProgress = 3;
 static constexpr size_t kMaxBackBuffers = 4;
 static constexpr size_t kMaxCommandLists = 128;
 
-struct GfxCmdBuffer {
-    Gfx* G;
+struct GfxD3D12CmdBuffer {
+    GfxD3D12* G;
     ID3D12CommandAllocator*     allocator;
     ID3D12GraphicsCommandList*  list;
     uint64_t    completion;
 };
 
-struct Gfx {
+struct GfxD3D12 {
+    struct Gfx base;
     // Types
     struct Adapter {
         IDXGIAdapter3*      adapter;
@@ -77,7 +80,7 @@ struct Gfx {
     DescriptorHeap  rtvHeap;
 
     // command lists
-    GfxCmdBuffer commandLists[kMaxCommandLists];
+    GfxD3D12CmdBuffer commandLists[kMaxCommandLists];
     std::atomic<uint32_t>   currentCommandList;
 
 #if defined(_DEBUG)
@@ -116,7 +119,7 @@ ULONG _SafeRelease(D*& obj)
     return count;
 }
 
-HRESULT _CreateDebugInterfaces(Gfx* const G)
+HRESULT _CreateDebugInterfaces(GfxD3D12* const G)
 {
     assert(G);
     HRESULT hr = S_OK;
@@ -146,7 +149,7 @@ HRESULT _CreateDebugInterfaces(Gfx* const G)
 #endif
     return hr;
 }
-HRESULT _CreateFactory(Gfx* const G)
+HRESULT _CreateFactory(GfxD3D12* const G)
 {
     assert(G);
     auto const dxgiModule = LoadLibraryA("dxgi.dll");
@@ -162,7 +165,7 @@ HRESULT _CreateFactory(Gfx* const G)
     _SetName(G->factory, "DXGI Factory");
     return hr;
 }
-HRESULT _FindAdapters(Gfx* const G)
+HRESULT _FindAdapters(GfxD3D12* const G)
 {
     assert(G);
     HRESULT hr = S_OK;
@@ -192,7 +195,7 @@ HRESULT _FindAdapters(Gfx* const G)
     }
     return hr;
 }
-HRESULT _CreateDevice(Gfx* const G)
+HRESULT _CreateDevice(GfxD3D12* const G)
 {
     assert(G);
     auto const d3d12Module = LoadLibraryA("d3d12.dll");
@@ -248,7 +251,7 @@ HRESULT _CreateDevice(Gfx* const G)
 #endif
     return hr;
 }
-HRESULT _CreateQueues(Gfx* const G)
+HRESULT _CreateQueues(GfxD3D12* const G)
 {
     assert(G);
     D3D12_COMMAND_QUEUE_DESC const queueDesc = {
@@ -265,7 +268,7 @@ HRESULT _CreateQueues(Gfx* const G)
     _SetName(G->renderFence, "Render Fence");
     return hr;
 }
-void _WaitForIdle(Gfx* const G)
+void _WaitForIdle(GfxD3D12* const G)
 {
     assert(G);
     G->lastFenceCompletion++;
@@ -274,11 +277,11 @@ void _WaitForIdle(Gfx* const G)
         ;
 }
 
-Gfx::DescriptorHeap CreateDescriptorHeap(ID3D12Device* device,
-    D3D12_DESCRIPTOR_HEAP_DESC const& desc,
-    char const* name = nullptr)
+GfxD3D12::DescriptorHeap CreateDescriptorHeap(ID3D12Device* device,
+                                              D3D12_DESCRIPTOR_HEAP_DESC const& desc,
+                                              char const* name = nullptr)
 {
-    Gfx::DescriptorHeap heap = {};
+    GfxD3D12::DescriptorHeap heap = {};
     HRESULT hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap.heap));
     assert(SUCCEEDED(hr));
     _SetName(heap.heap, name);
@@ -299,9 +302,23 @@ Gfx::DescriptorHeap CreateDescriptorHeap(ID3D12Device* device,
 
 extern "C" {
 
-Gfx* gfxD3D12Create(void)
+GfxD3D12* gfxD3D12Create(void)
 {
-    Gfx* const G = (Gfx*)calloc(1, sizeof(*G));
+    GfxD3D12* const G = (GfxD3D12*)calloc(1, sizeof(*G));
+
+    // Set up dispatching
+    G->base.Destroy = (decltype(G->base.Destroy))gfxD3D12Destroy;
+    G->base.CreateSwapChain = (decltype(G->base.CreateSwapChain))gfxD3D12CreateSwapChain;
+    G->base.Resize = (decltype(G->base.Resize))gfxD3D12Resize;
+    G->base.GetBackBuffer = (decltype(G->base.GetBackBuffer))gfxD3D12GetBackBuffer;
+    G->base.Present = (decltype(G->base.Present))gfxD3D12Present;
+    G->base.GetCommandBuffer = (decltype(G->base.GetCommandBuffer))gfxD3D12GetCommandBuffer;
+    G->base.NumAvailableCommandBuffers = (decltype(G->base.NumAvailableCommandBuffers))gfxD3D12NumAvailableCommandBuffers;
+    G->base.ResetCommandBuffer = (decltype(G->base.ResetCommandBuffer))gfxD3D12ResetCommandBuffer;
+    G->base.ExecuteCommandBuffer = (decltype(G->base.ExecuteCommandBuffer))gfxD3D12ExecuteCommandBuffer;
+    G->base.CmdBeginRenderPass = (decltype(G->base.CmdBeginRenderPass))gfxD3D12CmdBeginRenderPass;
+    G->base.CmdEndRenderPass = (decltype(G->base.CmdEndRenderPass))gfxD3D12CmdEndRenderPass;
+
     assert(G && "Could not allocate space for a D3D12 Gfx device");
     HRESULT hr = S_OK;
 
@@ -343,7 +360,7 @@ Gfx* gfxD3D12Create(void)
     return G;
 }
 
-void gfxD3D12Destroy(Gfx* G)
+void gfxD3D12Destroy(GfxD3D12* G)
 {
     assert(G);
     _WaitForIdle(G);
@@ -374,7 +391,7 @@ void gfxD3D12Destroy(Gfx* G)
     free(G);
 }
 
-bool gfxD3D12CreateSwapChain(Gfx* const G, void* const window)
+bool gfxD3D12CreateSwapChain(GfxD3D12* const G, void* const window)
 {
     assert(G);
     if (window == nullptr) {
@@ -417,7 +434,7 @@ bool gfxD3D12CreateSwapChain(Gfx* const G, void* const window)
 
     return true;
 }
-bool gfxD3D12Resize(Gfx* const G, int const /*width*/, int const /*height*/)
+bool gfxD3D12Resize(GfxD3D12* const G, int const /*width*/, int const /*height*/)
 {
     assert(G);
     if(G->swapChain == nullptr) {
@@ -445,18 +462,18 @@ bool gfxD3D12Resize(Gfx* const G, int const /*width*/, int const /*height*/)
                                                               D3D12_RESOURCE_STATE_RENDER_TARGET);
 
     // make back buffer presentable
-    GfxCmdBuffer* const commandList = gfxD3D12GetCommandBuffer(G);
+    GfxD3D12CmdBuffer* const commandList = gfxD3D12GetCommandBuffer(G);
     commandList->list->ResourceBarrier(1, &barrier);
     gfxD3D12ExecuteCommandBuffer(commandList);
     return true;
 }
-GfxRenderTarget gfxD3D12GetBackBuffer(Gfx* G)
+GfxRenderTarget gfxD3D12GetBackBuffer(GfxD3D12* G)
 {
     assert(G);
     UINT const frameIndex = G->swapChain->GetCurrentBackBufferIndex();
     return G->rtvHeap.CpuSlot(frameIndex).ptr;
 }
-bool gfxD3D12Present(Gfx * G)
+bool gfxD3D12Present(GfxD3D12* G)
 {
     assert(G);
     auto const currentIndex = G->swapChain->GetCurrentBackBufferIndex();
@@ -469,7 +486,7 @@ bool gfxD3D12Present(Gfx * G)
     };
 
     // transition to present
-    GfxCmdBuffer* commandList = gfxD3D12GetCommandBuffer(G);
+    GfxD3D12CmdBuffer* commandList = gfxD3D12GetCommandBuffer(G);
     assert(commandList);
     commandList->list->ResourceBarrier(1, barriers + 0);
     bool result = gfxD3D12ExecuteCommandBuffer(commandList);
@@ -494,11 +511,11 @@ bool gfxD3D12Present(Gfx * G)
     assert(result);
     return true;
 }
-GfxCmdBuffer* gfxD3D12GetCommandBuffer(Gfx * G)
+GfxD3D12CmdBuffer* gfxD3D12GetCommandBuffer(GfxD3D12* G)
 {
     assert(G);
     uint_fast32_t const currIndex = G->currentCommandList.fetch_add(1) % kMaxCommandLists;
-    GfxCmdBuffer* const list = &G->commandLists[currIndex];
+    GfxD3D12CmdBuffer* const list = &G->commandLists[currIndex];
     uint64_t const lastCompletedValue = G->renderFence->GetCompletedValue();
     if(lastCompletedValue < list->completion) {
         /// @TODO: This case needs to be handled
@@ -512,7 +529,7 @@ GfxCmdBuffer* gfxD3D12GetCommandBuffer(Gfx * G)
     assert(SUCCEEDED(hr) && "Could not reset command list");
     return list;
 }
-int gfxD3D12NumAvailableCommandBuffers(Gfx * G)
+int gfxD3D12NumAvailableCommandBuffers(GfxD3D12* G)
 {
     assert(G);
     int freeBuffers = 0;
@@ -525,7 +542,7 @@ int gfxD3D12NumAvailableCommandBuffers(Gfx * G)
     }
     return freeBuffers;
 }
-void gfxD3D12ResetCommandBuffer(GfxCmdBuffer * B)
+void gfxD3D12ResetCommandBuffer(GfxD3D12CmdBuffer * B)
 {
     assert(B);
     HRESULT hr = B->list->Close();
@@ -533,10 +550,10 @@ void gfxD3D12ResetCommandBuffer(GfxCmdBuffer * B)
     B->completion = 0;
 }
 
-bool gfxD3D12ExecuteCommandBuffer(GfxCmdBuffer * B)
+bool gfxD3D12ExecuteCommandBuffer(GfxD3D12CmdBuffer * B)
 {
     assert(B);
-    Gfx* const G = B->G;
+    GfxD3D12* const G = B->G;
     HRESULT const hr = B->list->Close();
     assert(SUCCEEDED(hr) && "Could not close command list");
     G->renderQueue->ExecuteCommandLists(1, CommandListCast(&B->list));
@@ -545,7 +562,7 @@ bool gfxD3D12ExecuteCommandBuffer(GfxCmdBuffer * B)
     return SUCCEEDED(hr);
 }
 
-void gfxD3D12CmdBeginRenderPass(GfxCmdBuffer * B,
+void gfxD3D12CmdBeginRenderPass(GfxD3D12CmdBuffer * B,
                            GfxRenderTarget renderTargetHandle,
                            GfxRenderPassAction loadAction,
                            float const clearColor[4])
@@ -560,7 +577,7 @@ void gfxD3D12CmdBeginRenderPass(GfxCmdBuffer * B,
     }
 }
 
-void gfxD3D12CmdEndRenderPass(GfxCmdBuffer* /*B*/)
+void gfxD3D12CmdEndRenderPass(GfxD3D12CmdBuffer* /*B*/)
 {
 }
 

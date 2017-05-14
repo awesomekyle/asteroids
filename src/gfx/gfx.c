@@ -8,12 +8,13 @@
 #if HAVE_METAL
 #   include "metal/gfx-metal.h"
 #endif
+#include "gfx-internal.h"
 
 Gfx* gfxCreate(void)
 {
     Gfx* G = NULL;
     #if HAVE_D3D12
-        G = gfxD3D12Create();
+        G = (Gfx*)gfxD3D12Create();
     #endif
     #if HAVE_METAL
         G = gfxCreateMetal();
@@ -25,7 +26,8 @@ void gfxDestroy(Gfx* G)
 {
     (void)G;
     #if HAVE_D3D12
-        gfxD3D12Destroy(G);
+        //gfxD3D12Destroy(G);
+        G->Destroy(G);
     #endif
     #if HAVE_METAL
         gfxDestroyMetal(G);
@@ -35,42 +37,42 @@ void gfxDestroy(Gfx* G)
 
 bool gfxCreateSwapChain(Gfx* G, void* window)
 {
-    return gfxD3D12CreateSwapChain(G, window);
+    return G->CreateSwapChain(G, window);
 }
 
 bool gfxResize(Gfx* G, int width, int height)
 {
-    return gfxD3D12Resize(G, width, height);
+    return G->Resize(G, width, height);
 }
 
 GfxRenderTarget gfxGetBackBuffer(Gfx* G)
 {
-    return gfxD3D12GetBackBuffer(G);
+    return G->GetBackBuffer(G);
 }
 
 bool gfxPresent(Gfx* G)
 {
-    return gfxD3D12Present(G);
+    return G->Present(G);
 }
 
 GfxCmdBuffer* gfxGetCommandBuffer(Gfx* G)
 {
-    return gfxD3D12GetCommandBuffer(G);
+    return G->GetCommandBuffer(G);
 }
 
 int gfxNumAvailableCommandBuffers(Gfx* G)
 {
-    return gfxD3D12NumAvailableCommandBuffers(G);
+    return G->NumAvailableCommandBuffers(G);
 }
 
 void gfxResetCommandBuffer(GfxCmdBuffer* B)
 {
-    gfxD3D12ResetCommandBuffer(B);
+    B->G->ResetCommandBuffer(B);
 }
 
 bool gfxExecuteCommandBuffer(GfxCmdBuffer* B)
 {
-    return gfxD3D12ExecuteCommandBuffer(B);
+    return B->G->ExecuteCommandBuffer(B);
 }
 
 void gfxCmdBeginRenderPass(GfxCmdBuffer* B,
@@ -78,9 +80,9 @@ void gfxCmdBeginRenderPass(GfxCmdBuffer* B,
                            GfxRenderPassAction loadAction,
                            float const clearColor[4])
 {
-    gfxD3D12CmdBeginRenderPass(B, renderTargetHandle, loadAction, clearColor);
+    B->G->CmdBeginRenderPass(B, renderTargetHandle, loadAction, clearColor);
 }
 void gfxCmdEndRenderPass(GfxCmdBuffer* B)
 {
-    gfxD3D12CmdEndRenderPass(B);
+    B->G->CmdEndRenderPass(B);
 }
