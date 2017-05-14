@@ -46,78 +46,78 @@ struct Gfx {
 static char const* _FlagString(VkDebugReportFlagsEXT flag)
 {
     switch (flag) {
-        STRINGIZE_CASE(VK_DEBUG_REPORT_INFORMATION_BIT_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_WARNING_BIT_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_ERROR_BIT_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_DEBUG_BIT_EXT);
-    default:
-        return NULL;
+            STRINGIZE_CASE(VK_DEBUG_REPORT_INFORMATION_BIT_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_WARNING_BIT_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_ERROR_BIT_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_DEBUG_BIT_EXT);
+        default:
+            return NULL;
     }
 }
 static char const* _ObjectString(VkDebugReportObjectTypeEXT type)
 {
     switch (type) {
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_INSTANCE_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_PHYSICAL_DEVICE_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_FENCE_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_EVENT_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_QUERY_POOL_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_VIEW_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_CACHE_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_POOL_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_POOL_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_SWAPCHAIN_KHR_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DEBUG_REPORT_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DISPLAY_KHR_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DISPLAY_MODE_KHR_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_OBJECT_TABLE_NVX_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NVX_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR_EXT);
-        STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_RANGE_SIZE_EXT);
-    default:
-        return NULL;
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_UNKNOWN_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_INSTANCE_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_PHYSICAL_DEVICE_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_QUEUE_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_SEMAPHORE_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_BUFFER_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_FENCE_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DEVICE_MEMORY_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_EVENT_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_QUERY_POOL_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_BUFFER_VIEW_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_IMAGE_VIEW_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_SHADER_MODULE_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_CACHE_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_LAYOUT_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_RENDER_PASS_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_PIPELINE_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_LAYOUT_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_SAMPLER_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_POOL_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_SET_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_FRAMEBUFFER_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_COMMAND_POOL_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_SURFACE_KHR_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_SWAPCHAIN_KHR_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DEBUG_REPORT_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DISPLAY_KHR_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DISPLAY_MODE_KHR_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_OBJECT_TABLE_NVX_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_INDIRECT_COMMANDS_LAYOUT_NVX_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_DESCRIPTOR_UPDATE_TEMPLATE_KHR_EXT);
+            STRINGIZE_CASE(VK_DEBUG_REPORT_OBJECT_TYPE_RANGE_SIZE_EXT);
+        default:
+            return NULL;
     }
 }
 #undef STRINGIZE_CASE
 
 static VkBool32 VKAPI_CALL _DebugCallback(VkDebugReportFlagsEXT flags,
-                               VkDebugReportObjectTypeEXT objectType,
-                               uint64_t object,
-                               size_t location,
-                               int32_t messageCode,
-                               const char* pLayerPrefix,
-                               const char* pMessage,
-                               void* pUserData)
+                                          VkDebugReportObjectTypeEXT objectType,
+                                          uint64_t object,
+                                          size_t location,
+                                          int32_t messageCode,
+                                          const char* pLayerPrefix,
+                                          const char* pMessage,
+                                          void* pUserData)
 {
     Gfx* const G = (Gfx*)(pUserData);
     char message[1024] = { '\0' };
     snprintf(message, sizeof(message), "Vulkan:\n\t%s\n\t%s\n\t%" PRIu64 "\n\t%" PRIu64 "\n\t%d\n\t%s\n\t%s\n\n",
-        _FlagString(flags),
-        _ObjectString(objectType),
-        object,
-        location,
-        messageCode,
-        pLayerPrefix,
-        pMessage);
+             _FlagString(flags),
+             _ObjectString(objectType),
+             object,
+             location,
+             messageCode,
+             pLayerPrefix,
+             pMessage);
 #ifdef _MSC_VER
     OutputDebugStringA(message);
 #endif
@@ -195,14 +195,15 @@ static VkResult _CreateInstance(Gfx* G)
 
 #if defined(_DEBUG)
     PFN_vkCreateDebugReportCallbackEXT const pvkCreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)(vkGetInstanceProcAddr(G->instance, "vkCreateDebugReportCallbackEXT"));
+    VkDebugReportFlagsEXT const debugFlags = VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
+                                             VK_DEBUG_REPORT_DEBUG_BIT_EXT |
+                                             VK_DEBUG_REPORT_ERROR_BIT_EXT |
+                                             // VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
+                                             VK_DEBUG_REPORT_WARNING_BIT_EXT;
     VkDebugReportCallbackCreateInfoEXT const debugInfo = {
         .sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT, // sType
         .pNext = NULL, // pNext
-        .flags = VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
-                 VK_DEBUG_REPORT_DEBUG_BIT_EXT |
-                 VK_DEBUG_REPORT_ERROR_BIT_EXT |
-                 // VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
-                 VK_DEBUG_REPORT_WARNING_BIT_EXT,
+        .flags = debugFlags,
         .pfnCallback = &_DebugCallback,// pfnCallback
         .pUserData = G,// pUserData
     };
@@ -234,6 +235,12 @@ Gfx* gfxVulkanCreate(void)
 void gfxVulkanDestroy(Gfx* G)
 {
     assert(G);
+#if defined(_DEBUG)
+    PFN_vkDestroyDebugReportCallbackEXT const pvkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)(vkGetInstanceProcAddr(G->instance, "vkDestroyDebugReportCallbackEXT"));
+    if (pvkDestroyDebugReportCallbackEXT) {
+        pvkDestroyDebugReportCallbackEXT(G->instance, G->debugCallback, NULL);
+    }
+#endif
     vkDestroyInstance(G->instance, NULL);
     free(G);
 }
@@ -271,18 +278,18 @@ int gfxVulkanNumAvailableCommandBuffers(Gfx* G)
     assert(G);
     return 0;
 }
-void gfxVulkanResetCommandBuffer(GfxCmdBuffer * B)
+void gfxVulkanResetCommandBuffer(GfxCmdBuffer* B)
 {
     assert(B);
 }
 
-bool gfxVulkanExecuteCommandBuffer(GfxCmdBuffer * B)
+bool gfxVulkanExecuteCommandBuffer(GfxCmdBuffer* B)
 {
     assert(B);
     return false;
 }
 
-void gfxVulkanCmdBeginRenderPass(GfxCmdBuffer * B,
+void gfxVulkanCmdBeginRenderPass(GfxCmdBuffer* B,
                                  GfxRenderTarget renderTargetHandle,
                                  GfxRenderPassAction loadAction,
                                  float const clearColor[4])
