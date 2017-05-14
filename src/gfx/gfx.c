@@ -27,7 +27,7 @@ void gfxDestroy(Gfx* G)
     (void)G;
     #if HAVE_D3D12
         //gfxD3D12Destroy(G);
-        G->Destroy(G);
+        G->table->Destroy(G);
     #endif
     #if HAVE_METAL
         gfxDestroyMetal(G);
@@ -37,42 +37,42 @@ void gfxDestroy(Gfx* G)
 
 bool gfxCreateSwapChain(Gfx* G, void* window)
 {
-    return G->CreateSwapChain(G, window);
+    return G->table->CreateSwapChain(G, window);
 }
 
 bool gfxResize(Gfx* G, int width, int height)
 {
-    return G->Resize(G, width, height);
+    return G->table->Resize(G, width, height);
 }
 
 GfxRenderTarget gfxGetBackBuffer(Gfx* G)
 {
-    return G->GetBackBuffer(G);
+    return G->table->GetBackBuffer(G);
 }
 
 bool gfxPresent(Gfx* G)
 {
-    return G->Present(G);
+    return G->table->Present(G);
 }
 
 GfxCmdBuffer* gfxGetCommandBuffer(Gfx* G)
 {
-    return G->GetCommandBuffer(G);
+    return G->table->GetCommandBuffer(G);
 }
 
 int gfxNumAvailableCommandBuffers(Gfx* G)
 {
-    return G->NumAvailableCommandBuffers(G);
+    return G->table->NumAvailableCommandBuffers(G);
 }
 
 void gfxResetCommandBuffer(GfxCmdBuffer* B)
 {
-    B->G->ResetCommandBuffer(B);
+    B->table->ResetCommandBuffer(B);
 }
 
 bool gfxExecuteCommandBuffer(GfxCmdBuffer* B)
 {
-    return B->G->ExecuteCommandBuffer(B);
+    return B->table->ExecuteCommandBuffer(B);
 }
 
 void gfxCmdBeginRenderPass(GfxCmdBuffer* B,
@@ -80,9 +80,9 @@ void gfxCmdBeginRenderPass(GfxCmdBuffer* B,
                            GfxRenderPassAction loadAction,
                            float const clearColor[4])
 {
-    B->G->CmdBeginRenderPass(B, renderTargetHandle, loadAction, clearColor);
+    B->table->CmdBeginRenderPass(B, renderTargetHandle, loadAction, clearColor);
 }
 void gfxCmdEndRenderPass(GfxCmdBuffer* B)
 {
-    B->G->CmdEndRenderPass(B);
+    B->table->CmdEndRenderPass(B);
 }

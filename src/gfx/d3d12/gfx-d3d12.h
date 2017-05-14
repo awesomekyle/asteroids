@@ -1,8 +1,15 @@
 #pragma once
 #include "gfx/gfx.h"
+#include "../gfx-internal.h"
 
 typedef struct GfxD3D12 GfxD3D12;
 typedef struct GfxD3D12CmdBuffer GfxD3D12CmdBuffer;
+
+extern GfxTable const GfxD3D12Table;
+extern GfxCmdBufferTable const GfxD3D12CmdBufferTable;
+
+GfxD3D12* gfxD3D12Create(void);
+
 
 GfxD3D12* gfxD3D12Create(void);
 void gfxD3D12Destroy(GfxD3D12* G);

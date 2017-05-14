@@ -27,6 +27,7 @@ static constexpr size_t kMaxBackBuffers = 4;
 static constexpr size_t kMaxCommandLists = 128;
 
 struct GfxD3D12CmdBuffer {
+    GfxCmdBuffer base;
     GfxD3D12* G;
     ID3D12CommandAllocator*     allocator;
     ID3D12GraphicsCommandList*  list;
@@ -306,19 +307,6 @@ GfxD3D12* gfxD3D12Create(void)
 {
     GfxD3D12* const G = (GfxD3D12*)calloc(1, sizeof(*G));
 
-    // Set up dispatching
-    G->base.Destroy = (decltype(G->base.Destroy))gfxD3D12Destroy;
-    G->base.CreateSwapChain = (decltype(G->base.CreateSwapChain))gfxD3D12CreateSwapChain;
-    G->base.Resize = (decltype(G->base.Resize))gfxD3D12Resize;
-    G->base.GetBackBuffer = (decltype(G->base.GetBackBuffer))gfxD3D12GetBackBuffer;
-    G->base.Present = (decltype(G->base.Present))gfxD3D12Present;
-    G->base.GetCommandBuffer = (decltype(G->base.GetCommandBuffer))gfxD3D12GetCommandBuffer;
-    G->base.NumAvailableCommandBuffers = (decltype(G->base.NumAvailableCommandBuffers))gfxD3D12NumAvailableCommandBuffers;
-    G->base.ResetCommandBuffer = (decltype(G->base.ResetCommandBuffer))gfxD3D12ResetCommandBuffer;
-    G->base.ExecuteCommandBuffer = (decltype(G->base.ExecuteCommandBuffer))gfxD3D12ExecuteCommandBuffer;
-    G->base.CmdBeginRenderPass = (decltype(G->base.CmdBeginRenderPass))gfxD3D12CmdBeginRenderPass;
-    G->base.CmdEndRenderPass = (decltype(G->base.CmdEndRenderPass))gfxD3D12CmdEndRenderPass;
-
     assert(G && "Could not allocate space for a D3D12 Gfx device");
     HRESULT hr = S_OK;
 
@@ -355,7 +343,10 @@ GfxD3D12* gfxD3D12Create(void)
         assert(SUCCEEDED(hr) && "Could not close empty command list");
         _SetName(commandList.allocator, "Command Allocator %zu", ii);
         _SetName(commandList.list, "Command list %zu", ii);
+        commandList.base.table = &GfxD3D12CmdBufferTable;
     }
+
+    G->base.table = &GfxD3D12Table;
 
     return G;
 }
@@ -581,4 +572,22 @@ void gfxD3D12CmdEndRenderPass(GfxD3D12CmdBuffer* /*B*/)
 {
 }
 
+
+GfxTable const GfxD3D12Table = {
+    (decltype(GfxTable::Destroy))gfxD3D12Destroy,
+    (decltype(GfxTable::CreateSwapChain))gfxD3D12CreateSwapChain,
+    (decltype(GfxTable::Resize))gfxD3D12Resize,
+    (decltype(GfxTable::GetBackBuffer))gfxD3D12GetBackBuffer,
+    (decltype(GfxTable::Present))gfxD3D12Present,
+    (decltype(GfxTable::GetCommandBuffer))gfxD3D12GetCommandBuffer,
+    (decltype(GfxTable::NumAvailableCommandBuffers))gfxD3D12NumAvailableCommandBuffers,
+};
+GfxCmdBufferTable const GfxD3D12CmdBufferTable = {
+    (decltype(GfxCmdBufferTable::ResetCommandBuffer))gfxD3D12ResetCommandBuffer,
+    (decltype(GfxCmdBufferTable::ExecuteCommandBuffer))gfxD3D12ExecuteCommandBuffer,
+    (decltype(GfxCmdBufferTable::CmdBeginRenderPass))gfxD3D12CmdBeginRenderPass,
+    (decltype(GfxCmdBufferTable::CmdEndRenderPass))gfxD3D12CmdEndRenderPass,
+};
+
 } // extern "C"
+
