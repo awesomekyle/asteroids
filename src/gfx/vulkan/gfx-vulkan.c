@@ -553,7 +553,6 @@ bool gfxVulkanPresent(Gfx* G)
         .pSignalSemaphores = NULL,
     };
 #endif
-    uint32_t const imageIndex = (uint32_t)gfxGetBackBuffer(G);
     uint32_t const currIndex = (uint32_t)gfxGetBackBuffer(G);
     VkPresentInfoKHR const presentInfo = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
@@ -591,8 +590,7 @@ int gfxVulkanNumAvailableCommandBuffers(Gfx* G)
     assert(G);
     int availableCommandBuffers = 0;
     for (uint32_t ii = 0; ii < ARRAY_COUNT(G->commandBuffers); ++ii) {
-        if (vkGetFenceStatus(G->device, G->commandBuffers[ii].fence) == VK_SUCCESS &&
-                G->commandBuffers[ii].open == false) {
+        if (G->commandBuffers[ii].open == false) {
             availableCommandBuffers++;
         }
     }
@@ -606,14 +604,37 @@ void gfxVulkanResetCommandBuffer(GfxCmdBuffer* B)
     assert(VK_SUCCEEDED(result) && "Could not reset pool");
     result = vkResetCommandBuffer(B->buffer, 0);
     assert(VK_SUCCEEDED(result) && "Could not reset buffer");
+    VkCommandBufferBeginInfo const beginInfo = {
+        .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+        .pNext = NULL,
+        .flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,
+        .pInheritanceInfo = NULL,
+    };
+    result = vkBeginCommandBuffer(B->buffer, &beginInfo);
+    assert(VK_SUCCEEDED(result) && "Could not begin buffer");
+
     B->open = false;
 }
 
 bool gfxVulkanExecuteCommandBuffer(GfxCmdBuffer* B)
 {
     assert(B);
-    gfxVulkanResetCommandBuffer(B);
-    return false;
+    VkResult result = vkEndCommandBuffer(B->buffer);
+    assert(VK_SUCCEEDED(result) && "Could not end command buffer");
+    VkSubmitInfo const submitInfo = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = NULL,
+        .waitSemaphoreCount = 0,
+        .pWaitSemaphores = NULL,
+        .pWaitDstStageMask = 0,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &B->buffer,
+        .signalSemaphoreCount = 0,
+        .pSignalSemaphores = NULL,
+    };
+    result = vkQueueSubmit(B->G->renderQueue, 1, &submitInfo, B->fence);
+    assert(VK_SUCCEEDED(result) && "Could not submit command buffer");
+    return true;
 }
 
 void gfxVulkanCmdBeginRenderPass(GfxCmdBuffer* B,
