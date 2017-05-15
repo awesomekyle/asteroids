@@ -475,12 +475,45 @@ GfxRenderTarget gfxVulkanGetBackBuffer(Gfx* G)
 bool gfxVulkanPresent(Gfx* G)
 {
     assert(G);
+#if 0
+    VkCommandBuffer presentCommandBuffer = VK_NULL_HANDLE;
+    VkPipelineStageFlags const stageFlags = VK_PIPELINE_STAGE_TRANSFER_BIT;
+    VkSubmitInfo const submitInfo = {
+        .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext = NULL,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &G->swapChainSemaphore,
+        .pWaitDstStageMask = &stageFlags,
+        .commandBufferCount = 1,
+        .pCommandBuffers = &presentCommandBuffer,
+        .signalSemaphoreCount = 0,
+        .pSignalSemaphores = NULL,
+    };
+#endif
+    uint32_t const imageIndex = (uint32_t)gfxVulkanGetBackBuffer(G);
+    VkPresentInfoKHR const presentInfo = {
+        .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .pNext = NULL,
+        .waitSemaphoreCount = 1,
+        .pWaitSemaphores = &G->swapChainSemaphore,
+        .swapchainCount = 1,
+        .pSwapchains = &G->swapChain,
+        .pImageIndices = &imageIndex,
+        .pResults = NULL,
+    };
+    VkResult const result = vkQueuePresentKHR(G->renderQueue, &presentInfo);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        gfxResize(G, 0, 0);
+    }
+    assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
     return true;
 }
 GfxCmdBuffer* gfxVulkanGetCommandBuffer(Gfx* G)
 {
     assert(G);
-    return NULL;
+    GfxCmdBuffer* const buffer = calloc(1, sizeof(*buffer));
+    buffer->table = &GfxVulkanCmdBufferTable;
+    return buffer;
 }
 int gfxVulkanNumAvailableCommandBuffers(Gfx* G)
 {
@@ -490,11 +523,13 @@ int gfxVulkanNumAvailableCommandBuffers(Gfx* G)
 void gfxVulkanResetCommandBuffer(GfxCmdBuffer* B)
 {
     assert(B);
+    free(B);
 }
 
 bool gfxVulkanExecuteCommandBuffer(GfxCmdBuffer* B)
 {
     assert(B);
+    gfxVulkanResetCommandBuffer(B);
     return false;
 }
 
