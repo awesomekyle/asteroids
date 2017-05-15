@@ -20,10 +20,13 @@
 enum {
     kMaxPhysicalDevices = 8,
     kMaxBackBuffers = 8,
+    kMaxCommandBuffers = 128,
 };
 
 struct GfxCmdBuffer {
     GfxCmdBufferTable const* table;
+    VkCommandPool   pool;
+    VkCommandBuffer buffer;
 };
 
 struct Gfx {
@@ -53,6 +56,8 @@ struct Gfx {
     uint32_t numBackBuffers;
     uint32_t backBufferIndex;
 
+    GfxCmdBuffer commandBuffers[kMaxCommandBuffers];
+    uint64_t currentCommandList;
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
 #endif
@@ -305,7 +310,28 @@ Gfx* gfxVulkanCreate(void)
     result = _CreateDevice(G);
     assert(VK_SUCCEEDED(result));
 
+    // Create command interfaces
     vkGetDeviceQueue(G->device, G->queueIndex, 0, &G->renderQueue);
+    for (uint32_t ii = 0; ii < ARRAY_COUNT(G->commandBuffers); ++ii) {
+        GfxCmdBuffer* const currentBuffer = &G->commandBuffers[ii];
+        VkCommandPoolCreateInfo const poolInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
+            .pNext = NULL,
+            .flags = 0,
+            .queueFamilyIndex = G->queueIndex,
+        };
+        result = vkCreateCommandPool(G->device, &poolInfo, NULL, &currentBuffer->pool);
+        assert(VK_SUCCEEDED(result));
+        VkCommandBufferAllocateInfo const bufferInfo = {
+            .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
+            .pNext = NULL,
+            .commandPool = currentBuffer->pool,
+            .level =  VK_COMMAND_BUFFER_LEVEL_PRIMARY,
+            .commandBufferCount = 1,
+        };
+        result = vkAllocateCommandBuffers(G->device, &bufferInfo, &currentBuffer->buffer);
+        assert(VK_SUCCEEDED(result));
+    }
 
     G->backBufferIndex = UINT32_MAX;
     G->table = &GfxVulkanTable;
@@ -315,10 +341,15 @@ Gfx* gfxVulkanCreate(void)
 void gfxVulkanDestroy(Gfx* G)
 {
     assert(G);
+    vkDeviceWaitIdle(G->device);
+    for (uint32_t ii = 0; ii < ARRAY_COUNT(G->commandBuffers); ++ii) {
+        GfxCmdBuffer* const currentBuffer = &G->commandBuffers[ii];
+        vkDestroyCommandPool(G->device, currentBuffer->pool, NULL);
+    }
+
     vkDestroySwapchainKHR(G->device, G->swapChain, NULL);
     vkDestroySemaphore(G->device, G->swapChainSemaphore, NULL);
     vkDestroySurfaceKHR(G->instance, G->surface, NULL);
-    vkDeviceWaitIdle(G->device);
     vkDestroyDevice(G->device, NULL);
 #if defined(_DEBUG)
     PFN_vkDestroyDebugReportCallbackEXT const pvkDestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)(vkGetInstanceProcAddr(G->instance, "vkDestroyDebugReportCallbackEXT"));

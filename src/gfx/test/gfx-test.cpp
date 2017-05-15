@@ -90,7 +90,7 @@ TEST_CASE("Gfx window interaction")
         gfxDestroy(G);
     }
 }
-TEST_CASE("Gfx command interface", "[!hide]")
+TEST_CASE("Gfx command interface")
 {
     GIVEN("A graphics object") {
         // Gfx initialization
