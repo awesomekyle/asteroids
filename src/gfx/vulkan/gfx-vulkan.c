@@ -702,6 +702,7 @@ bool gfxVulkanExecuteCommandBuffer(GfxCmdBuffer* B)
     };
     result = vkQueueSubmit(B->G->renderQueue, 1, &submitInfo, B->fence);
     assert(VK_SUCCEEDED(result) && "Could not submit command buffer");
+    B->open = false;
     return true;
 }
 
