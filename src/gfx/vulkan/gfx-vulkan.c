@@ -579,7 +579,7 @@ bool gfxVulkanPresent(Gfx* G)
         {
             .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
             .pNext = NULL,
-            .srcAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+            .srcAccessMask = 0,
             .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
             .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
             .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
@@ -622,7 +622,9 @@ bool gfxVulkanPresent(Gfx* G)
         gfxResize(G, 0, 0);
     }
     G->backBufferIndex = UINT32_MAX;
-    assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
+    if (result != VK_ERROR_VALIDATION_FAILED_EXT) {
+        assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
+    }
 
     // Transition from present to target
     buffer = gfxVulkanGetCommandBuffer(G);
