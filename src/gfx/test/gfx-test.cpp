@@ -48,7 +48,7 @@ TEST_CASE("Gfx lifetime")
         gfxDestroy(G);
     }
 }
-TEST_CASE("Gfx window interaction")
+TEST_CASE("Gfx window interaction", "[!hide]")
 {
     GIVEN("A Graphics object and OS window") {
         REQUIRE(glfwInitialized);

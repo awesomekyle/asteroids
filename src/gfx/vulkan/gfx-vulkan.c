@@ -25,8 +25,11 @@ enum {
 
 struct GfxCmdBuffer {
     GfxCmdBufferTable const* table;
+    Gfx* G;
     VkCommandPool   pool;
     VkCommandBuffer buffer;
+    VkFence         fence;
+    bool open;
 };
 
 struct Gfx {
@@ -57,7 +60,7 @@ struct Gfx {
     uint32_t backBufferIndex;
 
     GfxCmdBuffer commandBuffers[kMaxCommandBuffers];
-    uint64_t currentCommandList;
+    uint_fast32_t currentCommandBuffer;
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
 #endif
@@ -317,7 +320,7 @@ Gfx* gfxVulkanCreate(void)
         VkCommandPoolCreateInfo const poolInfo = {
             .sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
             .pNext = NULL,
-            .flags = 0,
+            .flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,
             .queueFamilyIndex = G->queueIndex,
         };
         result = vkCreateCommandPool(G->device, &poolInfo, NULL, &currentBuffer->pool);
@@ -331,6 +334,18 @@ Gfx* gfxVulkanCreate(void)
         };
         result = vkAllocateCommandBuffers(G->device, &bufferInfo, &currentBuffer->buffer);
         assert(VK_SUCCEEDED(result));
+
+        // Fence
+        VkFenceCreateInfo const fenceInfo = {
+            .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+            .pNext = NULL,
+            .flags = VK_FENCE_CREATE_SIGNALED_BIT,
+        };
+        result = vkCreateFence(G->device, &fenceInfo, NULL, &currentBuffer->fence);
+        assert(VK_SUCCEEDED(result));
+
+        currentBuffer->G = G;
+        currentBuffer->table = &GfxVulkanCmdBufferTable;
     }
 
     G->backBufferIndex = UINT32_MAX;
@@ -346,7 +361,7 @@ void gfxVulkanDestroy(Gfx* G)
         GfxCmdBuffer* const currentBuffer = &G->commandBuffers[ii];
         vkDestroyCommandPool(G->device, currentBuffer->pool, NULL);
     }
-
+        vkDestroyFence(G->device, currentBuffer->fence, NULL);
     vkDestroySwapchainKHR(G->device, G->swapChain, NULL);
     vkDestroySemaphore(G->device, G->swapChainSemaphore, NULL);
     vkDestroySurfaceKHR(G->instance, G->surface, NULL);
@@ -453,6 +468,7 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
     if (G->surface == VK_NULL_HANDLE) {
         return false;
     }
+    vkDeviceWaitIdle(G->device);
     VkResult result = VK_SUCCESS;
     // Get surface capabilities
     result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(G->physicalDevice, G->surface,
@@ -538,6 +554,7 @@ bool gfxVulkanPresent(Gfx* G)
     };
 #endif
     uint32_t const imageIndex = (uint32_t)gfxGetBackBuffer(G);
+    uint32_t const currIndex = (uint32_t)gfxGetBackBuffer(G);
     VkPresentInfoKHR const presentInfo = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext = NULL,
@@ -545,7 +562,7 @@ bool gfxVulkanPresent(Gfx* G)
         .pWaitSemaphores = &G->swapChainSemaphore,
         .swapchainCount = 1,
         .pSwapchains = &G->swapChain,
-        .pImageIndices = &imageIndex,
+        .pImageIndices = &currIndex,
         .pResults = NULL,
     };
     VkResult const result = vkQueuePresentKHR(G->renderQueue, &presentInfo);
@@ -559,19 +576,37 @@ bool gfxVulkanPresent(Gfx* G)
 GfxCmdBuffer* gfxVulkanGetCommandBuffer(Gfx* G)
 {
     assert(G);
-    GfxCmdBuffer* const buffer = calloc(1, sizeof(*buffer));
-    buffer->table = &GfxVulkanCmdBufferTable;
+    uint_fast32_t const currIndex = G->currentCommandBuffer++ % kMaxCommandBuffers;
+    GfxCmdBuffer* const buffer = &G->commandBuffers[currIndex];
+    if (vkGetFenceStatus(G->device, buffer->fence) != VK_SUCCESS || buffer->open != false) {
+        /// @TODO: This case needs to be handled
+        return NULL;
+    }
+    gfxVulkanResetCommandBuffer(buffer);
+    buffer->open = true;
     return buffer;
 }
 int gfxVulkanNumAvailableCommandBuffers(Gfx* G)
 {
     assert(G);
-    return 0;
+    int availableCommandBuffers = 0;
+    for (uint32_t ii = 0; ii < ARRAY_COUNT(G->commandBuffers); ++ii) {
+        if (vkGetFenceStatus(G->device, G->commandBuffers[ii].fence) == VK_SUCCESS &&
+                G->commandBuffers[ii].open == false) {
+            availableCommandBuffers++;
+        }
+    }
+    return availableCommandBuffers;
 }
 void gfxVulkanResetCommandBuffer(GfxCmdBuffer* B)
 {
-    assert(B);
-    free(B);
+    VkResult result = vkResetFences(B->G->device, 1, &B->fence);
+    assert(VK_SUCCEEDED(result) && "Could not reset fence");
+    result = vkResetCommandPool(B->G->device, B->pool, 0);
+    assert(VK_SUCCEEDED(result) && "Could not reset pool");
+    result = vkResetCommandBuffer(B->buffer, 0);
+    assert(VK_SUCCEEDED(result) && "Could not reset buffer");
+    B->open = false;
 }
 
 bool gfxVulkanExecuteCommandBuffer(GfxCmdBuffer* B)
