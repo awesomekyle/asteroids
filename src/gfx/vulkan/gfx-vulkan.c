@@ -19,6 +19,7 @@
 
 enum {
     kMaxPhysicalDevices = 8,
+    kMaxBackBuffers = 8,
 };
 
 struct GfxCmdBuffer {
@@ -48,6 +49,9 @@ struct Gfx {
     VkSurfaceFormatKHR surfaceFormat;
 
     VkSwapchainKHR swapChain;
+    VkImage backBuffers[kMaxBackBuffers];
+    uint32_t numBackBuffers;
+    uint32_t backBufferIndex;
 
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
@@ -303,6 +307,7 @@ Gfx* gfxVulkanCreate(void)
 
     vkGetDeviceQueue(G->device, G->queueIndex, 0, &G->renderQueue);
 
+    G->backBufferIndex = UINT32_MAX;
     G->table = &GfxVulkanTable;
     return G;
 }
@@ -427,6 +432,7 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
     VkPresentModeKHR const presentMode = VK_PRESENT_MODE_MAILBOX_KHR; // TODO: check support
     uint32_t const numImages = G->surfaceCapabilities.minImageCount + 1;
 
+    // Create swap chain
     VkSwapchainCreateInfoKHR const swapChainInfo = {
         .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
         .pNext = NULL,
@@ -455,6 +461,13 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
     }
     G->swapChain = newSwapChain;
 
+    // Get images
+    result = vkGetSwapchainImagesKHR(G->device, G->swapChain, &G->numBackBuffers, NULL);
+    assert(VK_SUCCEEDED(result));
+    G->numBackBuffers = minu32(G->numBackBuffers, ARRAY_COUNT(G->backBuffers));
+    result = vkGetSwapchainImagesKHR(G->device, G->swapChain, &G->numBackBuffers, G->backBuffers);
+    assert(VK_SUCCEEDED(result));
+
     (void)width;
     (void)height;
     return true;
@@ -462,15 +475,18 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
 GfxRenderTarget gfxVulkanGetBackBuffer(Gfx* G)
 {
     assert(G);
-    uint32_t imageIndex = 0;
+    if (G->backBufferIndex != UINT32_MAX) {
+        return G->backBufferIndex;
+    }
     VkResult const result = vkAcquireNextImageKHR(G->device, G->swapChain, UINT64_MAX,
-                                                  G->swapChainSemaphore, VK_NULL_HANDLE, &imageIndex);
+                                                  G->swapChainSemaphore, VK_NULL_HANDLE,
+                                                  &G->backBufferIndex);
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         gfxResize(G, 0, 0);
         return gfxVulkanGetBackBuffer(G);
     }
     assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
-    return imageIndex;
+    return G->backBufferIndex;
 }
 bool gfxVulkanPresent(Gfx* G)
 {
@@ -490,7 +506,7 @@ bool gfxVulkanPresent(Gfx* G)
         .pSignalSemaphores = NULL,
     };
 #endif
-    uint32_t const imageIndex = (uint32_t)gfxVulkanGetBackBuffer(G);
+    uint32_t const imageIndex = (uint32_t)gfxGetBackBuffer(G);
     VkPresentInfoKHR const presentInfo = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext = NULL,
@@ -505,6 +521,7 @@ bool gfxVulkanPresent(Gfx* G)
     if (result == VK_ERROR_OUT_OF_DATE_KHR) {
         gfxResize(G, 0, 0);
     }
+    G->backBufferIndex = UINT32_MAX;
     assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
     return true;
 }
