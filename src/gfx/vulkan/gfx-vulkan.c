@@ -360,8 +360,8 @@ void gfxVulkanDestroy(Gfx* G)
     for (uint32_t ii = 0; ii < ARRAY_COUNT(G->commandBuffers); ++ii) {
         GfxCmdBuffer* const currentBuffer = &G->commandBuffers[ii];
         vkDestroyCommandPool(G->device, currentBuffer->pool, NULL);
-    }
         vkDestroyFence(G->device, currentBuffer->fence, NULL);
+    }
     vkDestroySwapchainKHR(G->device, G->swapChain, NULL);
     vkDestroySemaphore(G->device, G->swapChainSemaphore, NULL);
     vkDestroySurfaceKHR(G->instance, G->surface, NULL);
@@ -554,6 +554,59 @@ bool gfxVulkanPresent(Gfx* G)
     };
 #endif
     uint32_t const currIndex = (uint32_t)gfxGetBackBuffer(G);
+    uint32_t const nextIndex = (currIndex + 1) % G->numBackBuffers;
+
+    VkImageSubresourceRange const subresourceRange = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+    };
+    VkImageMemoryBarrier const barriers[] = {
+        {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = NULL,
+            .srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = G->backBuffers[currIndex],
+            .subresourceRange = subresourceRange
+        },
+        {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+            .pNext = NULL,
+            .srcAccessMask = VK_ACCESS_MEMORY_READ_BIT,
+            .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+            .image = G->backBuffers[nextIndex],
+            .subresourceRange = subresourceRange
+        },
+    };
+
+    // Transition from target to present
+    GfxCmdBuffer*  buffer = gfxVulkanGetCommandBuffer(G);
+    vkCmdPipelineBarrier(buffer->buffer,                        //commandBuffer
+                         VK_PIPELINE_STAGE_TRANSFER_BIT,        // srcStageMask
+                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  // dstStageMask
+                         0,                                     // dependencyFlags
+                         0,                                     // memoryBarrierCount
+                         NULL,                                  // pMemoryBarriers
+                         0,                                     // bufferMemoryBarrierCount
+                         NULL,                                  // pBufferMemoryBarriers
+                         1,                                     // imageMemoryBarrierCount
+                         barriers + 0 );                        // pImageMemoryBarriers
+    gfxVulkanExecuteCommandBuffer(buffer);
+    while (vkGetFenceStatus(G->device, buffer->fence) != VK_SUCCESS)
+        ;
+
+    // Present
     VkPresentInfoKHR const presentInfo = {
         .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext = NULL,
@@ -570,6 +623,21 @@ bool gfxVulkanPresent(Gfx* G)
     }
     G->backBufferIndex = UINT32_MAX;
     assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
+
+    // Transition from present to target
+    buffer = gfxVulkanGetCommandBuffer(G);
+    vkCmdPipelineBarrier(buffer->buffer,                  //commandBuffer
+                         VK_PIPELINE_STAGE_TRANSFER_BIT,  // srcStageMask
+                         VK_PIPELINE_STAGE_TRANSFER_BIT,  // dstStageMask
+                         0,                               // dependencyFlags
+                         0,                               // memoryBarrierCount
+                         NULL,                            // pMemoryBarriers
+                         0,                               // bufferMemoryBarrierCount
+                         NULL,                            // pBufferMemoryBarriers
+                         1,                               // imageMemoryBarrierCount
+                         barriers + 1 );                  // pImageMemoryBarriers
+    gfxVulkanExecuteCommandBuffer(buffer);
+
     return true;
 }
 GfxCmdBuffer* gfxVulkanGetCommandBuffer(Gfx* G)
