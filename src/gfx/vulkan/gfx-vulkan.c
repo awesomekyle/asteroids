@@ -65,6 +65,7 @@ struct Gfx {
     uint32_t numBackBuffers;
     uint32_t backBufferIndex;
 
+    VkFramebuffer framebuffers[kMaxBackBuffers];
 
     // Render pass info
     VkRenderPass    renderPass;
@@ -311,7 +312,7 @@ static VkResult _CreateRenderPasses(Gfx* const G)
     VkAttachmentDescription const attachments[] = {
         {
             .flags = 0,
-            .format = VK_FORMAT_B8G8R8_SRGB, // Wait until we get this from the surface?
+            .format = VK_FORMAT_B8G8R8A8_SRGB, // Wait until we get this from the surface?
             .samples = VK_SAMPLE_COUNT_1_BIT,
             .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
             .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
@@ -443,6 +444,7 @@ void gfxVulkanDestroy(Gfx* G)
         vkDestroyFence(G->device, currentBuffer->fence, NULL);
     }
     for (uint32_t ii = 0; ii < G->numBackBuffers; ++ii) {
+        vkDestroyFramebuffer(G->device, G->framebuffers[ii], NULL);
         vkDestroyImageView(G->device, G->backBufferViews[ii], NULL);
     }
     vkDestroySwapchainKHR(G->device, G->swapChain, NULL);
@@ -598,8 +600,9 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
     result = vkGetSwapchainImagesKHR(G->device, G->swapChain, &G->numBackBuffers, G->backBuffers);
     assert(VK_SUCCEEDED(result));
 
-    // Create image views
+    // Create image views & framebuffers
     for (uint32_t ii = 0; ii < G->numBackBuffers; ++ii) {
+        // Image view
         VkImageViewCreateInfo const imageViewInfo = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
             .pNext = NULL,
@@ -617,7 +620,23 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
         };
         result = vkCreateImageView(G->device, &imageViewInfo, NULL, &G->backBufferViews[ii]);
         assert(VK_SUCCEEDED(result) && "Could not create image view");
+
+        // Framebuffer
+        VkFramebufferCreateInfo const framebufferInfo = {
+            .sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+            .pNext = NULL,
+            .flags = 0,
+            .renderPass = G->renderPass,
+            .attachmentCount = 1,
+            .pAttachments = &G->backBufferViews[ii],
+            .width = G->surfaceCapabilities.currentExtent.width,
+            .height = G->surfaceCapabilities.currentExtent.height,
+            .layers = 1,
+        };
+        result = vkCreateFramebuffer(G->device, &framebufferInfo, NULL, &G->framebuffers[ii]);
+        assert(VK_SUCCEEDED(result) && "Could not create framebuffer");
     }
+
 
     (void)width;
     (void)height;
