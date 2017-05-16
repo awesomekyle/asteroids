@@ -663,57 +663,6 @@ bool gfxVulkanPresent(Gfx* G)
 {
     assert(G);
     uint32_t const currIndex = (uint32_t)gfxGetBackBuffer(G);
-    uint32_t const nextIndex = (currIndex + 1) % G->numBackBuffers;
-
-    VkImageSubresourceRange const subresourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1
-    };
-    VkImageMemoryBarrier const barriers[] = {
-        {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = NULL,
-            .srcAccessMask = 0,
-            .dstAccessMask = VK_ACCESS_MEMORY_READ_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = G->backBuffers[currIndex],
-            .subresourceRange = subresourceRange
-        },
-        {
-            .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
-            .pNext = NULL,
-            .srcAccessMask = 0,
-            .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-            .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-            .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-            .image = G->backBuffers[nextIndex],
-            .subresourceRange = subresourceRange
-        },
-    };
-
-    // Transition from target to present
-    GfxCmdBuffer*  buffer = gfxVulkanGetCommandBuffer(G);
-    vkCmdPipelineBarrier(buffer->buffer,                        //commandBuffer
-                         VK_PIPELINE_STAGE_TRANSFER_BIT,        // srcStageMask
-                         VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,  // dstStageMask
-                         0,                                     // dependencyFlags
-                         0,                                     // memoryBarrierCount
-                         NULL,                                  // pMemoryBarriers
-                         0,                                     // bufferMemoryBarrierCount
-                         NULL,                                  // pBufferMemoryBarriers
-                         1,                                     // imageMemoryBarrierCount
-                         barriers + 0 );                        // pImageMemoryBarriers
-    gfxVulkanExecuteCommandBuffer(buffer);
-    while (vkGetFenceStatus(G->device, buffer->fence) != VK_SUCCESS)
-        ;
 
     // Present
     VkPresentInfoKHR const presentInfo = {
@@ -812,48 +761,38 @@ void gfxVulkanCmdBeginRenderPass(GfxCmdBuffer* B,
     if (renderTargetHandle == kGfxInvalidHandle) {
         renderTargetHandle = B->G->backBufferIndex;
     }
-    VkImageSubresourceRange const subresourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .baseMipLevel = 0,
-        .levelCount = 1,
-        .baseArrayLayer = 0,
-        .layerCount = 1
+    (void)loadAction;
+    VkClearValue clearValues[] = {
+        {
+            .depthStencil = {
+                .depth = 0.0f,
+                .stencil = 0x0,
+            },
+        }
     };
-    // Transition from present to target
-    VkImageMemoryBarrier const barrier = {
-        .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+    clearValues[0].color = *(VkClearColorValue*)clearColor;
+    VkRenderPassBeginInfo const renderPassBeginInfo = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
         .pNext = NULL,
-        .srcAccessMask = 0,
-        .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
-        .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
-        .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-        .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = B->G->backBuffers[renderTargetHandle],
-        .subresourceRange = subresourceRange
+        .renderPass = B->G->renderPass,
+        .framebuffer = B->G->framebuffers[renderTargetHandle],
+        .renderArea = {
+            .offset = {
+                .x = 0,
+                .y = 0,
+            },
+            .extent = B->G->surfaceCapabilities.currentExtent,
+        },
+        .clearValueCount = ARRAY_COUNT(clearValues),
+        .pClearValues = clearValues,
     };
-
-    vkCmdPipelineBarrier(B->buffer,                      //commandBuffer
-                         VK_PIPELINE_STAGE_TRANSFER_BIT,  // srcStageMask
-                         VK_PIPELINE_STAGE_TRANSFER_BIT,  // dstStageMask
-                         0,                               // dependencyFlags
-                         0,                               // memoryBarrierCount
-                         NULL,                            // pMemoryBarriers
-                         0,                               // bufferMemoryBarrierCount
-                         NULL,                            // pBufferMemoryBarriers
-                         1,                               // imageMemoryBarrierCount
-                         &barrier);                       // pImageMemoryBarriers
-
-    if (loadAction == kGfxRenderPassActionClear) {
-        vkCmdClearColorImage(B->buffer, B->G->backBuffers[renderTargetHandle],
-                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VkClearColorValue*)clearColor,
-                             1, &subresourceRange);
-    }
+    vkCmdBeginRenderPass(B->buffer, &renderPassBeginInfo, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void gfxVulkanCmdEndRenderPass(GfxCmdBuffer* B)
 {
     assert(B);
+    vkCmdEndRenderPass(B->buffer);
 }
 
 GfxTable const GfxVulkanTable = {
