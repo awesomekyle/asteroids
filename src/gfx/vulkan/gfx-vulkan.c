@@ -602,6 +602,9 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
 
     // Create image views & framebuffers
     for (uint32_t ii = 0; ii < G->numBackBuffers; ++ii) {
+        // Clear originals
+        vkDestroyFramebuffer(G->device, G->framebuffers[ii], NULL);
+        vkDestroyImageView(G->device, G->backBufferViews[ii], NULL);
         // Image view
         VkImageViewCreateInfo const imageViewInfo = {
             .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
