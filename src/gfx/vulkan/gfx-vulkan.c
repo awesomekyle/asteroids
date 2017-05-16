@@ -714,9 +714,18 @@ void gfxVulkanCmdBeginRenderPass(GfxCmdBuffer* B,
                                  float const clearColor[4])
 {
     assert(B);
-    (void)renderTargetHandle;
-    (void)loadAction;
-    (void)clearColor;
+    VkImageSubresourceRange const subresourceRange = {
+        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
+        .levelCount = 1,
+        .baseArrayLayer = 0,
+        .layerCount = 1
+    };
+    if (loadAction == kGfxRenderPassActionClear) {
+        vkCmdClearColorImage(B->buffer, B->G->backBuffers[renderTargetHandle],
+                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, (VkClearColorValue*)clearColor,
+                             1, &subresourceRange);
+    }
 }
 
 void gfxVulkanCmdEndRenderPass(GfxCmdBuffer* B)
