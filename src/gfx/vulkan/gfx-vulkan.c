@@ -61,8 +61,10 @@ struct Gfx {
 
     VkSwapchainKHR swapChain;
     VkImage backBuffers[kMaxBackBuffers];
+    VkImageView backBufferViews[kMaxBackBuffers];
     uint32_t numBackBuffers;
     uint32_t backBufferIndex;
+
 
     // Render pass info
     VkRenderPass    renderPass;
@@ -75,6 +77,14 @@ struct Gfx {
 //////
 // Helper methods
 //////
+
+static VkImageSubresourceRange const kFullSubresourceRange = {
+    .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+    .baseMipLevel = 0,
+    .levelCount = 1,
+    .baseArrayLayer = 0,
+    .layerCount = 1
+};
 
 #if defined(_DEBUG)
 #define STRINGIZE_CASE(v) case v: return #v
@@ -432,6 +442,9 @@ void gfxVulkanDestroy(Gfx* G)
         vkDestroyCommandPool(G->device, currentBuffer->pool, NULL);
         vkDestroyFence(G->device, currentBuffer->fence, NULL);
     }
+    for (uint32_t ii = 0; ii < G->numBackBuffers; ++ii) {
+        vkDestroyImageView(G->device, G->backBufferViews[ii], NULL);
+    }
     vkDestroySwapchainKHR(G->device, G->swapChain, NULL);
     vkDestroySemaphore(G->device, G->swapChainSemaphore, NULL);
     vkDestroySurfaceKHR(G->instance, G->surface, NULL);
@@ -584,6 +597,27 @@ bool gfxVulkanResize(Gfx* G, int width, int height)
     G->numBackBuffers = minu32(G->numBackBuffers, ARRAY_COUNT(G->backBuffers));
     result = vkGetSwapchainImagesKHR(G->device, G->swapChain, &G->numBackBuffers, G->backBuffers);
     assert(VK_SUCCEEDED(result));
+
+    // Create image views
+    for (uint32_t ii = 0; ii < G->numBackBuffers; ++ii) {
+        VkImageViewCreateInfo const imageViewInfo = {
+            .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+            .pNext = NULL,
+            .flags = 0,
+            .image = G->backBuffers[ii],
+            .viewType = VK_IMAGE_VIEW_TYPE_2D,
+            .format = G->surfaceFormat.format,
+            .components = {
+                .r = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .g = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .b = VK_COMPONENT_SWIZZLE_IDENTITY,
+                .a = VK_COMPONENT_SWIZZLE_IDENTITY,
+            },
+            .subresourceRange = kFullSubresourceRange,
+        };
+        result = vkCreateImageView(G->device, &imageViewInfo, NULL, &G->backBufferViews[ii]);
+        assert(VK_SUCCEEDED(result) && "Could not create image view");
+    }
 
     (void)width;
     (void)height;
