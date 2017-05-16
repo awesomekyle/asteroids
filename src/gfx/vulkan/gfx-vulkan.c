@@ -686,6 +686,9 @@ void gfxVulkanCmdBeginRenderPass(GfxCmdBuffer* B,
                                  float const clearColor[4])
 {
     assert(B);
+    if (renderTargetHandle == kGfxInvalidHandle) {
+        renderTargetHandle = B->G->backBufferIndex;
+    }
     VkImageSubresourceRange const subresourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .baseMipLevel = 0,
@@ -703,7 +706,7 @@ void gfxVulkanCmdBeginRenderPass(GfxCmdBuffer* B,
         .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
         .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
-        .image = B->G->backBuffers[B->G->backBufferIndex],
+        .image = B->G->backBuffers[renderTargetHandle],
         .subresourceRange = subresourceRange
     };
 
