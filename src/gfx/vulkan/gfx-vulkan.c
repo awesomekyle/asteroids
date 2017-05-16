@@ -64,6 +64,9 @@ struct Gfx {
     uint32_t numBackBuffers;
     uint32_t backBufferIndex;
 
+    // Render pass info
+    VkRenderPass    renderPass;
+
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
 #endif
@@ -293,6 +296,64 @@ static VkResult _CreateDevice(Gfx* const G)
                                            &G->device);
     return result;
 }
+static VkResult _CreateRenderPasses(Gfx* const G)
+{
+    VkAttachmentDescription const attachments[] = {
+        {
+            .flags = 0,
+            .format = VK_FORMAT_B8G8R8_SRGB, // Wait until we get this from the surface?
+            .samples = VK_SAMPLE_COUNT_1_BIT,
+            .loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR,
+            .storeOp = VK_ATTACHMENT_STORE_OP_STORE,
+            .stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+            .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+            .initialLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+            .finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
+        },
+    };
+    uint32_t const numAttachments = ARRAY_COUNT(attachments);
+
+    VkAttachmentReference const colorAttachmentReferences[] = {
+        {
+            .attachment = 0,
+            .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+        },
+    };
+    uint32_t const numColorReferences = ARRAY_COUNT(colorAttachmentReferences);
+
+    VkSubpassDescription const subpasses[] = {
+        {
+            .flags = 0,
+            .pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS,
+            .inputAttachmentCount = 0,
+            .pInputAttachments = NULL,
+            .colorAttachmentCount = numColorReferences,
+            .pColorAttachments = colorAttachmentReferences,
+            .pResolveAttachments = NULL,
+            .pDepthStencilAttachment = NULL,
+            .preserveAttachmentCount = 0,
+            .pPreserveAttachments = NULL,
+        },
+    };
+    uint32_t const numSubpasses = ARRAY_COUNT(subpasses);
+
+    VkRenderPassCreateInfo const renderPassInfo = {
+        .sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .pNext = NULL,
+        .flags = 0,
+        .attachmentCount = numAttachments,
+        .pAttachments = attachments,
+        .subpassCount = numSubpasses,
+        .pSubpasses = subpasses,
+        .dependencyCount = 0,
+        .pDependencies = NULL,
+    };
+
+    VkResult const result = vkCreateRenderPass(G->device, &renderPassInfo, NULL, &G->renderPass);
+    assert(VK_SUCCEEDED(result) && "Could not create render pass");
+
+    return result;
+}
 
 Gfx* gfxVulkanCreate(void)
 {
@@ -314,6 +375,9 @@ Gfx* gfxVulkanCreate(void)
     assert(VK_SUCCEEDED(result));
 
     result = _CreateDevice(G);
+    assert(VK_SUCCEEDED(result));
+
+    result = _CreateRenderPasses(G);
     assert(VK_SUCCEEDED(result));
 
     // Create command interfaces
@@ -351,6 +415,8 @@ Gfx* gfxVulkanCreate(void)
         currentBuffer->table = &GfxVulkanCmdBufferTable;
     }
 
+
+
     G->backBufferIndex = UINT32_MAX;
     G->table = &GfxVulkanTable;
     return G;
@@ -360,6 +426,7 @@ void gfxVulkanDestroy(Gfx* G)
 {
     assert(G);
     vkDeviceWaitIdle(G->device);
+    vkDestroyRenderPass(G->device, G->renderPass, NULL);
     for (uint32_t ii = 0; ii < ARRAY_COUNT(G->commandBuffers); ++ii) {
         GfxCmdBuffer* const currentBuffer = &G->commandBuffers[ii];
         vkDestroyCommandPool(G->device, currentBuffer->pool, NULL);

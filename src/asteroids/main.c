@@ -55,7 +55,7 @@ static void* NativeInstance(void)
 
 static bool _InitializeApp(GLFWwindow* const window)
 {
-    gGfx = gfxCreate(kGfxApiDefault);
+    gGfx = gfxCreate(kGfxApiVulkan);
     if (gGfx == NULL) {
         assert(gGfx != NULL && "Could not create Gfx device");
         return false;
