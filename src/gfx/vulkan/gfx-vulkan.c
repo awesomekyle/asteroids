@@ -47,8 +47,13 @@ struct Gfx {
     uint32_t            queueIndex;
 
     VkDevice    device;
-    VkQueue     renderQueue;
 
+    // Command interface
+    VkQueue     renderQueue;
+    GfxCmdBuffer commandBuffers[kMaxCommandBuffers];
+    uint_fast32_t currentCommandBuffer;
+
+    // Surface & Swap chain
     VkSurfaceKHR    surface;
     VkSemaphore     swapChainSemaphore;
     VkSurfaceCapabilitiesKHR surfaceCapabilities;
@@ -59,8 +64,6 @@ struct Gfx {
     uint32_t numBackBuffers;
     uint32_t backBufferIndex;
 
-    GfxCmdBuffer commandBuffers[kMaxCommandBuffers];
-    uint_fast32_t currentCommandBuffer;
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT debugCallback;
 #endif

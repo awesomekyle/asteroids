@@ -18,6 +18,8 @@ if(HAVE_VULKAN)
         vulkan/gfx-vulkan.c
         vulkan/gfx-vulkan-helper.h
         vulkan/gfx-vulkan-helper.c
+        vulkan/gfx-vulkan-swapchain.h
+        vulkan/gfx-vulkan-swapchain.c
     )
 endif()
 if(HAVE_METAL)
