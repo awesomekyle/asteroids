@@ -45,9 +45,11 @@ static void* NativeInstance(void)
 {
 #if defined(_WIN32)
     return GetModuleHandle(NULL);
+#elif defined(__APPLE__)
+    return NULL; // TODO: Get NSApplication; not yet required
 #else
-#warning "Not passing native application"
-    return nullptr;
+    #warning "Not passing native application"
+    return NULL;
 #endif
 }
 

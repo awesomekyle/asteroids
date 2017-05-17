@@ -14,6 +14,7 @@ enum {
 
 struct GfxCmdBuffer
 {
+    GfxCmdBufferTable const* table;
     id<MTLCommandBuffer> buffer;
     id<MTLRenderCommandEncoder> renderEncoder;
     Gfx*    G;
@@ -21,6 +22,7 @@ struct GfxCmdBuffer
 
 struct Gfx
 {
+    GfxTable const* table;
     id<MTLDevice>       device;
     id<MTLCommandQueue> renderQueue;
 
@@ -32,16 +34,17 @@ struct Gfx
     id<CAMetalDrawable> currentDrawable;
 };
 
-Gfx* gfxCreateMetal(void)
+Gfx* gfxMetalCreate(void)
 {
     Gfx* const G = calloc(1, sizeof(*G));
     G->device = MTLCreateSystemDefaultDevice();
     G->renderQueue = [G->device newCommandQueueWithMaxCommandBufferCount:kMaxCommandLists];
     G->renderQueue.label = @"Render Queue";
     G->availableCommandBuffers = kMaxCommandLists;
+    G->table = &GfxMetalTable;
     return G;
 }
-void gfxDestroyMetal(Gfx* G)
+void gfxMetalDestroy(Gfx* G)
 {
     assert(G);
     [G->layer release];
@@ -50,7 +53,7 @@ void gfxDestroyMetal(Gfx* G)
     free(G);
 }
 
-bool gfxCreateSwapChain(Gfx* G, void* window, void* application)
+bool gfxMetalCreateSwapChain(Gfx* G, void* window, void* application)
 {
     assert(G);
     assert(window);
@@ -68,7 +71,7 @@ bool gfxCreateSwapChain(Gfx* G, void* window, void* application)
     return true;
 }
 
-bool gfxResize(Gfx* G, int width, int height)
+bool gfxMetalResize(Gfx* G, int width, int height)
 {
     assert(G);
     (void)width;(void)height; // TODO: Use these, don't just infer from window size
@@ -82,7 +85,7 @@ bool gfxResize(Gfx* G, int width, int height)
     return true;
 }
 
-GfxRenderTarget gfxGetBackBuffer(Gfx* G)
+GfxRenderTarget gfxMetalGetBackBuffer(Gfx* G)
 {
     assert(G);
     if(G->currentDrawable == nil) {
@@ -91,7 +94,7 @@ GfxRenderTarget gfxGetBackBuffer(Gfx* G)
     return (GfxRenderTarget)G->currentDrawable.texture;
 }
 
-bool gfxPresent(Gfx* G)
+bool gfxMetalPresent(Gfx* G)
 {
     assert(G);
     [G->currentDrawable present];
@@ -99,7 +102,7 @@ bool gfxPresent(Gfx* G)
     return true;
 }
 
-GfxCmdBuffer* gfxGetCommandBuffer(Gfx* G)
+GfxCmdBuffer* gfxMetalGetCommandBuffer(Gfx* G)
 {
     assert(G);
     if (G->availableCommandBuffers == 0) {
@@ -113,16 +116,17 @@ GfxCmdBuffer* gfxGetCommandBuffer(Gfx* G)
     GfxCmdBuffer* const cmdBuffer = calloc(1, sizeof(*cmdBuffer));
     cmdBuffer->buffer = buffer;
     cmdBuffer->G = G;
+    cmdBuffer->table = &GfxMetalCmdBufferTable;
     return cmdBuffer;
 }
 
-int gfxNumAvailableCommandBuffers(Gfx* G)
+int gfxMetalNumAvailableCommandBuffers(Gfx* G)
 {
     assert(G);
     return G->availableCommandBuffers;
 }
 
-void gfxResetCommandBuffer(GfxCmdBuffer* B)
+void gfxMetalResetCommandBuffer(GfxCmdBuffer* B)
 {
     assert(B);
     atomic_fetch_add(&B->G->availableCommandBuffers, 1);
@@ -130,15 +134,15 @@ void gfxResetCommandBuffer(GfxCmdBuffer* B)
     free(B);
 }
 
-bool gfxExecuteCommandBuffer(GfxCmdBuffer* B)
+bool gfxMetalExecuteCommandBuffer(GfxCmdBuffer* B)
 {
     assert(B);
     [B->buffer commit];
-    gfxResetCommandBuffer(B);
+    gfxMetalResetCommandBuffer(B);
     return true;
 }
 
-void gfxCmdBeginRenderPass(GfxCmdBuffer* B,
+void gfxMetalCmdBeginRenderPass(GfxCmdBuffer* B,
                            GfxRenderTarget renderTargetHandle,
                            GfxRenderPassAction loadAction,
                            float const clearColor[4])
@@ -159,8 +163,24 @@ void gfxCmdBeginRenderPass(GfxCmdBuffer* B,
     id<MTLRenderCommandEncoder> encoder = [B->buffer renderCommandEncoderWithDescriptor:descriptor];
     B->renderEncoder = encoder;
 }
-void gfxCmdEndRenderPass(GfxCmdBuffer* B)
+void gfxMetalCmdEndRenderPass(GfxCmdBuffer* B)
 {
     assert(B);
     [B->renderEncoder endEncoding];
 }
+
+GfxTable const GfxMetalTable = {
+    gfxMetalDestroy,
+    gfxMetalCreateSwapChain,
+    gfxMetalResize,
+    gfxMetalGetBackBuffer,
+    gfxMetalPresent,
+    gfxMetalGetCommandBuffer,
+    gfxMetalNumAvailableCommandBuffers,
+};
+GfxCmdBufferTable const GfxMetalCmdBufferTable = {
+    gfxMetalResetCommandBuffer,
+    gfxMetalExecuteCommandBuffer,
+    gfxMetalCmdBeginRenderPass,
+    gfxMetalCmdEndRenderPass,
+};

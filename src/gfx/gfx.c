@@ -48,7 +48,7 @@ Gfx* gfxCreate(GfxApi api)
 #endif
 #if HAVE_METAL
         case kGfxApiMetal:
-            return gfxCreateMetal();
+            return gfxMetalCreate();
 #endif
         default:
             break;
@@ -58,14 +58,7 @@ Gfx* gfxCreate(GfxApi api)
 
 void gfxDestroy(Gfx* G)
 {
-    (void)G;
-#if HAVE_D3D12
-    //gfxD3D12Destroy(G);
     G->table->Destroy(G);
-#endif
-#if HAVE_METAL
-    gfxDestroyMetal(G);
-#endif
 }
 
 
