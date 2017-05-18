@@ -1,4 +1,5 @@
 #pragma once
+#include "gfx/gfx.h"
 #include <vulkan/vulkan.h>
 
 #define ARRAY_COUNT(a) (sizeof(a)/sizeof(a[0]))
@@ -25,3 +26,5 @@ VkResult FindBestPhysicalDevice(VkPhysicalDevice const* availableDevices,
                                 uint32_t numAvailableDevices,
                                 VkPhysicalDevice* outDevice,
                                 uint32_t* outQueueIndex);
+
+VkFormat VkFormatFromGfxFormat(GfxPixelFormat format);
