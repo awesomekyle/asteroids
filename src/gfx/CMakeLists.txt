@@ -10,6 +10,8 @@ if(HAVE_D3D12)
     list(APPEND SOURCES
         d3d12/gfx-d3d12.h
         d3d12/gfx-d3d12.cpp
+        d3d12/gfx-d3d12-helper.h
+        d3d12/gfx-d3d12-helper.cpp
     )
 endif()
 if(HAVE_VULKAN)

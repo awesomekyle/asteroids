@@ -11,6 +11,108 @@ typedef enum GfxApi {
     kGfxApiUnknown = -1,
 } GfxApi;
 
+
+/// @brief 3D graphics formats
+typedef enum GfxPixelFormat {
+    kUnknown = 0,
+    // r8
+    kR8Uint,
+    kR8Sint,
+    kR8SNorm,
+    kR8UNorm,
+    // rg8
+    kRG8Uint,
+    kRG8Sint,
+    kRG8SNorm,
+    kRG8UNorm,
+    // r8g8b8
+    kRGBX8Uint,
+    kRGBX8Sint,
+    kRGBX8SNorm,
+    kRGBX8UNorm,
+    kRGBX8UNorm_sRGB,
+    // r8g8b8a8
+    kRGBA8Uint,
+    kRGBA8Sint,
+    kRGBA8SNorm,
+    kRGBA8UNorm,
+    kRGBA8UNorm_sRGB,
+    // b8g8r8a8
+    kBGRA8UNorm,
+    kBGRA8UNorm_sRGB,
+    // r16
+    kR16Uint,
+    kR16Sint,
+    kR16Float,
+    kR16SNorm,
+    kR16UNorm,
+    // r16g16
+    kRG16Uint,
+    kRG16Sint,
+    kRG16Float,
+    kRG16SNorm,
+    kRG16UNorm,
+    // r16g16b16a16
+    kRGBA16Uint,
+    kRGBA16Sint,
+    kRGBA16Float,
+    kRGBA16SNorm,
+    kRGBA16UNorm,
+    // r32
+    kR32Uint,
+    kR32Sint,
+    kR32Float,
+    // r32g32
+    kRG32Uint,
+    kRG32Sint,
+    kRG32Float,
+    // r32g32b32x32
+    kRGBX32Uint,
+    kRGBX32Sint,
+    kRGBX32Float,
+    // r32g32b32a32
+    kRGBA32Uint,
+    kRGBA32Sint,
+    kRGBA32Float,
+    // rbg10a2
+    kRGB10A2Uint,
+    kRGB10A2UNorm,
+    // r11g11b10
+    kRG11B10Float,
+    // rgb9e5
+    kRGB9E5Float,
+    // bgr5a1
+    kBGR5A1Unorm,
+    // b5g6r5
+    kB5G6R5Unorm,
+    // b4g4r4a4
+    kBGRA4Unorm,
+    // bc1-7
+    kBC1Unorm,
+    kBC1Unorm_SRGB,
+    kBC2Unorm,
+    kBC2Unorm_SRGB,
+    kBC3Unorm,
+    kBC3Unorm_SRGB,
+    kBC4Unorm,
+    kBC4Snorm,
+    kBC5Unorm,
+    kBC5Snorm,
+    kBC6HUfloat,
+    kBC6HSfloat,
+    kBC7Unorm,
+    kBC7Unorm_SRGB,
+    // d24s8
+    kD24UnormS8Uint,
+    // d32
+    kD32Float,
+    // d32s8
+    kD32FloatS8Uint,
+
+    kNumFormats
+} GfxPixelFormat;
+
+
 /// Object representing a graphics device (ID3D11Device, vkDevice, MTLDevice)
 typedef struct Gfx Gfx;
 /// Object representing a graphics command buffer/command list
@@ -19,6 +121,8 @@ typedef struct GfxCmdBuffer GfxCmdBuffer;
 /// Opaque object handle
 static intptr_t const kGfxInvalidHandle = -1;
 typedef intptr_t GfxRenderTarget;
+
+//------------------------- Primary Interface ----------------------------------
 
 /// @brief Creates a new graphics device
 Gfx* gfxCreate(GfxApi api);
