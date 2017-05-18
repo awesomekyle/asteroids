@@ -2,6 +2,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+/// @TODO:
+///     Vulkan object naming (via extension)
+///     Vulkan invalid render target handling
+
 typedef enum GfxApi {
     kGfxApiDefault = 0,
     kGfxApiD3D12,
@@ -111,6 +115,37 @@ typedef enum GfxPixelFormat {
 
     kNumFormats
 } GfxPixelFormat;
+
+typedef struct GfxInputLayout {
+    char const* name;
+    uint32_t slot;
+    GfxPixelFormat format;
+} GfxInputLayout;
+
+static GfxInputLayout const kEndLayout = {
+    NULL, 0, kUnknown,
+};
+
+typedef enum GfxCullMode {
+    kBack,
+    kFront,
+    kNone
+} GfxCullMode;
+
+typedef struct GfxShaderDesc {
+    char const* source;
+    char const* entrypoint;
+} GfxShaderDesc;
+
+typedef struct GfxRenderStateDesc {
+    GfxShaderDesc vertexShader;
+    GfxShaderDesc pixelShader;
+    GfxInputLayout const* layout;
+    GfxPixelFormat depthFormat;
+    GfxCullMode culling;
+    bool depthWrite;
+    char const* name;
+} GfxRenderStateDesc;
 
 
 /// Object representing a graphics device (ID3D11Device, vkDevice, MTLDevice)
