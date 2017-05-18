@@ -82,6 +82,11 @@ bool gfxPresent(Gfx* G)
     return G->table->Present(G);
 }
 
+GfxRenderState gfxCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc)
+{
+    return G->table->CreateRenderState(G, desc);
+}
+
 GfxCmdBuffer* gfxGetCommandBuffer(Gfx* G)
 {
     return G->table->GetCommandBuffer(G);

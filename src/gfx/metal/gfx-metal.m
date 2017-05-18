@@ -102,6 +102,13 @@ bool gfxMetalPresent(Gfx* G)
     return true;
 }
 
+GfxRenderState gfxMetalCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc)
+{
+    (void)G;
+    (void)desc;
+    return kGfxInvalidHandle;
+}
+
 GfxCmdBuffer* gfxMetalGetCommandBuffer(Gfx* G)
 {
     assert(G);
@@ -175,6 +182,7 @@ GfxTable const GfxMetalTable = {
     gfxMetalResize,
     gfxMetalGetBackBuffer,
     gfxMetalPresent,
+    gfxMetalCreateRenderState,
     gfxMetalGetCommandBuffer,
     gfxMetalNumAvailableCommandBuffers,
 };

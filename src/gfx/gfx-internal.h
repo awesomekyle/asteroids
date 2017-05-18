@@ -7,6 +7,7 @@ typedef struct {
     bool (*Resize)(Gfx* G, int width, int height);
     GfxRenderTarget (*GetBackBuffer)(Gfx* G);
     bool (*Present)(Gfx* G);
+    GfxRenderState (*CreateRenderState)(Gfx* G, GfxRenderStateDesc const* desc);
     GfxCmdBuffer* (*GetCommandBuffer)(Gfx* G);
     int (*NumAvailableCommandBuffers)(Gfx* G);
 } GfxTable;
