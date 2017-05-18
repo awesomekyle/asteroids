@@ -28,6 +28,8 @@ if(HAVE_METAL)
     list(APPEND SOURCES
         metal/gfx-metal.h
         metal/gfx-metal.m
+        metal/gfx-metal-helper.h
+        metal/gfx-metal-helper.m
     )
 endif()
 
