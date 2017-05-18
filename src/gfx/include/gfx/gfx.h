@@ -122,7 +122,7 @@ typedef struct GfxInputLayout {
     GfxPixelFormat format;
 } GfxInputLayout;
 
-static GfxInputLayout const kEndLayout = {
+static GfxInputLayout const kGfxEndInputLayout = {
     NULL, 0, kUnknown,
 };
 
@@ -140,6 +140,8 @@ typedef struct GfxShaderDesc {
 typedef struct GfxRenderStateDesc {
     GfxShaderDesc vertexShader;
     GfxShaderDesc pixelShader;
+    /// "Null terminated" list of layouts. Ensure the last in the list has a
+    /// NULL name, or use kGfxEndInputLayout
     GfxInputLayout const* layout;
     GfxPixelFormat depthFormat;
     GfxCullMode culling;
