@@ -1,4 +1,47 @@
 #include "gfx-d3d12-helper.h"
+#include <assert.h>
+#include <stdio.h>
+#include <d3dcompiler.h>
+
+HRESULT CompileHLSLShader(char const* const sourceCode,
+                          char const* const target,
+                          char const* const entrypoint,
+                          ID3DBlob** const outBlob)
+{
+    assert(sourceCode);
+    assert(target);
+    assert(entrypoint);
+    auto const compilerModule = LoadLibraryA("d3dcompiler_47.dll");
+    assert(compilerModule && "Need a D3D compiler");
+    decltype(D3DCompile)* const pD3DCompile = reinterpret_cast<decltype(&D3DCompile)>(GetProcAddress(compilerModule, "D3DCompile"));
+    assert(pD3DCompile && "Can't find D3DCompile method");
+
+    UINT compilerFlags = D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
+#if _DEBUG
+    compilerFlags |= D3DCOMPILE_DEBUG;
+#endif
+    size_t const sourceCodeLength = strnlen(sourceCode, 1024 * 1024);
+    ID3DBlob*   shaderBlob = nullptr;
+    ID3DBlob*   errorBlob = nullptr;
+    HRESULT const hr = pD3DCompile(sourceCode, sourceCodeLength,
+                                   nullptr, nullptr, nullptr,
+                                   entrypoint, target, compilerFlags, 0,
+                                   &shaderBlob, &errorBlob);
+    if (errorBlob) {
+        fprintf(stderr, "Eror compiling shader: %s",
+                static_cast<char const*>(errorBlob->GetBufferPointer()));
+        errorBlob->Release();
+    }
+    if (FAILED(hr)) {
+        return hr;
+    }
+    assert(shaderBlob && "Shader blob not created");
+    assert(SUCCEEDED(hr));
+    if (outBlob) {
+        *outBlob = shaderBlob;
+    }
+    return hr;
+}
 
 DXGI_FORMAT DXGIFormatFromGfxFormat(GfxPixelFormat format)
 {
