@@ -154,11 +154,13 @@ typedef struct GfxRenderStateDesc {
 typedef struct Gfx Gfx;
 /// Object representing a graphics command buffer/command list
 typedef struct GfxCmdBuffer GfxCmdBuffer;
+/// Represents a render pipeline state (PSO for modern APIs, collection of states
+///     in D3D11
+typedef struct GfxRenderState GfxRenderState;
 
 /// Opaque object handle
 static intptr_t const kGfxInvalidHandle = -1;
 typedef intptr_t GfxRenderTarget;
-typedef intptr_t GfxRenderState;
 
 //------------------------- Primary Interface ----------------------------------
 
@@ -185,7 +187,7 @@ GfxRenderTarget gfxGetBackBuffer(Gfx* G);
 /// @brief Presents the back buffer to the screen
 bool gfxPresent(Gfx* G);
 
-GfxRenderState gfxCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
+GfxRenderState* gfxCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
 
 /// @brief Returns an open, ready to use command buffer
 /// @return NULL if no command buffers are available

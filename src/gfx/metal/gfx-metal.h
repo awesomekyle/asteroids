@@ -17,7 +17,7 @@ GfxRenderTarget gfxMetalGetBackBuffer(Gfx* G);
 
 bool gfxMetalPresent(Gfx* G);
 
-GfxRenderState gfxMetalCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
+GfxRenderState* gfxMetalCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
 
 GfxCmdBuffer* gfxMetalGetCommandBuffer(Gfx* G);
 

@@ -22,7 +22,7 @@ GfxRenderTarget gfxVulkanGetBackBuffer(Gfx* G);
 
 bool gfxVulkanPresent(Gfx* G);
 
-GfxRenderState gfxVulkanCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
+GfxRenderState* gfxVulkanCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
 
 GfxCmdBuffer* gfxVulkanGetCommandBuffer(Gfx* G);
 

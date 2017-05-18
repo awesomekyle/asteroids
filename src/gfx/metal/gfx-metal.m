@@ -102,7 +102,7 @@ bool gfxMetalPresent(Gfx* G)
     return true;
 }
 
-GfxRenderState gfxMetalCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc)
+GfxRenderState* gfxMetalCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc)
 {
     (void)G;
     (void)desc;

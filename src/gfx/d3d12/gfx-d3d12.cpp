@@ -21,6 +21,7 @@ extern "C" {
 #pragma warning(pop)
 
 #include "../gfx-internal.h"
+#include "gfx-d3d12-helper.h"
 
 static constexpr UINT kFramesInProgress = 3;
 static constexpr size_t kMaxBackBuffers = 4;
@@ -32,6 +33,12 @@ struct GfxCmdBuffer {
     ID3D12CommandAllocator*     allocator;
     ID3D12GraphicsCommandList*  list;
     uint64_t    completion;
+};
+
+struct GfxRenderState {
+    GfxRenderStateDesc      desc;
+    ID3D12RootSignature*    root_signature;
+    ID3D12PipelineState*    pso;
 };
 
 struct Gfx {
@@ -95,6 +102,21 @@ struct Gfx {
 // Helper methods
 //////
 namespace {
+
+constexpr D3D12_CULL_MODE D3D12CullMode(GfxCullMode cullMode)
+{
+    switch (cullMode) {
+        case kFront:
+            return D3D12_CULL_MODE_FRONT;
+        case kBack:
+            return D3D12_CULL_MODE_BACK;
+        case kNone:
+            return D3D12_CULL_MODE_NONE;
+        default:
+            break;
+    }
+    return D3D12_CULL_MODE_NONE;
+};
 
 template<class D>
 void _SetName(D* object, char const* format, ...)
@@ -501,11 +523,162 @@ bool gfxD3D12Present(Gfx* G)
     assert(result);
     return true;
 }
-GfxRenderState gfxD3D12CreateRenderState(Gfx* G, GfxRenderStateDesc const* desc)
+GfxRenderState* gfxD3D12CreateRenderState(Gfx* G, GfxRenderStateDesc const* desc)
 {
-    (void)G;
-    (void)desc;
-    return kGfxInvalidHandle;
+    assert(G);
+    assert(desc);
+    HRESULT hr = S_OK;
+    ID3D12PipelineState* pso = nullptr;
+    ID3D12RootSignature* rootSignature = nullptr;
+
+    // input layout
+    auto const* layout = desc->layout;
+    D3D12_INPUT_ELEMENT_DESC inputLayout[16] = { { nullptr } };
+    uint32_t numInputElements = 0;
+    UINT current_offset = 0;
+    while (layout && layout->name) {
+        inputLayout[numInputElements++] = {
+            layout->name, 0, DXGIFormatFromGfxFormat(layout->format), 0, current_offset, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+        };
+        UINT const offset = (UINT)gfxFormatSize(layout->format);
+        current_offset += offset;
+        layout++;
+    }
+    // compile shaders
+    ID3DBlob* vsBytecode = nullptr;
+    hr = CompileHLSLShader(desc->vertexShader.source,
+                           "vs_5_1",
+                           desc->vertexShader.entrypoint,
+                           &vsBytecode);
+    assert(vsBytecode && "Shader compilation failed");
+    assert(SUCCEEDED(hr) && "Could not compile shader");
+    ID3DBlob* psBytecode = nullptr;
+    hr = CompileHLSLShader(desc->pixelShader.source,
+                           "ps_5_1",
+                           desc->pixelShader.entrypoint,
+                           &psBytecode);
+    assert(psBytecode && "Shader compilation failed");
+    assert(SUCCEEDED(hr) && "Could not compile shader");
+
+    // root signatures
+    CD3DX12_DESCRIPTOR_RANGE srvRanges[4];
+    srvRanges[0].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+    srvRanges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 1);
+    srvRanges[2].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 2);
+    srvRanges[3].Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 3);
+    CD3DX12_ROOT_PARAMETER rootParameters[8];
+    // 4 single CBVs, 4 single SRVs
+    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[2].InitAsConstantBufferView(2, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[3].InitAsConstantBufferView(3, 0, D3D12_SHADER_VISIBILITY_ALL);
+    rootParameters[4].InitAsDescriptorTable(1, srvRanges + 0, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[5].InitAsDescriptorTable(1, srvRanges + 1, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[6].InitAsDescriptorTable(1, srvRanges + 2, D3D12_SHADER_VISIBILITY_PIXEL);
+    rootParameters[7].InitAsDescriptorTable(1, srvRanges + 3, D3D12_SHADER_VISIBILITY_PIXEL);
+    // single static sampler
+    D3D12_STATIC_SAMPLER_DESC const samplerDesc = {
+        D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        0.0f,
+        16,
+        D3D12_COMPARISON_FUNC_ALWAYS,
+        D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
+        0.0f,
+        D3D12_FLOAT32_MAX,
+        0,
+        0,
+        D3D12_SHADER_VISIBILITY_PIXEL,
+    };
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+    rootSignatureDesc.Init(_countof(rootParameters), rootParameters,
+                           1, &samplerDesc,
+                           D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+    CComPtr<ID3DBlob> signature;
+    CComPtr<ID3DBlob> error;
+    auto const pD3D12 = LoadLibraryA("d3d12.dll");
+    assert(pD3D12 && "Could not load D3D12...how are we here?");
+    auto const pD3D12SerializeRootSignature = decltype(&D3D12SerializeRootSignature)(GetProcAddress(pD3D12, "D3D12SerializeRootSignature"));
+    assert(pD3D12SerializeRootSignature && "Could not find D3D12SerializeRootSignature");
+    hr = pD3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error);
+    if (error) {
+        fprintf(stderr, "Eror serializing root signature: %s", static_cast<char const*>(error->GetBufferPointer()));
+    }
+    assert(SUCCEEDED(hr));
+    hr = G->device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(),
+                                        IID_PPV_ARGS(&rootSignature));
+    assert(SUCCEEDED(hr));
+
+    // PSO
+    CD3DX12_DEPTH_STENCIL_DESC depthDesc(D3D12_DEFAULT);
+    depthDesc.DepthWriteMask = desc->depthWrite ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+    depthDesc.DepthFunc = D3D12_COMPARISON_FUNC_GREATER_EQUAL;
+    CD3DX12_RASTERIZER_DESC const rsDesc(D3D12_FILL_MODE_SOLID,
+                                         D3D12CullMode(desc->culling),
+                                         FALSE, 0, 0.0f, 0.0f, TRUE, TRUE,
+                                         FALSE, FALSE, D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF);
+    D3D12_BLEND_DESC const blendDesc = {
+        FALSE, FALSE,
+        {
+            {
+                TRUE,
+                FALSE,
+                D3D12_BLEND_SRC_ALPHA,
+                D3D12_BLEND_INV_SRC_ALPHA,
+                D3D12_BLEND_OP_ADD,
+                D3D12_BLEND_ONE,
+                D3D12_BLEND_ZERO,
+                D3D12_BLEND_OP_ADD,
+                D3D12_LOGIC_OP_NOOP,
+                D3D12_COLOR_WRITE_ENABLE_ALL,
+            },
+        },
+    };
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC const psoDesc = {
+        rootSignature, // pRootSignature
+        CD3DX12_SHADER_BYTECODE(vsBytecode), // VS
+        CD3DX12_SHADER_BYTECODE(psBytecode), // PS
+        { nullptr, 0 }, // DS
+        { nullptr, 0 }, // HS
+        { nullptr, 0 }, // GS
+        {
+            // StreamOutput
+            nullptr,    // pSODeclaration
+            0,          // NumEntries
+            nullptr,    // pBufferStrides
+            0,          // NumStrides
+            0,          // RasterizedStream
+        },
+        blendDesc, // BlendState
+        UINT_MAX, //  SampleMask
+        rsDesc, // RasterizerState
+        depthDesc, // DepthStencilState
+        { inputLayout, numInputElements }, // InputLayout
+        D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED, // IBStripCutValue
+        D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE, // PrimitiveTopologyType
+        1, // NumRenderTargets
+        { DXGI_FORMAT_B8G8R8A8_UNORM_SRGB }, // RTVFormats TODO: Parameterize
+        { DXGIFormatFromGfxFormat(desc->depthFormat) }, // DSVFormat
+        { 1, 0 }, // SampleDesc
+        0, // NodeMask
+        { nullptr, 0 }, // CachedPSO
+        D3D12_PIPELINE_STATE_FLAG_NONE, // Flags
+    };
+    hr = G->device->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&pso));
+    assert(SUCCEEDED(hr) && "Could not create PSO");
+    _SetName(pso, desc->name);
+
+    psBytecode->Release();
+    vsBytecode->Release();
+
+    GfxRenderState* const state = (GfxRenderState*)calloc(1, sizeof(*state));
+    state->desc = *desc;
+    state->pso = pso;
+    state->root_signature = rootSignature;
+    return state;
 }
 GfxCmdBuffer* gfxD3D12GetCommandBuffer(Gfx* G)
 {

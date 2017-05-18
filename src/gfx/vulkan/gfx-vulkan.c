@@ -689,7 +689,7 @@ bool gfxVulkanPresent(Gfx* G)
 
     return true;
 }
-GfxRenderState gfxVulkanCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc)
+GfxRenderState* gfxVulkanCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc)
 {
     (void)G;
     (void)desc;

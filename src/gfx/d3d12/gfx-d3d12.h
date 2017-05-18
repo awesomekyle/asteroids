@@ -22,7 +22,7 @@ GfxRenderTarget gfxD3D12GetBackBuffer(Gfx* G);
 
 bool gfxD3D12Present(Gfx* G);
 
-GfxRenderState gfxD3D12CreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
+GfxRenderState* gfxD3D12CreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
 
 GfxCmdBuffer* gfxD3D12GetCommandBuffer(Gfx* G);
 
