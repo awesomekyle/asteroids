@@ -4,6 +4,7 @@
 size_t gfxFormatSize(GfxPixelFormat format);
 
 typedef struct {
+    GfxApi (*GetApi)(Gfx const* G);
     void (*Destroy)(Gfx* G);
     bool (*CreateSwapChain)(Gfx* G, void* window, void* application);
     bool (*Resize)(Gfx* G, int width, int height);
@@ -14,6 +15,7 @@ typedef struct {
     GfxCmdBuffer* (*GetCommandBuffer)(Gfx* G);
     int (*NumAvailableCommandBuffers)(Gfx* G);
 } GfxTable;
+
 typedef struct {
     void (*ResetCommandBuffer)(GfxCmdBuffer* B);
     bool (*ExecuteCommandBuffer)(GfxCmdBuffer* B);

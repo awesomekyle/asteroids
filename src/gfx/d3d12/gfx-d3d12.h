@@ -10,8 +10,8 @@ extern GfxCmdBufferTable const GfxD3D12CmdBufferTable;
 
 Gfx* gfxD3D12Create(void);
 
+GfxApi gfxD3D12GetApi(Gfx const* G);
 
-Gfx* gfxD3D12Create(void);
 void gfxD3D12Destroy(Gfx* G);
 
 bool gfxD3D12CreateSwapChain(Gfx* G, void* window, void* application);

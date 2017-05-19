@@ -44,6 +44,10 @@ Gfx* gfxMetalCreate(void)
     G->table = &GfxMetalTable;
     return G;
 }
+GfxApi gfxMetalGetApi(Gfx const* G)
+{
+    return kGfxApiMetal;
+}
 void gfxMetalDestroy(Gfx* G)
 {
     assert(G);
@@ -182,6 +186,7 @@ void gfxMetalCmdEndRenderPass(GfxCmdBuffer* B)
 }
 
 GfxTable const GfxMetalTable = {
+    gfxMetalGetApi,
     gfxMetalDestroy,
     gfxMetalCreateSwapChain,
     gfxMetalResize,

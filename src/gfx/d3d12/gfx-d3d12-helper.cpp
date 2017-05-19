@@ -16,7 +16,10 @@ HRESULT CompileHLSLShader(char const* const sourceCode,
     decltype(D3DCompile)* const pD3DCompile = reinterpret_cast<decltype(&D3DCompile)>(GetProcAddress(compilerModule, "D3DCompile"));
     assert(pD3DCompile && "Can't find D3DCompile method");
 
-    UINT compilerFlags = D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR;
+    UINT compilerFlags = D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR |
+                         D3DCOMPILE_ENABLE_STRICTNESS |
+                         D3DCOMPILE_WARNINGS_ARE_ERRORS |
+                         D3DCOMPILE_ENABLE_UNBOUNDED_DESCRIPTOR_TABLES;
 #if _DEBUG
     compilerFlags |= D3DCOMPILE_DEBUG;
 #endif

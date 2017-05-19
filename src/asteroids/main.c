@@ -48,7 +48,7 @@ static void* NativeInstance(void)
 #elif defined(__APPLE__)
     return NULL; // TODO: Get NSApplication; not yet required
 #else
-    #warning "Not passing native application"
+#warning "Not passing native application"
     return NULL;
 #endif
 }
@@ -138,6 +138,38 @@ int main(int argc, char* argv[])
     }
     _SetFramebufferSize(window, kWindowWidth, kWindowHeight); // make the resize happen
 
+    // Create graphics objects
+    char const* vsSource = NULL;
+    char const* psSource = NULL;
+    if (gfxGetApi(gGfx) == kGfxApiD3D12) {
+        vsSource =
+            "float4 main(uint vertexId : SV_VertexID) : SV_POSITION {"\
+            "    float2 pos[3] = { float2(-0.7, 0.7), float2(0.7, 0.7), float2(0.0, -0.7) };"\
+            "    return float4(pos[vertexId], 0.0f, 1.0f);"\
+            "}";
+        psSource =
+            "float4 main() : SV_TARGET {"\
+            "    return float4(0.3f, 0.5f, 0.7f, 1.0f);"
+            "}";
+
+    }
+    GfxRenderStateDesc const desc = {
+        .vertexShader = {
+            .source = vsSource,
+            .entrypoint = "main",
+        },
+        .pixelShader = {
+            .source = psSource,
+            .entrypoint = "main",
+        },
+        .layout = NULL,
+        .depthFormat = kUnknown,
+        .culling = kNone,
+        .depthWrite = false,
+        .name = "Simple State",
+    };
+    GfxRenderState* const renderState = gfxCreateRenderState(gGfx, &desc);
+
     int frameCount = 0;
     float elapsedTime = 0.0f;
     uint64_t prevTime = glfwGetTimerValue();
@@ -171,6 +203,8 @@ int main(int argc, char* argv[])
 
         gfxPresent(gGfx);
     }
+
+    gfxDestroyRenderState(gGfx, renderState);
 
     _ShutdownApp();
     glfwTerminate();

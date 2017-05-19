@@ -7,6 +7,8 @@ extern GfxCmdBufferTable const GfxMetalCmdBufferTable;
 
 Gfx* gfxMetalCreate(void);
 
+GfxApi gfxMetalGetApi(Gfx const* G);
+
 void gfxMetalDestroy(Gfx* G);
 
 bool gfxMetalCreateSwapChain(Gfx* G, void* window, void* application);

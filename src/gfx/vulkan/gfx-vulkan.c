@@ -432,6 +432,11 @@ Gfx* gfxVulkanCreate(void)
     G->table = &GfxVulkanTable;
     return G;
 }
+GfxApi gfxVulkanGetApi(Gfx const* G)
+{
+    assert(G);
+    return kGfxApiVulkan;
+}
 
 void gfxVulkanDestroy(Gfx* G)
 {
@@ -814,6 +819,7 @@ void gfxVulkanCmdEndRenderPass(GfxCmdBuffer* B)
 }
 
 GfxTable const GfxVulkanTable = {
+    gfxVulkanGetApi,
     gfxVulkanDestroy,
     gfxVulkanCreateSwapChain,
     gfxVulkanResize,

@@ -56,6 +56,11 @@ Gfx* gfxCreate(GfxApi api)
     return NULL;
 }
 
+GfxApi gfxGetApi(Gfx const* G)
+{
+    return G->table->GetApi(G);
+}
+
 void gfxDestroy(Gfx* G)
 {
     G->table->Destroy(G);

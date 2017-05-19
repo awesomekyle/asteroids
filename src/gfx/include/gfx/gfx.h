@@ -166,6 +166,8 @@ typedef intptr_t GfxRenderTarget;
 
 /// @brief Creates a new graphics device
 Gfx* gfxCreate(GfxApi api);
+GfxApi gfxGetApi(Gfx const* G);
+
 /// @brief Terminates and destroys a graphics device
 void gfxDestroy(Gfx* G);
 
@@ -188,7 +190,7 @@ GfxRenderTarget gfxGetBackBuffer(Gfx* G);
 bool gfxPresent(Gfx* G);
 
 GfxRenderState* gfxCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
-void gfxDestroyRenderState(Gfx*G, GfxRenderState* state);
+void gfxDestroyRenderState(Gfx* G, GfxRenderState* state);
 
 /// @brief Returns an open, ready to use command buffer
 /// @return NULL if no command buffers are available

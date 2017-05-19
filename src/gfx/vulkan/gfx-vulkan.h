@@ -10,8 +10,8 @@ extern GfxCmdBufferTable const GfxVulkanCmdBufferTable;
 
 Gfx* gfxVulkanCreate(void);
 
+GfxApi gfxVulkanGetApi(Gfx const* G);
 
-Gfx* gfxVulkanCreate(void);
 void gfxVulkanDestroy(Gfx* G);
 
 bool gfxVulkanCreateSwapChain(Gfx* G, void* window, void* application);

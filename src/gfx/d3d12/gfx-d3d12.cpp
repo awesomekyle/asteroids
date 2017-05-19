@@ -370,6 +370,11 @@ Gfx* gfxD3D12Create(void)
 
     return G;
 }
+GfxApi gfxD3D12GetApi(Gfx const* G)
+{
+    assert(G);
+    return kGfxApiD3D12;
+}
 
 void gfxD3D12Destroy(Gfx* G)
 {
@@ -535,13 +540,13 @@ GfxRenderState* gfxD3D12CreateRenderState(Gfx* G, GfxRenderStateDesc const* desc
     auto const* layout = desc->layout;
     D3D12_INPUT_ELEMENT_DESC inputLayout[16] = { { nullptr } };
     uint32_t numInputElements = 0;
-    UINT current_offset = 0;
+    UINT currentOffset = 0;
     while (layout && layout->name) {
         inputLayout[numInputElements++] = {
-            layout->name, 0, DXGIFormatFromGfxFormat(layout->format), 0, current_offset, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+            layout->name, 0, DXGIFormatFromGfxFormat(layout->format), 0, currentOffset, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
         };
         UINT const offset = (UINT)gfxFormatSize(layout->format);
-        current_offset += offset;
+        currentOffset += offset;
         layout++;
     }
     // compile shaders
@@ -761,6 +766,7 @@ void gfxD3D12CmdEndRenderPass(GfxCmdBuffer* /*B*/)
 
 
 GfxTable const GfxD3D12Table = {
+    gfxD3D12GetApi,
     gfxD3D12Destroy,
     gfxD3D12CreateSwapChain,
     gfxD3D12Resize,
