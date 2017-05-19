@@ -12,6 +12,8 @@
 #endif
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
+#pragma warning(disable:4201)
+#include <d3d12.h>
 #include "gfx/gfx.h"
 
 //////
@@ -20,6 +22,22 @@
 enum {
     kWindowWidth  = 1920,
     kWindowHeight = 1080,
+};
+
+
+struct GfxCmdBuffer {
+    void const* table;
+    Gfx* G;
+    ID3D12CommandAllocator*     allocator;
+    ID3D12GraphicsCommandList*  list;
+    uint64_t    completion;
+};
+
+
+struct GfxRenderState {
+    GfxRenderStateDesc      desc;
+    ID3D12RootSignature*    rootSignature;
+    ID3D12PipelineState*    pso;
 };
 
 //////
@@ -198,6 +216,20 @@ int main(int argc, char* argv[])
         };
         GfxCmdBuffer* const buffer = gfxGetCommandBuffer(gGfx);
         gfxCmdBeginRenderPass(buffer, gfxGetBackBuffer(gGfx), kGfxRenderPassActionClear, clearColor);
+
+        D3D12_RECT const scissor = {
+            0, 0, 1920, 1080,
+        };
+        buffer->list->lpVtbl->RSSetScissorRects(buffer->list, 1, &scissor);
+        D3D12_VIEWPORT const viewport = {
+            0, 0, 1920, 1080, 0, 1,
+        };
+        buffer->list->lpVtbl->RSSetViewports(buffer->list, 1, &viewport);
+        buffer->list->lpVtbl->SetGraphicsRootSignature(buffer->list, renderState->rootSignature);
+        buffer->list->lpVtbl->SetPipelineState(buffer->list, renderState->pso);
+        buffer->list->lpVtbl->IASetPrimitiveTopology(buffer->list, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        buffer->list->lpVtbl->DrawInstanced(buffer->list, 3, 1, 0, 0);
+
         gfxCmdEndRenderPass(buffer);
         gfxExecuteCommandBuffer(buffer);
 

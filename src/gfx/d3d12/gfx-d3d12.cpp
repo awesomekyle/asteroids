@@ -469,7 +469,11 @@ bool gfxD3D12Resize(Gfx* const G, int const /*width*/, int const /*height*/)
         assert(SUCCEEDED(hr) && "Could not get back buffer");
         _SetName(G->backBuffers[ii], "Back Buffer %d", ii);
         auto const backBufferSlot = G->rtvHeap.CpuSlot(ii);
-        G->device->CreateRenderTargetView(G->backBuffers[ii], nullptr, backBufferSlot);
+        D3D12_RENDER_TARGET_VIEW_DESC const viewDesc = {
+            DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+            D3D12_RTV_DIMENSION_TEXTURE2D,
+        };
+        G->device->CreateRenderTargetView(G->backBuffers[ii], &viewDesc, backBufferSlot);
     }
     // transition current back buffer to render target
     UINT const currentIndex = G->swapChain->GetCurrentBackBufferIndex();
