@@ -106,7 +106,12 @@ GfxRenderState* gfxMetalCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc
 {
     (void)G;
     (void)desc;
-    return kGfxInvalidHandle;
+    return NULL;
+}
+void gfxMetalDestroyRenderState(Gfx*G, GfxRenderState* state)
+{
+    assert(G);
+    free(state);
 }
 
 GfxCmdBuffer* gfxMetalGetCommandBuffer(Gfx* G)
@@ -183,6 +188,7 @@ GfxTable const GfxMetalTable = {
     gfxMetalGetBackBuffer,
     gfxMetalPresent,
     gfxMetalCreateRenderState,
+    gfxMetalDestroyRenderState,
     gfxMetalGetCommandBuffer,
     gfxMetalNumAvailableCommandBuffers,
 };

@@ -689,12 +689,21 @@ bool gfxVulkanPresent(Gfx* G)
 
     return true;
 }
+
 GfxRenderState* gfxVulkanCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc)
 {
+    assert(G);
     (void)G;
     (void)desc;
-    return kGfxInvalidHandle;
+    return NULL;
 }
+
+void gfxVulkanDestroyRenderState(Gfx*G, GfxRenderState* state)
+{
+    assert(G);
+    free(state);
+}
+
 GfxCmdBuffer* gfxVulkanGetCommandBuffer(Gfx* G)
 {
     assert(G);
@@ -811,6 +820,7 @@ GfxTable const GfxVulkanTable = {
     gfxVulkanGetBackBuffer,
     gfxVulkanPresent,
     gfxVulkanCreateRenderState,
+    gfxVulkanDestroyRenderState,
     gfxVulkanGetCommandBuffer,
     gfxVulkanNumAvailableCommandBuffers,
 };

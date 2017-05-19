@@ -87,6 +87,11 @@ GfxRenderState* gfxCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc)
     return G->table->CreateRenderState(G, desc);
 }
 
+void gfxDestroyRenderState(Gfx* G, GfxRenderState* state)
+{
+    G->table->DestroyRenderState(G, state);
+}
+
 GfxCmdBuffer* gfxGetCommandBuffer(Gfx* G)
 {
     return G->table->GetCommandBuffer(G);

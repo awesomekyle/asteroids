@@ -188,6 +188,7 @@ GfxRenderTarget gfxGetBackBuffer(Gfx* G);
 bool gfxPresent(Gfx* G);
 
 GfxRenderState* gfxCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
+void gfxDestroyRenderState(Gfx*G, GfxRenderState* state);
 
 /// @brief Returns an open, ready to use command buffer
 /// @return NULL if no command buffers are available

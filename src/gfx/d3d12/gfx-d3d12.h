@@ -24,6 +24,8 @@ bool gfxD3D12Present(Gfx* G);
 
 GfxRenderState* gfxD3D12CreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
 
+void gfxD3D12DestroyRenderState(Gfx*G, GfxRenderState* state);
+
 GfxCmdBuffer* gfxD3D12GetCommandBuffer(Gfx* G);
 
 int gfxD3D12NumAvailableCommandBuffers(Gfx* G);

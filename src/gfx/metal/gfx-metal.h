@@ -19,6 +19,8 @@ bool gfxMetalPresent(Gfx* G);
 
 GfxRenderState* gfxMetalCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
 
+void gfxMetalDestroyRenderState(Gfx*G, GfxRenderState* state);
+
 GfxCmdBuffer* gfxMetalGetCommandBuffer(Gfx* G);
 
 int gfxMetalNumAvailableCommandBuffers(Gfx* G);

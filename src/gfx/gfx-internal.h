@@ -10,6 +10,7 @@ typedef struct {
     GfxRenderTarget (*GetBackBuffer)(Gfx* G);
     bool (*Present)(Gfx* G);
     GfxRenderState* (*CreateRenderState)(Gfx* G, GfxRenderStateDesc const* desc);
+    void (*DestroyRenderState)(Gfx* G, GfxRenderState* state);
     GfxCmdBuffer* (*GetCommandBuffer)(Gfx* G);
     int (*NumAvailableCommandBuffers)(Gfx* G);
 } GfxTable;

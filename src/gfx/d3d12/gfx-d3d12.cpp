@@ -37,7 +37,7 @@ struct GfxCmdBuffer {
 
 struct GfxRenderState {
     GfxRenderStateDesc      desc;
-    ID3D12RootSignature*    root_signature;
+    ID3D12RootSignature*    rootSignature;
     ID3D12PipelineState*    pso;
 };
 
@@ -677,8 +677,17 @@ GfxRenderState* gfxD3D12CreateRenderState(Gfx* G, GfxRenderStateDesc const* desc
     GfxRenderState* const state = (GfxRenderState*)calloc(1, sizeof(*state));
     state->desc = *desc;
     state->pso = pso;
-    state->root_signature = rootSignature;
+    state->rootSignature = rootSignature;
     return state;
+}
+void gfxD3D12DestroyRenderState(Gfx* G, GfxRenderState* state)
+{
+    assert(G);
+    if (state) {
+        _SafeRelease(state->pso);
+        _SafeRelease(state->rootSignature);
+    }
+    free(state);
 }
 GfxCmdBuffer* gfxD3D12GetCommandBuffer(Gfx* G)
 {
@@ -758,6 +767,7 @@ GfxTable const GfxD3D12Table = {
     gfxD3D12GetBackBuffer,
     gfxD3D12Present,
     gfxD3D12CreateRenderState,
+    gfxD3D12DestroyRenderState,
     gfxD3D12GetCommandBuffer,
     gfxD3D12NumAvailableCommandBuffers,
 };

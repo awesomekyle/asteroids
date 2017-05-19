@@ -24,6 +24,8 @@ bool gfxVulkanPresent(Gfx* G);
 
 GfxRenderState* gfxVulkanCreateRenderState(Gfx* G, GfxRenderStateDesc const* desc);
 
+void gfxVulkanDestroyRenderState(Gfx*G, GfxRenderState* state);
+
 GfxCmdBuffer* gfxVulkanGetCommandBuffer(Gfx* G);
 
 int gfxVulkanNumAvailableCommandBuffers(Gfx* G);
