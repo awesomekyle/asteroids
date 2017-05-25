@@ -1,9 +1,10 @@
 #include <iostream>
+#include <gsl\span>
 
-int main(int argc, char const* const argv[])
+int main(int const argc, char const* const argv[])
 {
-    for (int ii = 0; ii < argc; ++ii) {
-        std::cout << argv[ii] << std::endl;
+    for (auto const* const arg : gsl::make_span(argv, argc)) {
+        std::cout << arg << std::endl;
     }
     return 0;
 }
