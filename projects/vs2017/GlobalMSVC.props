@@ -2,7 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <ThirdPartyDir>$(SolutionDir)..\..\3rd-party\</ThirdPartyDir>
+    <RootDir>$(SolutionDir)..\..\</RootDir>
+    <ThirdPartyDir>$(RootDir)3rd-party\</ThirdPartyDir>
+    <SourceDir>$(RootDir)src\</SourceDir>
   </PropertyGroup>
   <PropertyGroup>
     <_PropertySheetDisplayName>GlobalMSVC</_PropertySheetDisplayName>
@@ -46,8 +48,14 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <BuildMacro Include="RootDir">
+      <Value>$(RootDir)</Value>
+    </BuildMacro>
     <BuildMacro Include="ThirdPartyDir">
       <Value>$(ThirdPartyDir)</Value>
+    </BuildMacro>
+    <BuildMacro Include="SourceDir">
+      <Value>$(SourceDir)</Value>
     </BuildMacro>
   </ItemGroup>
 </Project>
