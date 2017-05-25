@@ -6,11 +6,12 @@ namespace ak {
 class GraphicsD3D12 : public Graphics
 {
   public:
-    void destroy() final {
-        delete this;
+    ~GraphicsD3D12()
+    {
+
     }
 
-    bool initialized() const final
+    virtual bool initialized() const
     {
         return true;
     }
@@ -19,7 +20,7 @@ class GraphicsD3D12 : public Graphics
 
 ScopedGraphics create_graphics_d3d12()
 {
-    return std::unique_ptr<Graphics, GraphicsDeleter>(new GraphicsD3D12);
+    return std::make_unique<GraphicsD3D12>();
 }
 
 } // namespace ak

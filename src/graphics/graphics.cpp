@@ -5,8 +5,13 @@
 
 namespace ak {
 
+Graphics::~Graphics()
+{
+}
+
 ScopedGraphics create_graphics()
 {
     return create_graphics_d3d12();
 }
+
 } // ak

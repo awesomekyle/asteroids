@@ -7,19 +7,12 @@ namespace ak {
 class Graphics
 {
   public:
-    virtual void destroy() = 0;
+    virtual ~Graphics();
 
     virtual bool initialized() const = 0;
 };
 
-struct GraphicsDeleter {
-    void operator()(Graphics* g)
-    {
-        g->destroy();
-    }
-};
-
-using ScopedGraphics = std::unique_ptr<Graphics, GraphicsDeleter>;
+using ScopedGraphics = std::unique_ptr<Graphics>;
 
 ScopedGraphics create_graphics();
 
