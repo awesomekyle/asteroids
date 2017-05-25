@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\win32_init.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\win32_joystick.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\win32_monitor.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\win32_time.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\win32_tls.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\win32_window.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\window.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\context.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\egl_context.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\init.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\input.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\monitor.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\osmesa_context.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\vulkan.c" />
+    <ClCompile Include="..\..\3rd-party\glfw-e4e3e50\src\wgl_context.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\3rd-party\glfw-e4e3e50\src\win32_joystick.h" />
+    <ClInclude Include="..\..\3rd-party\glfw-e4e3e50\src\win32_platform.h" />
+    <ClInclude Include="..\..\3rd-party\glfw-e4e3e50\src\egl_context.h" />
+    <ClInclude Include="..\..\3rd-party\glfw-e4e3e50\src\internal.h" />
+    <ClInclude Include="..\..\3rd-party\glfw-e4e3e50\src\osmesa_context.h" />
+    <ClInclude Include="..\..\3rd-party\glfw-e4e3e50\src\wgl_context.h" />
+  </ItemGroup>
+</Project>
