@@ -7,9 +7,7 @@
   <PropertyGroup>
     <_PropertySheetDisplayName>GlobalMSVC</_PropertySheetDisplayName>
     <CodeAnalysisRuleSet>C:\Program Files (x86)\Microsoft Visual Studio\2017\Professional\Team Tools\Static Analysis Tools\Rule Sets\NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <RunCodeAnalysis>true</RunCodeAnalysis>
-    <EnableCppCoreCheck>true</EnableCppCoreCheck>
-    <EnableExperimentalCppCoreCheck>false</EnableExperimentalCppCoreCheck>
+    <RunCodeAnalysis>false</RunCodeAnalysis>
     <IncludePath>$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
@@ -40,7 +38,7 @@
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <LanguageStandard>stdcpp14</LanguageStandard>
       <PreprocessorDefinitions>_HAS_EXCEPTIONS=0;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <EnablePREfast>true</EnablePREfast>
+      <EnablePREfast>false</EnablePREfast>
       <DisableSpecificWarnings>4577</DisableSpecificWarnings>
     </ClCompile>
     <Manifest>
