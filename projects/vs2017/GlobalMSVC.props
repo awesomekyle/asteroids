@@ -8,6 +8,7 @@
     <RunCodeAnalysis>true</RunCodeAnalysis>
     <EnableCppCoreCheck>true</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>false</EnableExperimentalCppCoreCheck>
+    <IncludePath>$(SolutionDir)..\..\3rd-party\gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
