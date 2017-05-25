@@ -1,10 +1,12 @@
 #include "graphics/graphics.h"
+#if defined(_WIN32)
+    #include "graphics-d3d12.h"
+#endif
 
 namespace ak {
 
-bool Graphics::initialized() const
+ScopedGraphics create_graphics()
 {
-    return true;
+    return create_graphics_d3d12();
 }
-
 } // ak

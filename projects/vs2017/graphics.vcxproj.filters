@@ -12,8 +12,10 @@
     <ClInclude Include="..\..\src\graphics\include\graphics\graphics.h">
       <Filter>include\graphics</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\graphics\graphics-d3d12.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\graphics\graphics.cpp" />
+    <ClCompile Include="..\..\src\graphics\graphics-d3d12.cpp" />
   </ItemGroup>
 </Project>

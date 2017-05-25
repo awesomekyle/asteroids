@@ -8,9 +8,9 @@ TEST_CASE("graphics lifetime")
 {
     SECTION("graphics device creation") {
         WHEN("a graphics device is created") {
-            ak::Graphics graphicsDevice;
-            THEN("the device is successfully initialized") {
-                REQUIRE(graphicsDevice.initialized());
+            auto graphicsDevice = ak::create_graphics();
+            THEN("the device is successfully created") {
+                REQUIRE(graphicsDevice);
             }
         }
     }
