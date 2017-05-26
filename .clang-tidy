@@ -1,0 +1,2 @@
+Checks: '-*,misc-*,clang-analyzer-*,google-*,readability-*,cppcoreguidelines-*,-google-readability-casting,performance-*,modernize-*,-modernize-use-using'
+WarningsAsErrors: '*'

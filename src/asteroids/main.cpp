@@ -59,7 +59,9 @@ void set_framebuffer_size(GLFWwindow* window, int width, int height)
 }
 ak::Graphics* get_window_graphics(GLFWwindow* window)
 {
-    return static_cast<ak::Graphics*>(glfwGetWindowUserPointer(window));
+    // TODO(kw): fix this
+    // return static_cast<ak::Graphics*>(glfwGetWindowUserPointer(window));
+    return (ak::Graphics*)(glfwGetWindowUserPointer(window));
 }
 
 ////

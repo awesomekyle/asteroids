@@ -182,9 +182,11 @@ class GraphicsD3D12 : public Graphics
         _swap_chain->GetDesc1(&_swap_chain_desc);
         for (UINT ii = 0; ii < _swap_chain_desc.BufferCount; ++ii) {
             auto& buffer = _back_buffers[ii];
+
             hr = _swap_chain->GetBuffer(ii, IID_PPV_ARGS(&buffer));
             assert(SUCCEEDED(hr) && "Could not get back buffer");
             set_name(buffer, "Back Buffer %d", ii);
+
             auto const back_buffer_slot = _rtv_heap.cpu_slot(ii);
             constexpr D3D12_RENDER_TARGET_VIEW_DESC view_desc = {
                 DXGI_FORMAT_B8G8R8A8_UNORM_SRGB, D3D12_RTV_DIMENSION_TEXTURE2D,
@@ -241,7 +243,7 @@ class GraphicsD3D12 : public Graphics
 
     void create_factory()
     {
-        constexpr UINT const factory_flags =
+        constexpr UINT factory_flags =
 #if defined(_DEBUG)
             DXGI_CREATE_FACTORY_DEBUG |
 #endif  // _DEBUG
