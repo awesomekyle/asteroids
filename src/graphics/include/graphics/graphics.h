@@ -9,7 +9,17 @@ class Graphics
   public:
     virtual ~Graphics();
 
-    virtual bool initialized() const = 0;
+    /// @brief Creates a swap chain for the specified window.
+    /// @details Windows D3D: IDXGISwapChain
+    ///          macOS Metal: CAMetalLayer
+    ///          Windows Vulkan: vkSwapChainKHR
+    /// @param[in] window Native window handle (Windows: HWND, macOS: NSWindow*)
+    /// @param[in] application Native application handle (Windows: HINSTANCE, macOS: NSApplication*)
+    virtual bool create_swap_chain(void* window, void* application) = 0;
+
+    /// @brief Call when the window is resized.
+    /// @details Pass in window size in pixels, not points
+    virtual bool resize(int width, int height) = 0;
 };
 
 using ScopedGraphics = std::unique_ptr<Graphics>;

@@ -11,10 +11,14 @@ class GraphicsD3D12 : public Graphics
 
     }
 
-    virtual bool initialized() const
-    {
-        return true;
+    bool create_swap_chain(void* window, void* application) final {
+        return false;
     }
+
+    bool resize(int width, int height) final {
+        return false;
+    }
+
 };
 
 

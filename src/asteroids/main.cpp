@@ -2,6 +2,8 @@
 #include <gsl\span>
 #include <GLFW/glfw3.h>
 
+#include "graphics/graphics.h"
+
 namespace {
 
 constexpr int kInitialWidth = 1920;
@@ -14,9 +16,9 @@ float get_window_scale(GLFWwindow* window)
 {
     int windowWidth = 0;
     int framebufferWidth = 0;
-    glfwGetWindowSize(window, &windowWidth, NULL);
-    glfwGetFramebufferSize(window, &framebufferWidth, NULL);
-    return framebufferWidth / (float)windowWidth;
+    glfwGetWindowSize(window, &windowWidth, nullptr);
+    glfwGetFramebufferSize(window, &framebufferWidth, nullptr);
+    return static_cast<float>(framebufferWidth) / static_cast<float>(windowWidth);
 }
 /// @brief Sets a windows framebuffer size. This may be different than the size
 ///     in "points" on high-DPI displays
@@ -64,6 +66,11 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     glfwSetKeyCallback(window, glfw_keyboard_callback);
     glfwSetFramebufferSizeCallback(window, glfw_framebuffer_callback);
 
+    //
+    // Initialize
+    //
+    auto graphics = ak::create_graphics();
+
     // The framebuffer is set here after graphics initialization to trigger the
     // GLFW callback
     set_framebuffer_size(window, kInitialWidth, kInitialHeight);
@@ -71,7 +78,16 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     // Run loop
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+
+        //
+        // Frame
+        //
     }
+
+    //
+    // Shutdown
+    //
+
     glfwTerminate();
 
     return 0;

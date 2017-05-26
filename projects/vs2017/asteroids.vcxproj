@@ -61,6 +61,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="Outputs.props" />
     <Import Project="GlobalMSVC.props" />
+    <Import Project="AnalyzeCode.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -72,6 +73,7 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
     <Import Project="Outputs.props" />
     <Import Project="GlobalMSVC.props" />
+    <Import Project="AnalyzeCode.props" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -82,19 +84,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ThirdPartyDir)glfw-e4e3e50\include;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SourceDir)graphics\include;$(ThirdPartyDir)glfw-e4e3e50\include;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(ThirdPartyDir)glfw-e4e3e50\include;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SourceDir)graphics\include;$(ThirdPartyDir)glfw-e4e3e50\include;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ThirdPartyDir)glfw-e4e3e50\include;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SourceDir)graphics\include;$(ThirdPartyDir)glfw-e4e3e50\include;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(ThirdPartyDir)glfw-e4e3e50\include;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SourceDir)graphics\include;$(ThirdPartyDir)glfw-e4e3e50\include;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -154,6 +156,9 @@
   <ItemGroup>
     <ProjectReference Include="glfw.vcxproj">
       <Project>{fd5b9a38-86ef-4ede-a696-3c3d9d8cb904}</Project>
+    </ProjectReference>
+    <ProjectReference Include="graphics.vcxproj">
+      <Project>{01b2825e-8937-4d2b-859b-03220c0008b1}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
