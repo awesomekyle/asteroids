@@ -1,5 +1,5 @@
 #include "graphics-d3d12.h"
-#include "graphics\graphics.h"
+#include "graphics/graphics.h"
 
 #include <array>
 #include <cassert>
@@ -35,7 +35,7 @@ struct DescriptorHeap
     {
         return CD3DX12_GPU_DESCRIPTOR_HANDLE(gpu_start, slot, handleSize);
     }
-    operator ID3D12DescriptorHeap*() { return heap; }
+    explicit operator ID3D12DescriptorHeap*() { return heap; }
 };
 
 template<typename T>
@@ -96,7 +96,7 @@ DescriptorHeap CreateDescriptorHeap(ID3D12Device* const device,
     heap.type = desc.Type;
     heap.handleSize = device->GetDescriptorHandleIncrementSize(desc.Type);
     heap.cpu_start = heap.heap->GetCPUDescriptorHandleForHeapStart();
-    if (desc.Flags | D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) {
+    if ((desc.Flags | D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) != 0) {
         heap.gpu_start = heap.heap->GetGPUDescriptorHandleForHeapStart();
     }
     return heap;
@@ -132,7 +132,7 @@ class GraphicsD3D12 : public Graphics
             return false;
         }
 
-        HWND hwnd = static_cast<HWND>(window);
+        auto hwnd = static_cast<HWND>(window);
         constexpr DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {
             0,                           // Width
             0,                           // Height
@@ -164,7 +164,7 @@ class GraphicsD3D12 : public Graphics
         return true;
     }
 
-    bool resize(int width, int height) final
+    bool resize(int /*width*/, int /*height*/) final
     {
         Expects(_swap_chain);
         if (_swap_chain == nullptr) {
@@ -270,7 +270,7 @@ class GraphicsD3D12 : public Graphics
             hr = adapter1->QueryInterface(&adapter3);
             assert(SUCCEEDED(hr) && "Could not query for adapter3");
             adapter3->GetDesc2(&adapter.desc);
-            if (adapter.desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
+            if ((adapter.desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) != 0) {
                 continue;
             }
 
@@ -340,7 +340,7 @@ class GraphicsD3D12 : public Graphics
         _last_fence_completion++;
         _render_queue->Signal(_render_fence, _last_fence_completion);
         while (_render_fence->GetCompletedValue() < _last_fence_completion) {
-            continue;
+            continue;  // NOLINT
         }
     }
 
