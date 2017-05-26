@@ -5,9 +5,7 @@
 
 namespace ak {
 
-Graphics::~Graphics()
-{
-}
+Graphics::~Graphics() = default;
 
 ScopedGraphics create_graphics()
 {

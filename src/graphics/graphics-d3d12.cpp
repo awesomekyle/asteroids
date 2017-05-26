@@ -301,7 +301,9 @@ class GraphicsD3D12 : public Graphics
                     D3D_FEATURE_LEVEL_9_1,  D3D_FEATURE_LEVEL_9_2,  D3D_FEATURE_LEVEL_9_3,
                     D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0,
                     D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_12_0, D3D_FEATURE_LEVEL_12_1};
-                D3D12_FEATURE_DATA_FEATURE_LEVELS featureLevels = {_countof(levels), levels};
+                D3D12_FEATURE_DATA_FEATURE_LEVELS featureLevels = {
+                    _countof(levels), levels,  // NOLINT
+                };
                 hr = _device->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &featureLevels,
                                                   sizeof(featureLevels));
                 assert(SUCCEEDED(hr));
@@ -370,7 +372,7 @@ class GraphicsD3D12 : public Graphics
     Adapter* _current_adapter = nullptr;
 
     CComPtr<ID3D12Device> _device;
-    D3D_FEATURE_LEVEL _feature_level;
+    D3D_FEATURE_LEVEL _feature_level = D3D_FEATURE_LEVEL_9_1;
     CComPtr<ID3D12CommandQueue> _render_queue;
     CComPtr<ID3D12Fence> _render_fence;
     uint64_t _last_fence_completion = 0;
