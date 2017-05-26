@@ -43,6 +43,7 @@ NamespaceIndentation: None
 ObjCSpaceAfterProperty: false
 PointerAlignment: Left
 ReflowComments: true
+SortIncludes: false
 SpaceAfterCStyleCast: false
 SpaceAfterTemplateKeyword: false
 SpaceBeforeAssignmentOperators: true

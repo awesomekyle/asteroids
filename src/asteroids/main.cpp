@@ -1,11 +1,11 @@
 #include <iostream>
 #include <gsl/span>
 #if defined(_WIN32)
-    #define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined(__APPLE__)
-    #define GLFW_EXPOSE_NATIVE_COCOA
+#define GLFW_EXPOSE_NATIVE_COCOA
 #elif defined(__linux__)
-    #define GLFW_EXPOSE_NATIVE_X11
+#define GLFW_EXPOSE_NATIVE_X11
 #endif
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -22,7 +22,6 @@ constexpr int kInitialHeight = 1080;
 ////
 void* native_window(GLFWwindow* const window)
 {
-    [[gsl::suppress(lifetime)]]
 #if defined(_WIN32)
     return glfwGetWin32Window(window);
 #elif defined(__APPLE__)
@@ -36,7 +35,6 @@ void* native_window(GLFWwindow* const window)
 void* native_instance(void)
 {
 #if defined(_WIN32)
-    [[gsl::suppress(lifetime)]]
     return static_cast<void*>(GetModuleHandle(nullptr));
 #else
 #warning "Not passing native application"
@@ -57,9 +55,7 @@ float get_window_scale(GLFWwindow* window)
 void set_framebuffer_size(GLFWwindow* window, int width, int height)
 {
     float const scale = get_window_scale(window);
-    glfwSetWindowSize(window,
-                      static_cast<int>(width / scale),
-                      static_cast<int>(height / scale));
+    glfwSetWindowSize(window, static_cast<int>(width / scale), static_cast<int>(height / scale));
 }
 ak::Graphics* get_window_graphics(GLFWwindow* window)
 {
@@ -71,9 +67,10 @@ ak::Graphics* get_window_graphics(GLFWwindow* window)
 ////
 void glfw_error_callback(int const error, char const* description)
 {
-    std::cout << "GLFW Error: " << error << " - " <<  description << std::endl;
+    std::cout << "GLFW Error: " << error << " - " << description << std::endl;
 }
-void glfw_keyboard_callback(GLFWwindow* window, int key, int /*scancode*/, int /*action*/, int /*mods*/)
+void glfw_keyboard_callback(GLFWwindow* window, int key, int /*scancode*/, int /*action*/,
+                            int /*mods*/)
 {
     if (key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose(window, 1);
@@ -85,7 +82,7 @@ static void glfw_framebuffer_callback(GLFWwindow* window, int width, int height)
     get_window_graphics(window)->resize(width, height);
 }
 
-} // anonymous
+}  // namespace
 
 int main(int const /*argc*/, char const* const /*argv*/[])
 {

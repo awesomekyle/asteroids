@@ -1,11 +1,11 @@
 #include "catch.hpp"
 
 #if defined(_WIN32)
-    #define GLFW_EXPOSE_NATIVE_WIN32
+#define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined(__APPLE__)
-    #define GLFW_EXPOSE_NATIVE_COCOA
+#define GLFW_EXPOSE_NATIVE_COCOA
 #elif defined(__linux__)
-    #define GLFW_EXPOSE_NATIVE_X11
+#define GLFW_EXPOSE_NATIVE_X11
 #endif
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
@@ -21,7 +21,6 @@ int const glfwTerminationRegistered = atexit(glfwTerminate);
 
 void* native_window(GLFWwindow* const window)
 {
-    [[gsl::suppress(lifetime)]]
 #if defined(_WIN32)
     return glfwGetWin32Window(window);
 #elif defined(__APPLE__)
@@ -35,7 +34,6 @@ void* native_window(GLFWwindow* const window)
 void* native_instance(void)
 {
 #if defined(_WIN32)
-    [[gsl::suppress(lifetime)]]
     return static_cast<void*>(GetModuleHandle(nullptr));
 #else
 #warning "Not passing native application"
@@ -45,19 +43,20 @@ void* native_instance(void)
 
 TEST_CASE("graphics lifetime")
 {
-    SECTION("graphics device creation") {
-        WHEN("a graphics device is created") {
+    SECTION("graphics device creation")
+    {
+        WHEN("a graphics device is created")
+        {
             auto graphicsDevice = ak::create_graphics();
-            THEN("the device is successfully created") {
-                REQUIRE(graphicsDevice);
-            }
+            THEN("the device is successfully created") { REQUIRE(graphicsDevice); }
         }
     }
 }
 
 TEST_CASE("Window interaction")
 {
-    GIVEN("A Graphics object and OS window") {
+    GIVEN("A Graphics object and OS window")
+    {
         REQUIRE(glfwInitialized);
         REQUIRE(glfwTerminationRegistered == 0);
 
@@ -70,35 +69,27 @@ TEST_CASE("Window interaction")
         auto graphics = ak::create_graphics();
         REQUIRE(graphics);
 
-        WHEN("presented with no swap chain") {
+        WHEN("presented with no swap chain")
+        {
             bool const result = graphics->present();
-            THEN("the resize fails") {
-                REQUIRE_FALSE(result);
-            }
+            THEN("the resize fails") { REQUIRE_FALSE(result); }
         }
-        WHEN("resized with no swap chain") {
+        WHEN("resized with no swap chain")
+        {
             bool const result = graphics->resize(10, 10);
-            THEN("the resize fails") {
-                REQUIRE_FALSE(result);
-            }
+            THEN("the resize fails") { REQUIRE_FALSE(result); }
         }
-        WHEN("a swap chain is created") {
-            bool const result = graphics->create_swap_chain(native_window(window),
-                                                            native_instance());
-            THEN("the creation was successful") {
-                REQUIRE(result);
-            }
-            THEN("the swap chain can be resized") {
-                REQUIRE(graphics->resize(10, 10));
-            }
-            THEN("the swap chain can be presented") {
-                REQUIRE(graphics->present());
-            }
+        WHEN("a swap chain is created")
+        {
+            bool const result =
+                graphics->create_swap_chain(native_window(window), native_instance());
+            THEN("the creation was successful") { REQUIRE(result); }
+            THEN("the swap chain can be resized") { REQUIRE(graphics->resize(10, 10)); }
+            THEN("the swap chain can be presented") { REQUIRE(graphics->present()); }
         }
 
         glfwDestroyWindow(window);
     }
 }
 
-} // anonymous
-
+}  // anonymous namespace
