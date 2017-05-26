@@ -13,6 +13,7 @@
 #include <atlbase.h>
 
 #include <d3dx12.h>
+#include <gsl/gsl>
 
 #define UNUSED(v) ((void)(v))
 
@@ -39,7 +40,7 @@ struct DescriptorHeap
 };
 
 template<typename T>
-T GetProcAddressSafe(HMODULE hModule, char const* const lpProcName)
+T GetProcAddressSafe(HMODULE hModule, char const* const lpProcName)  // NOLINT
 {
     if (hModule == nullptr) {
         return nullptr;
@@ -47,17 +48,15 @@ T GetProcAddressSafe(HMODULE hModule, char const* const lpProcName)
     return reinterpret_cast<T>(GetProcAddress(hModule, lpProcName));
 }
 
-template<class D>
-void set_name(CComPtr<D> object, char const* format, ...)
+template<class D, typename... Args>
+void set_name(CComPtr<D> object, char const* format, Args const&... args)
 {
-    va_list args;
     if (object && format) {
         char buffer[128] = {};
-        va_start(args, format);
-        vsnprintf(buffer, sizeof(buffer), format, args);
-        va_end(args);
-        object->SetPrivateData(WKPDID_D3DDebugObjectName, (UINT)strnlen(buffer, sizeof(buffer)),
-                               buffer);
+        snprintf(buffer, sizeof(buffer), format, args...);  // NOLINT
+        object->SetPrivateData(WKPDID_D3DDebugObjectName,
+                               (UINT)strnlen(buffer, sizeof(buffer)),  // NOLINT
+                               buffer);                                // NOLINT
     }
 }
 
@@ -120,7 +119,12 @@ class GraphicsD3D12 : public Graphics
         create_queue();
         create_descriptor_heaps();
     }
-    ~GraphicsD3D12() { wait_for_idle(); }
+    ~GraphicsD3D12() final { wait_for_idle(); }
+
+    GraphicsD3D12::GraphicsD3D12(const GraphicsD3D12&) = delete;
+    GraphicsD3D12& operator=(const GraphicsD3D12&) = delete;
+    GraphicsD3D12::GraphicsD3D12(GraphicsD3D12&&) = delete;
+    GraphicsD3D12& operator=(GraphicsD3D12&&) = delete;
 
     bool create_swap_chain(void* window, void* /*application*/) final
     {
@@ -181,7 +185,7 @@ class GraphicsD3D12 : public Graphics
 
         _swap_chain->GetDesc1(&_swap_chain_desc);
         for (UINT ii = 0; ii < _swap_chain_desc.BufferCount; ++ii) {
-            auto& buffer = _back_buffers[ii];
+            auto& buffer = gsl::at(_back_buffers, ii);
 
             hr = _swap_chain->GetBuffer(ii, IID_PPV_ARGS(&buffer));
             assert(SUCCEEDED(hr) && "Could not get back buffer");
@@ -260,7 +264,7 @@ class GraphicsD3D12 : public Graphics
         Expects(_factory);
         HRESULT hr = S_OK;
         for (size_t ii = 0; ii < _adapters.size(); ++ii) {
-            auto& adapter = _adapters[ii];
+            auto& adapter = gsl::at(_adapters, ii);
             CComPtr<IDXGIAdapter1> adapter1 = nullptr;
             if (_factory->EnumAdapters1(static_cast<UINT>(ii), &adapter1) == DXGI_ERROR_NOT_FOUND) {
                 break;
@@ -276,9 +280,7 @@ class GraphicsD3D12 : public Graphics
 
             adapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
                                            &adapter.memory_info);
-            char buffer[128] = {'\0'};
-            snprintf(buffer, sizeof(buffer), "%S", adapter.desc.Description);
-            set_name(adapter3, buffer);
+            set_name(adapter3, "%S", adapter.desc.Description);
 
             // Set properties
             adapter.adapter = adapter3;
@@ -365,18 +367,18 @@ class GraphicsD3D12 : public Graphics
     //
     CComPtr<IDXGIFactory4> _factory;
     std::array<Adapter, kMaxAdapters> _adapters;
-    Adapter* _current_adapter;
+    Adapter* _current_adapter = nullptr;
 
     CComPtr<ID3D12Device> _device;
     D3D_FEATURE_LEVEL _feature_level;
     CComPtr<ID3D12CommandQueue> _render_queue;
     CComPtr<ID3D12Fence> _render_fence;
-    uint64_t _last_fence_completion;
+    uint64_t _last_fence_completion = 0;
 
     DescriptorHeap _rtv_heap;
 
     CComPtr<IDXGISwapChain3> _swap_chain;
-    DXGI_SWAP_CHAIN_DESC1 _swap_chain_desc;
+    DXGI_SWAP_CHAIN_DESC1 _swap_chain_desc = {};
     std::array<CComPtr<ID3D12Resource>, kFramesInFlight> _back_buffers;
 
 #if defined(_DEBUG)
