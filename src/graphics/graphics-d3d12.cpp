@@ -100,6 +100,25 @@ DescriptorHeap CreateDescriptorHeap(ID3D12Device* const device,
     }
     return heap;
 }
+bool developer_mode_enabled()
+{
+    HKEY hKey = {};
+    auto err = RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+                             LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock)", 0,
+                             KEY_READ, &hKey);
+    if (err != ERROR_SUCCESS) {
+        return false;
+    }
+    DWORD value = {};
+    DWORD dword_size = sizeof(DWORD);
+    err = RegQueryValueExW(hKey, L"AllowDevelopmentWithoutDevLicense", 0, NULL,
+                           reinterpret_cast<LPBYTE>(&value), &dword_size);
+    RegCloseKey(hKey);
+    if (err != ERROR_SUCCESS) {
+        return false;
+    }
+    return value != 0;
+}
 
 }  // anonymous namespace
 
@@ -309,7 +328,9 @@ class GraphicsD3D12 : public Graphics
                 assert(SUCCEEDED(hr));
                 _feature_level = featureLevels.MaxSupportedFeatureLevel;
                 _current_adapter = &adapter;
-                _device->SetStablePowerState(TRUE);
+                if (developer_mode_enabled()) {
+                    _device->SetStablePowerState(TRUE);
+                }
                 set_name(_device, "D3D12 device");
                 break;
             }
