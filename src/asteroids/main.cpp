@@ -32,7 +32,7 @@ void* native_window(GLFWwindow* const window)
 #endif
 }
 
-void* native_instance(void)
+void* native_instance()
 {
 #if defined(_WIN32)
     return static_cast<void*>(GetModuleHandle(nullptr));
@@ -59,9 +59,7 @@ void set_framebuffer_size(GLFWwindow* window, int width, int height)
 }
 ak::Graphics* get_window_graphics(GLFWwindow* window)
 {
-    // TODO(kw): fix this
-    // return static_cast<ak::Graphics*>(glfwGetWindowUserPointer(window));
-    return (ak::Graphics*)(glfwGetWindowUserPointer(window));
+    return static_cast<ak::Graphics*>(glfwGetWindowUserPointer(window));
 }
 
 ////
@@ -78,7 +76,7 @@ void glfw_keyboard_callback(GLFWwindow* window, int key, int /*scancode*/, int /
         glfwSetWindowShouldClose(window, 1);
     }
 }
-static void glfw_framebuffer_callback(GLFWwindow* window, int width, int height)
+void glfw_framebuffer_callback(GLFWwindow* window, int width, int height)
 {
     std::cout << "Window Resize: (" << width << ", " << height << ")\n";
     get_window_graphics(window)->resize(width, height);
@@ -114,7 +112,7 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     set_framebuffer_size(window, kInitialWidth, kInitialHeight);
 
     // Run loop
-    while (!glfwWindowShouldClose(window)) {
+    while (glfwWindowShouldClose(window) == 0) {
         glfwPollEvents();
 
         //
