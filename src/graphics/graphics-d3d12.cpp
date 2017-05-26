@@ -2,6 +2,8 @@
 #include "graphics-d3d12.h"
 
 #include <cassert>
+#include <array>
+#include <gsl/gsl_assert>
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -66,7 +68,9 @@ class GraphicsD3D12 : public Graphics
     GraphicsD3D12()
     {
         // Create objects
+        create_debug_interfaces();
         create_factory();
+        find_adapters();
     }
     ~GraphicsD3D12()
     {
@@ -97,6 +101,14 @@ class GraphicsD3D12 : public Graphics
             _dxgi_info_queue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_INFO, FALSE);
             _dxgi_info_queue->SetBreakOnSeverity(DXGI_DEBUG_ALL, DXGI_INFO_QUEUE_MESSAGE_SEVERITY_MESSAGE, FALSE);
         }
+
+        CComPtr<ID3D12Debug1> d3d12_debug;
+        D3D12GetDebugInterface(IID_PPV_ARGS(&d3d12_debug));
+        if (d3d12_debug) {
+            d3d12_debug->EnableDebugLayer();
+            d3d12_debug->SetEnableGPUBasedValidation(TRUE);
+            d3d12_debug->SetEnableSynchronizedCommandQueueValidation(TRUE);
+        }
 #endif // _DEBUG
     }
 
@@ -111,18 +123,63 @@ class GraphicsD3D12 : public Graphics
         assert(SUCCEEDED(hr) && "Could not create factory");
         UNUSED(hr);
         set_name(_factory, "DXGI Factory");
+        Ensures(_factory);
     }
+    void find_adapters()
+    {
+        Expects(_factory);
+        HRESULT hr = S_OK;
+        for (size_t ii = 0; ii < _adapters.size(); ++ii) {
+            auto& adapter = _adapters[ii];
+            CComPtr<IDXGIAdapter1> adapter1 = nullptr;
+            if (_factory->EnumAdapters1(static_cast<UINT>(ii), &adapter1) == DXGI_ERROR_NOT_FOUND) {
+                break;
+            }
+
+            CComPtr<IDXGIAdapter3> adapter3 = nullptr;
+            hr = adapter1->QueryInterface(&adapter3);
+            assert(SUCCEEDED(hr) && "Could not query for adapter3");
+            adapter3->GetDesc2(&adapter.desc);
+            if (adapter.desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE) {
+                continue;
+            }
+
+            adapter3->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL,
+                                           &adapter.memory_info);
+            char buffer[128] = { '\0' };
+            snprintf(buffer, sizeof(buffer), "%S", adapter.desc.Description);
+            set_name(adapter3, buffer);
+
+            // Set properties
+            adapter.adapter = adapter3;
+        }
+    }
+
+    //
+    // Constants
+    //
+    static constexpr size_t kMaxAdapters = 4;
+
+    //
+    // Types
+    //
+    struct Adapter {
+        CComPtr<IDXGIAdapter3>          adapter;
+        DXGI_ADAPTER_DESC2              desc = {};
+        DXGI_QUERY_VIDEO_MEMORY_INFO    memory_info = {};
+    };
 
     //
     // Data members
     //
+    CComPtr<IDXGIFactory4>  _factory;
+    std::array<Adapter, kMaxAdapters> _adapters;
 
 #if defined(_DEBUG)
     CComPtr<IDXGIDebug1>        _dxgi_debug;
     CComPtr<IDXGIInfoQueue>     _dxgi_info_queue;
     CComPtr<ID3D12InfoQueue>    d3d12InfoQueue;
 #endif // _DEBUG
-    CComPtr<IDXGIFactory4>  _factory;
 };
 
 
