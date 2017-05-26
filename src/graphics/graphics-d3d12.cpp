@@ -126,7 +126,47 @@ class GraphicsD3D12 : public Graphics
     }
 
     bool create_swap_chain(void* window, void* application) final {
-        return false;
+        Expects(_device);
+        UNUSED(application);
+        if (window == nullptr)
+        {
+            return false;
+        }
+
+        HWND hwnd = static_cast<HWND>(window);
+        constexpr DXGI_SWAP_CHAIN_DESC1 const swap_chain_desc = {
+            0, // Width
+            0, // Height
+            DXGI_FORMAT_B8G8R8A8_UNORM, // Format
+            FALSE, // Stereo
+            {
+                1, // Count
+                0, // Quality
+            }, // SampleDesc
+            DXGI_USAGE_RENDER_TARGET_OUTPUT, // BufferUsage
+            kFramesInFlight, // BufferCount
+            DXGI_SCALING_NONE, // Scaling
+            DXGI_SWAP_EFFECT_FLIP_DISCARD, // SwapEffect
+            DXGI_ALPHA_MODE_UNSPECIFIED, // AlphaMode
+            0, // Flags
+        };
+        CComPtr<IDXGISwapChain1> swapchain1 = nullptr;
+        HRESULT hr = _factory->CreateSwapChainForHwnd(_render_queue,
+                                                      hwnd,
+                                                      &swap_chain_desc,
+                                                      nullptr,
+                                                      nullptr,
+                                                      &swapchain1);
+        assert(SUCCEEDED(hr)&& "Could not create swap chain");
+        hr = swapchain1->QueryInterface(IID_PPV_ARGS(&_swap_chain));
+        assert(SUCCEEDED(hr)&& "Could not get swapchain3");
+        hr = _factory->MakeWindowAssociation(hwnd, DXGI_MWA_NO_ALT_ENTER);
+        assert(SUCCEEDED(hr)&& "Could not disable alt-enter");
+
+        set_name(_swap_chain, "DXGI Swap Chain");
+        _swap_chain->GetDesc1(&_swap_chain_desc);
+
+        return true;
     }
 
     bool resize(int width, int height) final {
@@ -269,6 +309,7 @@ class GraphicsD3D12 : public Graphics
     // Constants
     //
     static constexpr size_t kMaxAdapters = 4;
+    static constexpr UINT   kFramesInFlight = 3;
 
     //
     // Types
@@ -292,6 +333,9 @@ class GraphicsD3D12 : public Graphics
     CComPtr<ID3D12Fence>        _render_fence;
 
     DescriptorHeap  _rtv_heap;
+
+    CComPtr<IDXGISwapChain3> _swap_chain;
+    DXGI_SWAP_CHAIN_DESC1 _swap_chain_desc;
 
 #if defined(_DEBUG)
     CComPtr<IDXGIDebug1>        _dxgi_debug;

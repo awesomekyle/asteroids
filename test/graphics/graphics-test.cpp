@@ -55,7 +55,7 @@ TEST_CASE("graphics lifetime")
     }
 }
 
-TEST_CASE("Window interaction", "[!hide]")
+TEST_CASE("Window interaction")
 {
     GIVEN("A Graphics object and OS window") {
         REQUIRE(glfwInitialized);
