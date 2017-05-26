@@ -20,6 +20,9 @@ class Graphics
     /// @brief Call when the window is resized.
     /// @details Pass in window size in pixels, not points
     virtual bool resize(int width, int height) = 0;
+
+    /// @brief Presents the back buffer to the screen
+    virtual bool present() = 0;
 };
 
 using ScopedGraphics = std::unique_ptr<Graphics>;

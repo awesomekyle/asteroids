@@ -204,6 +204,19 @@ class GraphicsD3D12 : public Graphics
         return true;
     }
 
+    bool present() final {
+        if (_swap_chain == nullptr)
+        {
+            return false;
+        }
+
+        constexpr DXGI_PRESENT_PARAMETERS params = {
+            0, nullptr, nullptr, nullptr,
+        };
+        HRESULT const hr = _swap_chain->Present1(0, 0, &params);
+        return SUCCEEDED(hr);
+    }
+
   private:
     void create_debug_interfaces()
     {

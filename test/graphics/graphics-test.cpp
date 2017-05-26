@@ -70,6 +70,12 @@ TEST_CASE("Window interaction")
         auto graphics = ak::create_graphics();
         REQUIRE(graphics);
 
+        WHEN("presented with no swap chain") {
+            bool const result = graphics->present();
+            THEN("the resize fails") {
+                REQUIRE_FALSE(result);
+            }
+        }
         WHEN("resized with no swap chain") {
             bool const result = graphics->resize(10, 10);
             THEN("the resize fails") {
@@ -85,7 +91,12 @@ TEST_CASE("Window interaction")
             THEN("the swap chain can be resized") {
                 REQUIRE(graphics->resize(10, 10));
             }
+            THEN("the swap chain can be presented") {
+                REQUIRE(graphics->present());
+            }
         }
+
+        glfwDestroyWindow(window);
     }
 }
 
