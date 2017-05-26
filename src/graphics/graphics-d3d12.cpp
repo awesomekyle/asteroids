@@ -122,7 +122,7 @@ class GraphicsD3D12 : public Graphics
     }
     ~GraphicsD3D12()
     {
-
+        wait_for_idle();
     }
 
     bool create_swap_chain(void* window, void* /*application*/) final {

@@ -19,7 +19,7 @@ namespace {
 int const glfwInitialized = glfwInit();
 int const glfwTerminationRegistered = atexit(glfwTerminate);
 
-void* NativeWindow(GLFWwindow* const window)
+void* native_window(GLFWwindow* const window)
 {
     [[gsl::suppress(lifetime)]]
 #if defined(_WIN32)
@@ -32,7 +32,7 @@ void* NativeWindow(GLFWwindow* const window)
 #endif
 }
 
-void* NativeInstance(void)
+void* native_instance(void)
 {
 #if defined(_WIN32)
     [[gsl::suppress(lifetime)]]
@@ -83,8 +83,8 @@ TEST_CASE("Window interaction")
             }
         }
         WHEN("a swap chain is created") {
-            bool const result = graphics->create_swap_chain(NativeWindow(window),
-                                                            NativeInstance());
+            bool const result = graphics->create_swap_chain(native_window(window),
+                                                            native_instance());
             THEN("the creation was successful") {
                 REQUIRE(result);
             }

@@ -1,6 +1,14 @@
 #include <iostream>
-#include <gsl\span>
+#include <gsl/span>
+#if defined(_WIN32)
+    #define GLFW_EXPOSE_NATIVE_WIN32
+#elif defined(__APPLE__)
+    #define GLFW_EXPOSE_NATIVE_COCOA
+#elif defined(__linux__)
+    #define GLFW_EXPOSE_NATIVE_X11
+#endif
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
 
 #include "graphics/graphics.h"
 
@@ -12,6 +20,30 @@ constexpr int kInitialHeight = 1080;
 ////
 // GLFW helpers
 ////
+void* native_window(GLFWwindow* const window)
+{
+    [[gsl::suppress(lifetime)]]
+#if defined(_WIN32)
+    return glfwGetWin32Window(window);
+#elif defined(__APPLE__)
+    return glfwGetCocoaWindow(window);
+#else
+#warning "Not passing native window to Gfx"
+    return nullptr;
+#endif
+}
+
+void* native_instance(void)
+{
+#if defined(_WIN32)
+    [[gsl::suppress(lifetime)]]
+    return static_cast<void*>(GetModuleHandle(nullptr));
+#else
+#warning "Not passing native application"
+    return nullptr;
+#endif
+}
+
 float get_window_scale(GLFWwindow* window)
 {
     int windowWidth = 0;
@@ -29,6 +61,10 @@ void set_framebuffer_size(GLFWwindow* window, int width, int height)
                       static_cast<int>(width / scale),
                       static_cast<int>(height / scale));
 }
+ak::Graphics* get_window_graphics(GLFWwindow* window)
+{
+    return static_cast<ak::Graphics*>(glfwGetWindowUserPointer(window));
+}
 
 ////
 // GLFW Callbacks
@@ -43,9 +79,10 @@ void glfw_keyboard_callback(GLFWwindow* window, int key, int /*scancode*/, int /
         glfwSetWindowShouldClose(window, 1);
     }
 }
-static void glfw_framebuffer_callback(GLFWwindow* /*window*/, int width, int height)
+static void glfw_framebuffer_callback(GLFWwindow* window, int width, int height)
 {
     std::cout << "Window Resize: (" << width << ", " << height << ")\n";
+    get_window_graphics(window)->resize(width, height);
 }
 
 } // anonymous
@@ -70,6 +107,8 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     // Initialize
     //
     auto graphics = ak::create_graphics();
+    graphics->create_swap_chain(native_window(window), native_instance());
+    glfwSetWindowUserPointer(window, graphics.get());
 
     // The framebuffer is set here after graphics initialization to trigger the
     // GLFW callback
@@ -82,6 +121,7 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         //
         // Frame
         //
+        graphics->present();
     }
 
     //
