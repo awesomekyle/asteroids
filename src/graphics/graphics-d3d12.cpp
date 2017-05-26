@@ -72,6 +72,7 @@ class GraphicsD3D12 : public Graphics
         create_factory();
         find_adapters();
         create_device();
+        create_queue();
     }
     ~GraphicsD3D12()
     {
@@ -126,6 +127,7 @@ class GraphicsD3D12 : public Graphics
         set_name(_factory, "DXGI Factory");
         Ensures(_factory);
     }
+
     void find_adapters()
     {
         Expects(_factory);
@@ -155,6 +157,7 @@ class GraphicsD3D12 : public Graphics
             adapter.adapter = adapter3;
         }
     }
+
     void create_device()
     {
         Expects(_factory);
@@ -188,6 +191,24 @@ class GraphicsD3D12 : public Graphics
         }
     }
 
+    void create_queue()
+    {
+        Expects(_device);
+        constexpr D3D12_COMMAND_QUEUE_DESC const queue_desc = {
+            D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
+            0,
+            D3D12_COMMAND_QUEUE_FLAGS::D3D12_COMMAND_QUEUE_FLAG_NONE,
+            0
+        };
+        HRESULT hr = _device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&_render_queue));
+        assert(SUCCEEDED(hr) && "Could not create queue");
+        set_name(_render_queue, "Render Queue");
+
+        hr = _device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&_render_fence));
+        assert(SUCCEEDED(hr) && "Could not create render fence");
+        set_name(_render_fence, "Render Fence");
+    }
+
     //
     // Constants
     //
@@ -209,8 +230,10 @@ class GraphicsD3D12 : public Graphics
     std::array<Adapter, kMaxAdapters> _adapters;
     Adapter* _current_adapter;
 
-    CComPtr<ID3D12Device> _device;
-    D3D_FEATURE_LEVEL   _feature_level;
+    CComPtr<ID3D12Device>       _device;
+    D3D_FEATURE_LEVEL           _feature_level;
+    CComPtr<ID3D12CommandQueue> _render_queue;
+    CComPtr<ID3D12Fence>        _render_fence;
 
 #if defined(_DEBUG)
     CComPtr<IDXGIDebug1>        _dxgi_debug;
