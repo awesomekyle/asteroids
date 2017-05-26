@@ -71,6 +71,7 @@ class GraphicsD3D12 : public Graphics
         create_debug_interfaces();
         create_factory();
         find_adapters();
+        create_device();
     }
     ~GraphicsD3D12()
     {
@@ -154,6 +155,38 @@ class GraphicsD3D12 : public Graphics
             adapter.adapter = adapter3;
         }
     }
+    void create_device()
+    {
+        Expects(_factory);
+        for (auto& adapter : _adapters) {
+            if (adapter.adapter == nullptr) {
+                break;
+            }
+            HRESULT hr = D3D12CreateDevice(adapter.adapter, D3D_FEATURE_LEVEL_11_0,
+                                           IID_PPV_ARGS(&_device));
+            if (SUCCEEDED(hr)) {
+                constexpr D3D_FEATURE_LEVEL const levels[] = {
+                    D3D_FEATURE_LEVEL_9_1,
+                    D3D_FEATURE_LEVEL_9_2,
+                    D3D_FEATURE_LEVEL_9_3,
+                    D3D_FEATURE_LEVEL_10_0,
+                    D3D_FEATURE_LEVEL_10_1,
+                    D3D_FEATURE_LEVEL_11_0,
+                    D3D_FEATURE_LEVEL_11_1,
+                    D3D_FEATURE_LEVEL_12_0,
+                    D3D_FEATURE_LEVEL_12_1
+                };
+                D3D12_FEATURE_DATA_FEATURE_LEVELS featureLevels = {_countof(levels), levels};
+                hr = _device->CheckFeatureSupport(D3D12_FEATURE_FEATURE_LEVELS, &featureLevels, sizeof(featureLevels));
+                assert(SUCCEEDED(hr));
+                _feature_level = featureLevels.MaxSupportedFeatureLevel;
+                _current_adapter = &adapter;
+                _device->SetStablePowerState(TRUE);
+                set_name(_device, "D3D12 device");
+                break;
+            }
+        }
+    }
 
     //
     // Constants
@@ -174,6 +207,10 @@ class GraphicsD3D12 : public Graphics
     //
     CComPtr<IDXGIFactory4>  _factory;
     std::array<Adapter, kMaxAdapters> _adapters;
+    Adapter* _current_adapter;
+
+    CComPtr<ID3D12Device> _device;
+    D3D_FEATURE_LEVEL   _feature_level;
 
 #if defined(_DEBUG)
     CComPtr<IDXGIDebug1>        _dxgi_debug;
