@@ -26,7 +26,7 @@ struct DescriptorHeap {
     CD3DX12_GPU_DESCRIPTOR_HANDLE   gpu_start = {};
     UINT handleSize = {};
 
-    inline D3D12_CPU_DESCRIPTOR_HANDLE CpuSlot(int slot)
+    inline D3D12_CPU_DESCRIPTOR_HANDLE cpu_slot(int slot)
     {
         return CD3DX12_CPU_DESCRIPTOR_HANDLE(cpu_start, slot, handleSize);
     }
@@ -125,16 +125,18 @@ class GraphicsD3D12 : public Graphics
 
     }
 
-    bool create_swap_chain(void* window, void* application) final {
+    bool create_swap_chain(void* window, void* /*application*/) final {
         Expects(_device);
-        UNUSED(application);
+        Expects(_render_queue);
+        Expects(_factory);
+
         if (window == nullptr)
         {
             return false;
         }
 
         HWND hwnd = static_cast<HWND>(window);
-        constexpr DXGI_SWAP_CHAIN_DESC1 const swap_chain_desc = {
+        constexpr DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {
             0, // Width
             0, // Height
             DXGI_FORMAT_B8G8R8A8_UNORM, // Format
@@ -170,7 +172,36 @@ class GraphicsD3D12 : public Graphics
     }
 
     bool resize(int width, int height) final {
-        return false;
+        Expects(_swap_chain);
+        if (_swap_chain == nullptr)
+        {
+            return false;
+        }
+        wait_for_idle();
+
+        for (auto& buffer : _back_buffers)
+        {
+            buffer.Release();
+        }
+
+        HRESULT hr = _swap_chain->ResizeBuffers(0, 0, 0, DXGI_FORMAT_UNKNOWN, 0);
+        assert(SUCCEEDED(hr)&& "Could not resize buffers");
+
+        _swap_chain->GetDesc1(&_swap_chain_desc);
+        for (UINT ii = 0; ii < _swap_chain_desc.BufferCount; ++ii)
+        {
+            auto& buffer = _back_buffers[ii];
+            hr = _swap_chain->GetBuffer(ii, IID_PPV_ARGS(&buffer));
+            assert(SUCCEEDED(hr) && "Could not get back buffer");
+            set_name(buffer, "Back Buffer %d", ii);
+            auto const back_buffer_slot = _rtv_heap.cpu_slot(ii);
+            constexpr D3D12_RENDER_TARGET_VIEW_DESC view_desc = {
+                DXGI_FORMAT_B8G8R8A8_UNORM_SRGB,
+                D3D12_RTV_DIMENSION_TEXTURE2D,
+            };
+            _device->CreateRenderTargetView(buffer, &view_desc, back_buffer_slot);
+        }
+        return true;
     }
 
   private:
@@ -254,7 +285,7 @@ class GraphicsD3D12 : public Graphics
             HRESULT hr = D3D12CreateDevice(adapter.adapter, D3D_FEATURE_LEVEL_11_0,
                                            IID_PPV_ARGS(&_device));
             if (SUCCEEDED(hr)) {
-                constexpr D3D_FEATURE_LEVEL const levels[] = {
+                constexpr D3D_FEATURE_LEVEL levels[] = {
                     D3D_FEATURE_LEVEL_9_1,
                     D3D_FEATURE_LEVEL_9_2,
                     D3D_FEATURE_LEVEL_9_3,
@@ -280,7 +311,7 @@ class GraphicsD3D12 : public Graphics
     void create_queue()
     {
         Expects(_device);
-        constexpr D3D12_COMMAND_QUEUE_DESC const queue_desc = {
+        constexpr D3D12_COMMAND_QUEUE_DESC queue_desc = {
             D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT,
             0,
             D3D12_COMMAND_QUEUE_FLAGS::D3D12_COMMAND_QUEUE_FLAG_NONE,
@@ -297,13 +328,22 @@ class GraphicsD3D12 : public Graphics
 
     void create_descriptor_heaps()
     {
-        constexpr D3D12_DESCRIPTOR_HEAP_DESC const heap_desc = {
+        constexpr D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {
             D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 128,
             D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0
         };
         _rtv_heap = CreateDescriptorHeap(_device, heap_desc, "RTV Heap");
     }
 
+    void wait_for_idle()
+    {
+        Expects(_render_queue);
+        _last_fence_completion++;
+        _render_queue->Signal(_render_fence, _last_fence_completion);
+        while (_render_fence->GetCompletedValue() < _last_fence_completion) {
+            continue;
+        }
+    }
 
     //
     // Constants
@@ -331,11 +371,13 @@ class GraphicsD3D12 : public Graphics
     D3D_FEATURE_LEVEL           _feature_level;
     CComPtr<ID3D12CommandQueue> _render_queue;
     CComPtr<ID3D12Fence>        _render_fence;
+    uint64_t                    _last_fence_completion;
 
     DescriptorHeap  _rtv_heap;
 
     CComPtr<IDXGISwapChain3> _swap_chain;
     DXGI_SWAP_CHAIN_DESC1 _swap_chain_desc;
+    std::array<CComPtr<ID3D12Resource>, kFramesInFlight> _back_buffers;
 
 #if defined(_DEBUG)
     CComPtr<IDXGIDebug1>        _dxgi_debug;

@@ -82,6 +82,9 @@ TEST_CASE("Window interaction")
             THEN("the creation was successful") {
                 REQUIRE(result);
             }
+            THEN("the swap chain can be resized") {
+                REQUIRE(graphics->resize(10, 10));
+            }
         }
     }
 }
