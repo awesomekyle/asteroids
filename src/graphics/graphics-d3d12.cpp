@@ -12,9 +12,33 @@
 #endif
 #include <atlbase.h>
 
+#include <d3dx12.h>
+
 #define UNUSED(v) ((void)(v))
 
 namespace {
+
+struct DescriptorHeap {
+    CComPtr<ID3D12DescriptorHeap>   heap = {};
+    D3D12_DESCRIPTOR_HEAP_DESC      desc = {};
+    D3D12_DESCRIPTOR_HEAP_TYPE      type = {};
+    CD3DX12_CPU_DESCRIPTOR_HANDLE   cpu_start = {};
+    CD3DX12_GPU_DESCRIPTOR_HANDLE   gpu_start = {};
+    UINT handleSize = {};
+
+    inline D3D12_CPU_DESCRIPTOR_HANDLE CpuSlot(int slot)
+    {
+        return CD3DX12_CPU_DESCRIPTOR_HANDLE(cpu_start, slot, handleSize);
+    }
+    inline D3D12_GPU_DESCRIPTOR_HANDLE GpuSlot(int slot)
+    {
+        return CD3DX12_GPU_DESCRIPTOR_HANDLE(gpu_start, slot, handleSize);
+    }
+    operator ID3D12DescriptorHeap* ()
+    {
+        return heap;
+    }
+};
 
 template<typename T>
 T GetProcAddressSafe(HMODULE hModule, char const* const lpProcName)
@@ -57,6 +81,27 @@ CComPtr<I> create_dxgi_debug_interface()
     return dxgi_interface;
 }
 
+DescriptorHeap CreateDescriptorHeap(ID3D12Device* const device,
+                                    D3D12_DESCRIPTOR_HEAP_DESC const& desc,
+                                    char const* const name = nullptr)
+{
+    Expects(device);
+    DescriptorHeap heap = {};
+    HRESULT const hr = device->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&heap.heap));
+    assert(SUCCEEDED(hr));
+    UNUSED(hr);
+    set_name(heap.heap, name);
+
+    heap.desc = desc;
+    heap.type = desc.Type;
+    heap.handleSize = device->GetDescriptorHandleIncrementSize(desc.Type);
+    heap.cpu_start = heap.heap->GetCPUDescriptorHandleForHeapStart();
+    if (desc.Flags | D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE) {
+        heap.gpu_start = heap.heap->GetGPUDescriptorHandleForHeapStart();
+    }
+    return heap;
+}
+
 } // anonymous namespace
 
 
@@ -73,6 +118,7 @@ class GraphicsD3D12 : public Graphics
         find_adapters();
         create_device();
         create_queue();
+        create_descriptor_heaps();
     }
     ~GraphicsD3D12()
     {
@@ -209,6 +255,16 @@ class GraphicsD3D12 : public Graphics
         set_name(_render_fence, "Render Fence");
     }
 
+    void create_descriptor_heaps()
+    {
+        constexpr D3D12_DESCRIPTOR_HEAP_DESC const heap_desc = {
+            D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 128,
+            D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0
+        };
+        _rtv_heap = CreateDescriptorHeap(_device, heap_desc, "RTV Heap");
+    }
+
+
     //
     // Constants
     //
@@ -218,7 +274,7 @@ class GraphicsD3D12 : public Graphics
     // Types
     //
     struct Adapter {
-        CComPtr<IDXGIAdapter3>          adapter;
+        CComPtr<IDXGIAdapter3>          adapter = {};
         DXGI_ADAPTER_DESC2              desc = {};
         DXGI_QUERY_VIDEO_MEMORY_INFO    memory_info = {};
     };
@@ -234,6 +290,8 @@ class GraphicsD3D12 : public Graphics
     D3D_FEATURE_LEVEL           _feature_level;
     CComPtr<ID3D12CommandQueue> _render_queue;
     CComPtr<ID3D12Fence>        _render_fence;
+
+    DescriptorHeap  _rtv_heap;
 
 #if defined(_DEBUG)
     CComPtr<IDXGIDebug1>        _dxgi_debug;
