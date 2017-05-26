@@ -1,0 +1,51 @@
+BasedOnStyle: Google
+AlignAfterOpenBracket: Align
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: true
+AllowShortBlocksOnASingleLine: false
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortLoopsOnASingleLine: false
+AlwaysBreakTemplateDeclarations: true
+BinPackArguments: true
+BinPackParameters: true
+BraceWrapping : {
+    AfterClass : true,
+    AfterControlStatement : false,
+    AfterEnum : false,
+    AfterFunction : true,
+    AfterNamespace : false,
+    AfterObjCDeclaration : true,
+    AfterStruct : true,
+    AfterUnion : true,
+    BeforeCatch : false,
+    BeforeElse : false,
+    IndentBraces : false,
+}
+BreakBeforeBraces: Custom
+BreakBeforeBinaryOperators: None
+BreakBeforeInheritanceComma: false
+BreakBeforeTernaryOperators: false
+BreakConstructorInitializersBeforeComma: true
+BreakStringLiterals: true
+ColumnLimit: 100
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+Cpp11BracedListStyle: true
+FixNamespaceComments: true
+IndentCaseLabels: true
+IndentWidth: 4
+IndentWrappedFunctionNames: true
+JavaScriptQuotes: Single
+JavaScriptWrapImports: true
+KeepEmptyLinesAtTheStartOfBlocks: false
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: None
+ObjCSpaceAfterProperty: false
+PointerAlignment: Left
+ReflowComments: true
+SpaceAfterCStyleCast: false
+SpaceAfterTemplateKeyword: false
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeParens: ControlStatements
+SpaceInEmptyParentheses: false
+UseTab: Never
