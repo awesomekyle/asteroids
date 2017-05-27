@@ -7,6 +7,9 @@ namespace ak {
 class CommandBuffer
 {
    public:
+    /// @brief Resets a command buffer to restore it to the Gfx device without execution
+    /// @note After this call, the buffer should no longer be accessed
+    virtual void reset() = 0;
 };
 
 class Graphics
@@ -37,6 +40,11 @@ class Graphics
     /// @brief Returns an open, ready to use command buffer
     /// @return NULL if no command buffers are available
     virtual CommandBuffer* command_buffer() = 0;
+
+    /// @brief Returns a rough guess of currently available command buffers
+    /// @note This method is not atomic, due to threading, this number may not be
+    ///     exact.
+    virtual int num_available_command_buffers() = 0;
 };
 
 using ScopedGraphics = std::unique_ptr<Graphics>;

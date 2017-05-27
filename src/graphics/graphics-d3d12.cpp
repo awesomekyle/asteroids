@@ -130,9 +130,17 @@ namespace ak {
 class CommandBufferD3D12 : public CommandBuffer
 {
    public:
-    CComPtr<ID3D12CommandAllocator> allocator;
-    CComPtr<ID3D12GraphicsCommandList> list;
-    uint64_t completion = 0;
+    CComPtr<ID3D12CommandAllocator> _allocator;
+    CComPtr<ID3D12GraphicsCommandList> _list;
+    uint64_t _completion = 0;
+
+    void reset() final
+    {
+        auto const hr = _list->Close();
+        assert(SUCCEEDED(hr) && "Could not close command list");
+        UNUSED(hr);
+        _completion = 0;
+    }
 };
 
 class GraphicsD3D12 : public Graphics
@@ -250,18 +258,29 @@ class GraphicsD3D12 : public Graphics
         uint_fast32_t const curr_index = _current_command_buffer.fetch_add(1) % kMaxCommandBuffers;
         auto& buffer = gsl::at(_command_lists, curr_index);
         uint64_t const last_completed_value = _render_fence->GetCompletedValue();
-        if (last_completed_value < buffer.completion) {
+        if (last_completed_value < buffer._completion) {
             /// @TODO: This case needs to be handled
-            // assert(last_completed_value >= buffer.completion && "Oldest command buffer not yet
+            // assert(last_completed_value >= buffer._completion && "Oldest command buffer not yet
             // completed. Continue through the queue?");
             return nullptr;
         }
-        buffer.completion = UINT64_MAX;
-        HRESULT hr = buffer.allocator->Reset();
+        buffer._completion = UINT64_MAX;
+        HRESULT hr = buffer._allocator->Reset();
         assert(SUCCEEDED(hr) && "Could not reset allocator");
-        hr = buffer.list->Reset(buffer.allocator, nullptr);
+        hr = buffer._list->Reset(buffer._allocator, nullptr);
         assert(SUCCEEDED(hr) && "Could not reset command list");
         return &buffer;
+    }
+    int num_available_command_buffers() final
+    {
+        Expects(_device);
+        int freeBuffers = 0;
+        for (auto const& command_buffer : _command_lists) {
+            if (_render_fence->GetCompletedValue() >= command_buffer._completion) {
+                freeBuffers++;
+            }
+        }
+        return freeBuffers;
     }
 
    private:
@@ -398,17 +417,17 @@ class GraphicsD3D12 : public Graphics
         int index = 0;
         for (auto& command_buffer : _command_lists) {
             HRESULT hr = _device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                                         IID_PPV_ARGS(&command_buffer.allocator));
+                                                         IID_PPV_ARGS(&command_buffer._allocator));
             assert(SUCCEEDED(hr) && "Could not create allocator");
             hr = _device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT,
-                                            command_buffer.allocator, nullptr,
-                                            IID_PPV_ARGS(&command_buffer.list));
+                                            command_buffer._allocator, nullptr,
+                                            IID_PPV_ARGS(&command_buffer._list));
             assert(SUCCEEDED(hr) && "Could not create allocator");
-            hr = command_buffer.list->Close();
+            hr = command_buffer._list->Close();
             assert(SUCCEEDED(hr) && "Could not close empty command list");
 
-            set_name(command_buffer.allocator, "Command Allocator %zu", index);
-            set_name(command_buffer.list, "Command list %zu", index);
+            set_name(command_buffer._allocator, "Command Allocator %zu", index);
+            set_name(command_buffer._list, "Command list %zu", index);
             index++;
         }
     }

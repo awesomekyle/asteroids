@@ -101,8 +101,24 @@ TEST_CASE("graphics command interface")
 
         WHEN("a command buffer is requested")
         {
-            auto* const commandBuffer = graphics->command_buffer();
-            THEN("a valid command buffer is returned") { REQUIRE(commandBuffer); }
+            auto* const command_buffer = graphics->command_buffer();
+            THEN("a valid command buffer is returned")
+            {
+                REQUIRE(command_buffer);
+                REQUIRE(graphics->num_available_command_buffers() ==
+                        ak::Graphics::kMaxCommandBuffers - 1);
+
+                AND_WHEN("the command buffer is released")
+                {
+                    command_buffer->reset();
+
+                    THEN("the buffer is added back to the pool")
+                    {
+                        REQUIRE(graphics->num_available_command_buffers() ==
+                                ak::Graphics::kMaxCommandBuffers);
+                    }
+                }
+            }
         }
     }
 }
