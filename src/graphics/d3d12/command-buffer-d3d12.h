@@ -13,6 +13,7 @@ class CommandBufferD3D12 : public CommandBuffer
    public:
     void reset() final;
     bool begin_render_pass() final;
+    void end_render_pass() final;
 
    private:
     friend class GraphicsD3D12;

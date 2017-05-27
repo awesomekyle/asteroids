@@ -149,8 +149,13 @@ TEST_CASE("graphics command interface")
             REQUIRE(window);
             REQUIRE(graphics->create_swap_chain(native_window(window), native_instance()));
 
-            THEN("a render pass can be begun") { REQUIRE(command_buffer->begin_render_pass()); }
-            // end render pass
+            THEN("a render pass can be begun")
+            {
+                REQUIRE(command_buffer->begin_render_pass());
+                AND_THEN("the render pass can be ended") { command_buffer->end_render_pass(); }
+            }
+
+            // TODO(kw): end with no begin
 
             glfwDestroyWindow(window);
         }

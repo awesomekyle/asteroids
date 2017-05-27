@@ -14,6 +14,9 @@ class CommandBuffer
     /// @brief Begins a "render pass", a collection of API calls that all occur on the final
     /// framebuffer.
     virtual bool begin_render_pass() = 0;
+
+    /// @brief Ends a previously started render pass
+    virtual void end_render_pass() = 0;
 };
 
 class Graphics
