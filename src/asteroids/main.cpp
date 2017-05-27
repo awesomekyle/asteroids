@@ -1,5 +1,7 @@
 #include <iostream>
+#include <cassert>
 #include <gsl/span>
+
 #if defined(_WIN32)
 #define GLFW_EXPOSE_NATIVE_WIN32
 #elif defined(__APPLE__)
@@ -118,6 +120,12 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         //
         // Frame
         //
+        auto* const command_buffer = graphics->command_buffer();
+        command_buffer->begin_render_pass();
+        command_buffer->end_render_pass();
+        auto const result = graphics->execute(command_buffer);
+        assert(result);
+
         graphics->present();
     }
 
