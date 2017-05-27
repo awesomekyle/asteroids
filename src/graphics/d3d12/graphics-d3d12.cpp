@@ -109,6 +109,11 @@ GraphicsD3D12::~GraphicsD3D12()
     wait_for_idle();
 }
 
+Graphics::API GraphicsD3D12::api_type() const
+{
+    return kD3D12;
+}
+
 bool GraphicsD3D12::create_swap_chain(void* window, void* /*application*/)
 {
     Expects(_device);

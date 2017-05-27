@@ -47,6 +47,7 @@ class GraphicsD3D12 : public Graphics
     GraphicsD3D12();
     ~GraphicsD3D12() final;
 
+    API api_type() const final;
     bool create_swap_chain(void* window, void*) final;
     bool resize(int, int) final;
     bool present() final;

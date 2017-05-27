@@ -29,6 +29,17 @@ class Graphics
     ///
     static constexpr size_t kMaxCommandBuffers = 128;
 
+    enum API {
+        kDefault = 0,
+        kD3D12,
+        kVulkan,
+        kMetal,
+
+        kUnknown = -1,
+    };
+
+    virtual API api_type() const = 0;
+
     /// @brief Creates a swap chain for the specified window.
     /// @details Windows D3D: IDXGISwapChain
     ///          macOS Metal: CAMetalLayer
@@ -59,7 +70,7 @@ class Graphics
 
 using ScopedGraphics = std::unique_ptr<Graphics>;
 
-ScopedGraphics create_graphics();
+ScopedGraphics create_graphics(Graphics::API api = Graphics::kDefault);
 
 }  // namespace ak
 

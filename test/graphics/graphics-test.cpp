@@ -19,6 +19,8 @@ namespace {
 int const glfwInitialized = glfwInit();
 int const glfwTerminationRegistered = atexit(glfwTerminate);
 
+constexpr ak::Graphics::API kTestApi = ak::Graphics::kDefault;
+
 void* native_window(GLFWwindow* const window)
 {
 #if defined(_WIN32)
@@ -45,9 +47,18 @@ TEST_CASE("graphics lifetime")
 {
     SECTION("graphics device creation")
     {
-        WHEN("a graphics device is created")
+        WHEN("the default platofmr device is requiested")
         {
             auto graphicsDevice = ak::create_graphics();
+            THEN("the device is successfully created")
+            {
+                REQUIRE(graphicsDevice);
+                REQUIRE(graphicsDevice->api_type() != ak::Graphics::kDefault);
+            }
+        }
+        WHEN("a graphics device is created")
+        {
+            auto graphicsDevice = ak::create_graphics(kTestApi);
             THEN("the device is successfully created") { REQUIRE(graphicsDevice); }
         }
     }
@@ -66,7 +77,7 @@ TEST_CASE("Window interaction")
         REQUIRE(window);
 
         // Gfx initialization
-        auto graphics = ak::create_graphics();
+        auto graphics = ak::create_graphics(kTestApi);
         REQUIRE(graphics);
 
         WHEN("presented with no swap chain")
@@ -95,7 +106,7 @@ TEST_CASE("graphics command interface")
 {
     GIVEN("a graphics device")
     {
-        auto graphics = ak::create_graphics();
+        auto graphics = ak::create_graphics(kTestApi);
         REQUIRE(graphics);
 
         WHEN("a command buffer is requested")
@@ -130,7 +141,7 @@ TEST_CASE("graphics command interface")
     }
     GIVEN("a command buffer")
     {
-        auto graphics = ak::create_graphics();
+        auto graphics = ak::create_graphics(kTestApi);
         REQUIRE(graphics);
 
         auto* const command_buffer = graphics->command_buffer();
