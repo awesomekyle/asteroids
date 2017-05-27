@@ -13,7 +13,10 @@
 #endif
 #include <atlbase.h>
 
+#pragma warning(push)
+#pragma warning(disable : 4324)  // structure padded
 #include <d3dx12.h>
+#pragma warning(pop)
 
 #include "command-buffer-d3d12.h"
 

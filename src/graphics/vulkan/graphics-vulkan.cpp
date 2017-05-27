@@ -23,7 +23,7 @@ Graphics::API GraphicsVulkan::api_type() const
     return kVulkan;
 }
 
-bool GraphicsVulkan::create_swap_chain(void* window, void* /*application*/)
+bool GraphicsVulkan::create_swap_chain(void* /*window*/, void* /*application*/)
 {
     return false;
 }
@@ -35,7 +35,7 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
 
 bool GraphicsVulkan::present()
 {
-  return false;
+    return false;
 }
 
 CommandBuffer* GraphicsVulkan::command_buffer()
@@ -46,7 +46,7 @@ int GraphicsVulkan::num_available_command_buffers()
 {
     return 0;
 }
-bool GraphicsVulkan::execute(CommandBuffer* command_buffer)
+bool GraphicsVulkan::execute(CommandBuffer* /*command_buffer*/)
 {
     return false;
 }
