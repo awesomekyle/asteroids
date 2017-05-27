@@ -22,11 +22,15 @@
     <ClInclude Include="..\..\src\graphics\d3d12\command-buffer-d3d12.h" />
     <ClInclude Include="..\..\src\graphics\d3d12\graphics-d3d12.h" />
     <ClInclude Include="..\..\src\graphics\include\graphics\graphics.h" />
+    <ClInclude Include="..\..\src\graphics\vulkan\command-buffer-vulkan.h" />
+    <ClInclude Include="..\..\src\graphics\vulkan\graphics-vulkan.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\graphics\d3d12\graphics-d3d12.cpp" />
     <ClCompile Include="..\..\src\graphics\d3d12\command-buffer-d3d12.cpp" />
     <ClCompile Include="..\..\src\graphics\graphics.cpp" />
+    <ClCompile Include="..\..\src\graphics\vulkan\command-buffer-vulkan.cpp" />
+    <ClCompile Include="..\..\src\graphics\vulkan\graphics-vulkan.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -91,16 +95,16 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SourceDir)graphics\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SourceDir)graphics\include;$(VULKAN_SDK)\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SourceDir)graphics\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SourceDir)graphics\include;$(VULKAN_SDK)\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SourceDir)graphics\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SourceDir)graphics\include;$(VULKAN_SDK)\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SourceDir)graphics\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(SourceDir)graphics\include;$(VULKAN_SDK)\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

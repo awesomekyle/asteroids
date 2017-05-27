@@ -10,6 +10,9 @@
     <Filter Include="d3d12">
       <UniqueIdentifier>{7cbc5aea-b0ac-4572-b6f1-fbddfb916d39}</UniqueIdentifier>
     </Filter>
+    <Filter Include="vulkan">
+      <UniqueIdentifier>{235ff3e9-9581-494c-b741-cdc601c9aada}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\graphics\include\graphics\graphics.h">
@@ -21,6 +24,12 @@
     <ClInclude Include="..\..\src\graphics\d3d12\command-buffer-d3d12.h">
       <Filter>d3d12</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\graphics\vulkan\command-buffer-vulkan.h">
+      <Filter>vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\graphics\vulkan\graphics-vulkan.h">
+      <Filter>vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\graphics\graphics.cpp" />
@@ -29,6 +38,12 @@
     </ClCompile>
     <ClCompile Include="..\..\src\graphics\d3d12\command-buffer-d3d12.cpp">
       <Filter>d3d12</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\graphics\vulkan\command-buffer-vulkan.cpp">
+      <Filter>vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\graphics\vulkan\graphics-vulkan.cpp">
+      <Filter>vulkan</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
