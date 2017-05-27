@@ -103,7 +103,7 @@ DescriptorHeap CreateDescriptorHeap(ID3D12Device* const device,
 bool developer_mode_enabled()
 {
     HKEY hKey = {};
-    auto err = RegOpenKeyExW(HKEY_LOCAL_MACHINE,
+    auto err = RegOpenKeyExW(HKEY_LOCAL_MACHINE,  // NOLINT
                              LR"(SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock)", 0,
                              KEY_READ, &hKey);
     if (err != ERROR_SUCCESS) {
@@ -111,8 +111,8 @@ bool developer_mode_enabled()
     }
     DWORD value = {};
     DWORD dword_size = sizeof(DWORD);
-    err = RegQueryValueExW(hKey, L"AllowDevelopmentWithoutDevLicense", 0, NULL,
-                           reinterpret_cast<LPBYTE>(&value), &dword_size);
+    err = RegQueryValueExW(hKey, L"AllowDevelopmentWithoutDevLicense", nullptr, nullptr,
+                           reinterpret_cast<LPBYTE>(&value), &dword_size);  // NOLINT
     RegCloseKey(hKey);
     if (err != ERROR_SUCCESS) {
         return false;

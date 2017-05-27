@@ -12,13 +12,14 @@
       <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <PostBuildEvent>
-      <Command>cd $(SourceDir)$(ProjectName)
+      <Command>@echo on
+cd $(SourceDir)$(ProjectName)
 IF EXIST "C:\Program Files\LLVM\bin\clang-tidy.exe" (
     setlocal ENABLEDELAYEDEXPANSION
     set filelist=
     FOR /R %%f in (*.cpp) DO (set filelist=!filelist! %%f)
 
-    "C:\Program Files\LLVM\bin\clang-tidy.exe" !filelist! -fix -config="" -- -std=c++14
+    "C:\Program Files\LLVM\bin\clang-tidy.exe" !filelist! -fix -config="" -- -std=c++14 -DNOMINMAX
 )</Command>
     </PostBuildEvent>
     <PostBuildEvent>

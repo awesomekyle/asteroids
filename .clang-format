@@ -1,6 +1,6 @@
 BasedOnStyle: Google
 AlignAfterOpenBracket: Align
-AlignEscapedNewlines: Left
+AlignEscapedNewlinesLeft: true
 AlignOperands: true
 AlignTrailingComments: true
 AllowShortBlocksOnASingleLine: false
