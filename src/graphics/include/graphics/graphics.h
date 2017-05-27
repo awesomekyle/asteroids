@@ -45,6 +45,9 @@ class Graphics
     /// @note This method is not atomic, due to threading, this number may not be
     ///     exact.
     virtual int num_available_command_buffers() = 0;
+
+    /// @brief Executes a command buffer on the GPU
+    virtual bool execute(CommandBuffer* command_buffer) = 0;
 };
 
 using ScopedGraphics = std::unique_ptr<Graphics>;

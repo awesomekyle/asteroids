@@ -282,6 +282,18 @@ class GraphicsD3D12 : public Graphics
         }
         return freeBuffers;
     }
+    bool execute(CommandBuffer* command_buffer) final
+    {
+        Expects(_device);
+        auto* const d3d12_buffer = static_cast<CommandBufferD3D12*>(command_buffer);  // NOLINT
+        HRESULT const hr = d3d12_buffer->_list->Close();
+        assert(SUCCEEDED(hr) && "Could not close command list");
+
+        _render_queue->ExecuteCommandLists(1, CommandListCast(&d3d12_buffer->_list.p));
+        d3d12_buffer->_completion = _last_fence_completion++;
+        _render_queue->Signal(_render_fence, d3d12_buffer->_completion);
+        return SUCCEEDED(hr);
+    }
 
    private:
     void create_debug_interfaces()

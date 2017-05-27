@@ -119,6 +119,10 @@ TEST_CASE("graphics command interface")
                     }
                 }
             }
+            THEN("it can be properly executed") { REQUIRE(graphics->execute(command_buffer)); }
+            // can run out
+            // render passes can be created if swap chain exists
+            // render passes fail with no swap chain
         }
     }
 }
