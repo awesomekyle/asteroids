@@ -30,11 +30,13 @@ struct DescriptorHeap
 
     inline D3D12_CPU_DESCRIPTOR_HANDLE cpu_slot(int slot)
     {
-        return CD3DX12_CPU_DESCRIPTOR_HANDLE(cpu_start, slot, handleSize);
+        return static_cast<D3D12_CPU_DESCRIPTOR_HANDLE>(
+            CD3DX12_CPU_DESCRIPTOR_HANDLE(cpu_start, slot, handleSize));
     }
     inline D3D12_GPU_DESCRIPTOR_HANDLE GpuSlot(int slot)
     {
-        return CD3DX12_GPU_DESCRIPTOR_HANDLE(gpu_start, slot, handleSize);
+        return static_cast<D3D12_GPU_DESCRIPTOR_HANDLE>(
+            CD3DX12_GPU_DESCRIPTOR_HANDLE(gpu_start, slot, handleSize));
     }
     explicit operator ID3D12DescriptorHeap*() { return heap; }
 };
