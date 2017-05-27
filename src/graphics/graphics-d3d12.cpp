@@ -248,7 +248,7 @@ class GraphicsD3D12 : public Graphics
     {
         Expects(_device);
         uint_fast32_t const curr_index = _current_command_buffer.fetch_add(1) % kMaxCommandBuffers;
-        auto& buffer = _command_lists[curr_index];
+        auto& buffer = gsl::at(_command_lists, curr_index);
         uint64_t const last_completed_value = _render_fence->GetCompletedValue();
         if (last_completed_value < buffer.completion) {
             /// @TODO: This case needs to be handled
@@ -459,7 +459,7 @@ class GraphicsD3D12 : public Graphics
     std::array<CComPtr<ID3D12Resource>, kFramesInFlight> _back_buffers;
 
     std::array<CommandBufferD3D12, kMaxCommandBuffers> _command_lists;
-    std::atomic<uint32_t> _current_command_buffer = 0;
+    std::atomic<uint32_t> _current_command_buffer = {};
 
 #if defined(_DEBUG)
     CComPtr<IDXGIDebug1> _dxgi_debug;
