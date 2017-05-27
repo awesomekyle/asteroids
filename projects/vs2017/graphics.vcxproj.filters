@@ -7,15 +7,25 @@
     <Filter Include="include\graphics">
       <UniqueIdentifier>{a9cbc629-73c2-4aba-9ec8-54c2a733ae25}</UniqueIdentifier>
     </Filter>
+    <Filter Include="d3d12">
+      <UniqueIdentifier>{7cbc5aea-b0ac-4572-b6f1-fbddfb916d39}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\graphics\include\graphics\graphics.h">
       <Filter>include\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\graphics\graphics-d3d12.h" />
+    <ClInclude Include="..\..\src\graphics\d3d12\graphics-d3d12.h">
+      <Filter>d3d12</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\graphics\d3d12\command-buffer-d3d12.h">
+      <Filter>d3d12</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\graphics\graphics.cpp" />
-    <ClCompile Include="..\..\src\graphics\graphics-d3d12.cpp" />
+    <ClCompile Include="..\..\src\graphics\d3d12\graphics-d3d12.cpp">
+      <Filter>d3d12</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
