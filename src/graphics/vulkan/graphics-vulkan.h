@@ -11,9 +11,9 @@
 #else
 #error "Must specify a Vulkan platform"
 #endif
-//#define VK_NO_PROTOTYPES
+#define VK_NO_PROTOTYPES
 #include <vulkan/vk_platform.h>
-#include <vulkan/vulkan.hpp>
+#include <vulkan/vulkan.h>
 
 #include "command-buffer-vulkan.h"
 
@@ -42,6 +42,11 @@ class GraphicsVulkan : public Graphics
     GraphicsVulkan& operator=(GraphicsVulkan&&) = delete;
 
     void create_instance();
+
+    //
+    // data members
+    //
+    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = nullptr;
 };
 
 /// @brief Creates a Vulkan Graphics device

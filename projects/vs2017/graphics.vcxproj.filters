@@ -30,6 +30,9 @@
     <ClInclude Include="..\..\src\graphics\vulkan\graphics-vulkan.h">
       <Filter>vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\graphics\vulkan\vulkan-debug.h">
+      <Filter>vulkan</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\graphics\graphics.cpp" />

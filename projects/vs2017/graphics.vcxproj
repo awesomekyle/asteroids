@@ -24,6 +24,7 @@
     <ClInclude Include="..\..\src\graphics\include\graphics\graphics.h" />
     <ClInclude Include="..\..\src\graphics\vulkan\command-buffer-vulkan.h" />
     <ClInclude Include="..\..\src\graphics\vulkan\graphics-vulkan.h" />
+    <ClInclude Include="..\..\src\graphics\vulkan\vulkan-debug.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\graphics\d3d12\graphics-d3d12.cpp" />
