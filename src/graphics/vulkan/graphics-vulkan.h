@@ -6,6 +6,13 @@
 #include <atomic>
 #include <gsl/gsl_assert>
 
+#if defined(_WIN32)
+#define VK_USE_PLATFORM_WIN32_KHR 1
+#else
+#error "Must specify a Vulkan platform"
+#endif
+//#define VK_NO_PROTOTYPES
+#include <vulkan/vk_platform.h>
 #include <vulkan/vulkan.hpp>
 
 #include "command-buffer-vulkan.h"
@@ -33,6 +40,8 @@ class GraphicsVulkan : public Graphics
     GraphicsVulkan& operator=(const GraphicsVulkan&) = delete;
     GraphicsVulkan(GraphicsVulkan&&) = delete;
     GraphicsVulkan& operator=(GraphicsVulkan&&) = delete;
+
+    void create_instance();
 };
 
 /// @brief Creates a Vulkan Graphics device

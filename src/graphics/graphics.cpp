@@ -1,6 +1,7 @@
 #include "graphics/graphics.h"
 #if defined(_WIN32)
 #include "d3d12/graphics-d3d12.h"
+#include "vulkan/graphics-vulkan.h"
 #endif
 
 namespace {
@@ -29,14 +30,16 @@ ScopedGraphics create_graphics(Graphics::API api)
         api = platform_default_api();
     }
     switch (api) {
+#if defined(_WIN32)
         case ak::Graphics::kD3D12:
             return create_graphics_d3d12();
         case ak::Graphics::kVulkan:
-            break;
-#if __APPLE__
+            return create_graphics_vulkan();
+#endif  // _WIN32
+#if defined(__APPLE__)
         case ak::Graphics::kMetal:
             break;
-#endif
+#endif  // __APPLE__
         case ak::Graphics::kDefault:
         case ak::Graphics::kUnknown:
         default:

@@ -23,8 +23,8 @@ void set_name(CComPtr<D> object, char const* format, Args const&... args)
         char buffer[128] = {};
         snprintf(buffer, sizeof(buffer), format, args...);  // NOLINT
         object->SetPrivateData(WKPDID_D3DDebugObjectName,
-                               (UINT)strnlen(buffer, sizeof(buffer)),  // NOLINT
-                               buffer);                                // NOLINT
+                               static_cast<UINT>(strnlen(buffer, sizeof(buffer))),  // NOLINT
+                               buffer);                                             // NOLINT
     }
 }
 
