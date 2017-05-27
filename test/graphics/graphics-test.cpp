@@ -91,5 +91,20 @@ TEST_CASE("Window interaction")
         glfwDestroyWindow(window);
     }
 }
+TEST_CASE("graphics command interface")
+{
+    GIVEN("A Graphics object and OS window")
+    {
+        // Gfx initialization
+        auto graphics = ak::create_graphics();
+        REQUIRE(graphics);
+
+        WHEN("a command buffer is requested")
+        {
+            auto* const commandBuffer = graphics->command_buffer();
+            THEN("a valid command buffer is returned") { REQUIRE(commandBuffer); }
+        }
+    }
+}
 
 }  // anonymous namespace

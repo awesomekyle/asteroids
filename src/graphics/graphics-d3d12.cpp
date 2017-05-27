@@ -4,6 +4,7 @@
 #include <array>
 #include <cassert>
 #include <gsl/gsl_assert>
+#include <atomic>
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -126,6 +127,14 @@ bool developer_mode_enabled()
 
 namespace ak {
 
+class CommandBufferD3D12 : public CommandBuffer
+{
+   public:
+    CComPtr<ID3D12CommandAllocator> allocator;
+    CComPtr<ID3D12GraphicsCommandList> list;
+    uint64_t completion = 0;
+};
+
 class GraphicsD3D12 : public Graphics
 {
    public:
@@ -139,6 +148,7 @@ class GraphicsD3D12 : public Graphics
         create_device();
         create_queue();
         create_descriptor_heaps();
+        create_command_buffers();
     }
     ~GraphicsD3D12() final { wait_for_idle(); }
 
@@ -232,6 +242,26 @@ class GraphicsD3D12 : public Graphics
         };
         HRESULT const hr = _swap_chain->Present1(0, 0, &params);
         return SUCCEEDED(hr);
+    }
+
+    CommandBuffer* command_buffer() final
+    {
+        Expects(_device);
+        uint_fast32_t const curr_index = _current_command_buffer.fetch_add(1) % kMaxCommandBuffers;
+        auto& buffer = _command_lists[curr_index];
+        uint64_t const last_completed_value = _render_fence->GetCompletedValue();
+        if (last_completed_value < buffer.completion) {
+            /// @TODO: This case needs to be handled
+            // assert(last_completed_value >= buffer.completion && "Oldest command buffer not yet
+            // completed. Continue through the queue?");
+            return nullptr;
+        }
+        buffer.completion = UINT64_MAX;
+        HRESULT hr = buffer.allocator->Reset();
+        assert(SUCCEEDED(hr) && "Could not reset allocator");
+        hr = buffer.list->Reset(buffer.allocator, nullptr);
+        assert(SUCCEEDED(hr) && "Could not reset command list");
+        return &buffer;
     }
 
    private:
@@ -356,9 +386,31 @@ class GraphicsD3D12 : public Graphics
 
     void create_descriptor_heaps()
     {
+        Expects(_device);
         constexpr D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {D3D12_DESCRIPTOR_HEAP_TYPE_RTV, 128,
                                                           D3D12_DESCRIPTOR_HEAP_FLAG_NONE, 0};
         _rtv_heap = CreateDescriptorHeap(_device, heap_desc, "RTV Heap");
+    }
+
+    void create_command_buffers()
+    {
+        Expects(_device);
+        int index = 0;
+        for (auto& command_buffer : _command_lists) {
+            HRESULT hr = _device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                                         IID_PPV_ARGS(&command_buffer.allocator));
+            assert(SUCCEEDED(hr) && "Could not create allocator");
+            hr = _device->CreateCommandList(1, D3D12_COMMAND_LIST_TYPE_DIRECT,
+                                            command_buffer.allocator, nullptr,
+                                            IID_PPV_ARGS(&command_buffer.list));
+            assert(SUCCEEDED(hr) && "Could not create allocator");
+            hr = command_buffer.list->Close();
+            assert(SUCCEEDED(hr) && "Could not close empty command list");
+
+            set_name(command_buffer.allocator, "Command Allocator %zu", index);
+            set_name(command_buffer.list, "Command list %zu", index);
+            index++;
+        }
     }
 
     void wait_for_idle()
@@ -405,6 +457,9 @@ class GraphicsD3D12 : public Graphics
     CComPtr<IDXGISwapChain3> _swap_chain;
     DXGI_SWAP_CHAIN_DESC1 _swap_chain_desc = {};
     std::array<CComPtr<ID3D12Resource>, kFramesInFlight> _back_buffers;
+
+    std::array<CommandBufferD3D12, kMaxCommandBuffers> _command_lists;
+    std::atomic<uint32_t> _current_command_buffer = 0;
 
 #if defined(_DEBUG)
     CComPtr<IDXGIDebug1> _dxgi_debug;

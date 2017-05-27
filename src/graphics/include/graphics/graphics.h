@@ -4,10 +4,20 @@
 
 namespace ak {
 
+class CommandBuffer
+{
+   public:
+};
+
 class Graphics
 {
-  public:
+   public:
     virtual ~Graphics();
+
+    ///
+    /// Constants
+    ///
+    static constexpr size_t kMaxCommandBuffers = 128;
 
     /// @brief Creates a swap chain for the specified window.
     /// @details Windows D3D: IDXGISwapChain
@@ -23,12 +33,16 @@ class Graphics
 
     /// @brief Presents the back buffer to the screen
     virtual bool present() = 0;
+
+    /// @brief Returns an open, ready to use command buffer
+    /// @return NULL if no command buffers are available
+    virtual CommandBuffer* command_buffer() = 0;
 };
 
 using ScopedGraphics = std::unique_ptr<Graphics>;
 
 ScopedGraphics create_graphics();
 
-} // ak
+}  // namespace ak
 
-#endif //_AK_GRAPHICS_H_
+#endif  //_AK_GRAPHICS_H_
