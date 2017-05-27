@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\graphics\d3d12\graphics-d3d12.cpp" />
+    <ClCompile Include="..\..\src\graphics\d3d12\command-buffer-d3d12.cpp" />
     <ClCompile Include="..\..\src\graphics\graphics.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

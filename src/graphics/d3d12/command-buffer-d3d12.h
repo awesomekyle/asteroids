@@ -3,23 +3,23 @@
 #include "graphics/graphics.h"
 
 #include <cassert>
+#include <atlbase.h>
+#include <d3d12.h>
 
 namespace ak {
 
 class CommandBufferD3D12 : public CommandBuffer
 {
    public:
+    void reset() final;
+    bool begin_render_pass() final;
+
+   private:
+    friend class GraphicsD3D12;
+
     CComPtr<ID3D12CommandAllocator> _allocator;
     CComPtr<ID3D12GraphicsCommandList> _list;
     uint64_t _completion = 0;
-
-    void reset() final
-    {
-        auto const hr = _list->Close();
-        assert(SUCCEEDED(hr) && "Could not close command list");
-        _completion = 0;
-    }
-    bool begin_render_pass() final { return false; }
 };
 
 }  // namespace ak

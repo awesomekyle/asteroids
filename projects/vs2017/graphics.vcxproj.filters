@@ -27,5 +27,8 @@
     <ClCompile Include="..\..\src\graphics\d3d12\graphics-d3d12.cpp">
       <Filter>d3d12</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\graphics\d3d12\command-buffer-d3d12.cpp">
+      <Filter>d3d12</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
