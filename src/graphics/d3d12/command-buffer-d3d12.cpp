@@ -1,6 +1,8 @@
 #include "command-buffer-d3d12.h"
 #include "graphics-d3d12.h"
 
+#include <gsl/gsl>
+
 namespace ak {
 
 void CommandBufferD3D12::reset()
@@ -20,7 +22,7 @@ bool CommandBufferD3D12::begin_render_pass()
     auto const rt_descriptor = _graphics->_rtv_heap.cpu_slot(frame_index);
 
     // transition from present to RT
-    ID3D12Resource* const back_buffer = _graphics->_back_buffers[frame_index];
+    ID3D12Resource* const back_buffer = gsl::at(_graphics->_back_buffers, frame_index);
 
     auto const barrier = CD3DX12_RESOURCE_BARRIER::Transition(
         back_buffer, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT);
@@ -30,8 +32,8 @@ bool CommandBufferD3D12::begin_render_pass()
     constexpr float clear_color[] = {
         0.0f, 0.75f, 1.0f, 1.0f,
     };
-    _list->ClearRenderTargetView(rt_descriptor, clear_color, 0, nullptr);
-    _list->OMSetRenderTargets(1, &rt_descriptor, false, nullptr);
+    _list->ClearRenderTargetView(rt_descriptor, gsl::make_span(clear_color).data(), 0, nullptr);
+    _list->OMSetRenderTargets(1, &rt_descriptor, 0, nullptr);
 
     return true;
 }
@@ -42,7 +44,7 @@ void CommandBufferD3D12::end_render_pass()
     auto const rt_descriptor = _graphics->_rtv_heap.cpu_slot(frame_index);
 
     // transition back to present
-    ID3D12Resource* const back_buffer = _graphics->_back_buffers[frame_index];
+    ID3D12Resource* const back_buffer = gsl::at(_graphics->_back_buffers, frame_index);
 
     auto const barrier = CD3DX12_RESOURCE_BARRIER::Transition(
         back_buffer, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET);

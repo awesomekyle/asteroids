@@ -48,7 +48,7 @@ class GraphicsD3D12 : public Graphics
     ~GraphicsD3D12() final;
 
     bool create_swap_chain(void* window, void*) final;
-    bool resize(int = 0, int = 0) final;
+    bool resize(int, int) final;
     bool present() final;
     CommandBuffer* command_buffer() final;
     int num_available_command_buffers() final;
