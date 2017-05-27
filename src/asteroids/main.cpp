@@ -113,6 +113,11 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     // GLFW callback
     set_framebuffer_size(window, kInitialWidth, kInitialHeight);
 
+    // timing
+    int frame_count = 0;
+    float fps_elapsed_time = 0.0f;
+    uint64_t prev_time = glfwGetTimerValue();
+
     // Run loop
     while (glfwWindowShouldClose(window) == 0) {
         glfwPollEvents();
@@ -120,6 +125,20 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         //
         // Frame
         //
+
+        // update time
+        uint64_t const curr_time = glfwGetTimerValue();
+        auto const delta_time = static_cast<float>(curr_time - prev_time) / glfwGetTimerFrequency();
+        prev_time = curr_time;
+        if (fps_elapsed_time > 0.5f) {
+            std::cout << "FPS: " << frame_count * 2 << "\n";
+            frame_count = 0;
+            fps_elapsed_time -= 0.5f;
+        }
+        frame_count++;
+        fps_elapsed_time += delta_time;
+
+        // render
         auto* const command_buffer = graphics->command_buffer();
         command_buffer->begin_render_pass();
         command_buffer->end_render_pass();
