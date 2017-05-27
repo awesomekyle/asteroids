@@ -70,6 +70,8 @@ class GraphicsD3D12 : public Graphics
     void create_command_buffers();
     void wait_for_idle();
 
+    std::pair<uint32_t, ID3D12Resource*> const& current_back_buffer();
+
     //
     // Constants
     //
@@ -104,6 +106,7 @@ class GraphicsD3D12 : public Graphics
     CComPtr<IDXGISwapChain3> _swap_chain;
     DXGI_SWAP_CHAIN_DESC1 _swap_chain_desc = {};
     std::array<CComPtr<ID3D12Resource>, kFramesInFlight> _back_buffers;
+    std::pair<uint32_t, ID3D12Resource*> _current_back_buffer = {};
 
     std::array<CommandBufferD3D12, kMaxCommandBuffers> _command_lists;
     std::atomic<uint32_t> _current_command_buffer = {};

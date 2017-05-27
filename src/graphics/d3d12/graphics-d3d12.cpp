@@ -196,6 +196,7 @@ bool GraphicsD3D12::present()
         0, nullptr, nullptr, nullptr,
     };
     HRESULT const hr = _swap_chain->Present1(0, 0, &params);
+    _current_back_buffer = {0, nullptr};
     return SUCCEEDED(hr);
 }
 
@@ -399,6 +400,16 @@ void GraphicsD3D12::wait_for_idle()
     while (_render_fence->GetCompletedValue() < _last_fence_completion) {
         continue;  // NOLINT
     }
+}
+
+std::pair<uint32_t, ID3D12Resource*> const& GraphicsD3D12::current_back_buffer()
+{
+    if (_current_back_buffer.second == nullptr) {
+        auto const frame_index = _swap_chain->GetCurrentBackBufferIndex();
+        ID3D12Resource* const back_buffer = gsl::at(_back_buffers, frame_index);
+        _current_back_buffer = {frame_index, back_buffer};
+    }
+    return _current_back_buffer;
 }
 
 ScopedGraphics create_graphics_d3d12()
