@@ -1,2 +1,2 @@
-Checks: '-*,misc-*,clang-analyzer-*,google-*,readability-*,cppcoreguidelines-*,-google-readability-casting,performance-*,modernize-*,-modernize-use-using'
+Checks: '*,-google-readability-casting,-modernize-use-using,-llvm-include-order'
 WarningsAsErrors: '*'

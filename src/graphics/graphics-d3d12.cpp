@@ -152,9 +152,9 @@ class GraphicsD3D12 : public Graphics
     }
     ~GraphicsD3D12() final { wait_for_idle(); }
 
-    GraphicsD3D12::GraphicsD3D12(const GraphicsD3D12&) = delete;
+    GraphicsD3D12(const GraphicsD3D12&) = delete;
     GraphicsD3D12& operator=(const GraphicsD3D12&) = delete;
-    GraphicsD3D12::GraphicsD3D12(GraphicsD3D12&&) = delete;
+    GraphicsD3D12(GraphicsD3D12&&) = delete;
     GraphicsD3D12& operator=(GraphicsD3D12&&) = delete;
 
     bool create_swap_chain(void* window, void* /*application*/) final
