@@ -148,6 +148,9 @@ bool GraphicsD3D12::create_swap_chain(void* window, void* /*application*/)
     set_name(_swap_chain, "DXGI Swap Chain");
     _swap_chain->GetDesc1(&_swap_chain_desc);
 
+    // trigger a resize to get the back buffers
+    resize();
+
     return true;
 }
 
@@ -382,6 +385,8 @@ void GraphicsD3D12::create_command_buffers()
 
         set_name(command_buffer._allocator, "Command Allocator %zu", index);
         set_name(command_buffer._list, "Command list %zu", index);
+
+        command_buffer._graphics = this;
         index++;
     }
 }

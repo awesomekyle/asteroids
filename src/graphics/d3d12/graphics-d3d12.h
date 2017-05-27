@@ -48,13 +48,15 @@ class GraphicsD3D12 : public Graphics
     ~GraphicsD3D12() final;
 
     bool create_swap_chain(void* window, void*) final;
-    bool resize(int, int) final;
+    bool resize(int = 0, int = 0) final;
     bool present() final;
     CommandBuffer* command_buffer() final;
     int num_available_command_buffers() final;
     bool execute(CommandBuffer* command_buffer) final;
 
    private:
+    friend class CommandBufferD3D12;
+
     GraphicsD3D12(const GraphicsD3D12&) = delete;
     GraphicsD3D12& operator=(const GraphicsD3D12&) = delete;
     GraphicsD3D12(GraphicsD3D12&&) = delete;

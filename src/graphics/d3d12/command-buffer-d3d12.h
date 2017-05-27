@@ -17,6 +17,8 @@ class CommandBufferD3D12 : public CommandBuffer
    private:
     friend class GraphicsD3D12;
 
+    GraphicsD3D12* _graphics = nullptr;
+
     CComPtr<ID3D12CommandAllocator> _allocator;
     CComPtr<ID3D12GraphicsCommandList> _list;
     uint64_t _completion = 0;

@@ -142,7 +142,18 @@ TEST_CASE("graphics command interface")
             auto const result = command_buffer->begin_render_pass();
             THEN("the render pass is not created") { REQUIRE_FALSE(result); }
         }
-        // render passes fail with no swap chain
+        WHEN("a swap chain is created")
+        {
+            glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+            GLFWwindow* const window = glfwCreateWindow(10, 10, "Gfx Test", NULL, NULL);
+            REQUIRE(window);
+            REQUIRE(graphics->create_swap_chain(native_window(window), native_instance()));
+
+            THEN("a render pass can be begun") { REQUIRE(command_buffer->begin_render_pass()); }
+            // end render pass
+
+            glfwDestroyWindow(window);
+        }
     }
 }
 
