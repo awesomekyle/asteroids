@@ -120,9 +120,15 @@ TEST_CASE("graphics command interface")
                 }
             }
             THEN("it can be properly executed") { REQUIRE(graphics->execute(command_buffer)); }
-            // can run out
             // render passes can be created if swap chain exists
             // render passes fail with no swap chain
+        }
+        WHEN("all command buffers are requested")
+        {
+            for (size_t ii = 0; ii < ak::Graphics::kMaxCommandBuffers; ii++) {
+                graphics->command_buffer();
+            }
+            THEN("requesting another fails") { REQUIRE(graphics->command_buffer() == nullptr); }
         }
     }
 }
