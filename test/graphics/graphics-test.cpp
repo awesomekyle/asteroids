@@ -55,7 +55,7 @@ TEST_CASE("graphics lifetime")
 
 TEST_CASE("Window interaction")
 {
-    GIVEN("A Graphics object and OS window")
+    GIVEN("a graphics device and OS window")
     {
         REQUIRE(glfwInitialized);
         REQUIRE(glfwTerminationRegistered == 0);
@@ -93,9 +93,8 @@ TEST_CASE("Window interaction")
 }
 TEST_CASE("graphics command interface")
 {
-    GIVEN("A Graphics object and OS window")
+    GIVEN("a graphics device")
     {
-        // Gfx initialization
         auto graphics = ak::create_graphics();
         REQUIRE(graphics);
 
@@ -120,8 +119,6 @@ TEST_CASE("graphics command interface")
                 }
             }
             THEN("it can be properly executed") { REQUIRE(graphics->execute(command_buffer)); }
-            // render passes can be created if swap chain exists
-            // render passes fail with no swap chain
         }
         WHEN("all command buffers are requested")
         {
@@ -130,6 +127,22 @@ TEST_CASE("graphics command interface")
             }
             THEN("requesting another fails") { REQUIRE(graphics->command_buffer() == nullptr); }
         }
+    }
+    GIVEN("a command buffer")
+    {
+        auto graphics = ak::create_graphics();
+        REQUIRE(graphics);
+
+        auto* const command_buffer = graphics->command_buffer();
+        REQUIRE(command_buffer);
+
+        // TODO: Support render passes using custom render targets
+        WHEN("a render pass is begun with no swap chain")
+        {
+            auto const result = command_buffer->begin_render_pass();
+            THEN("the render pass is not created") { REQUIRE_FALSE(result); }
+        }
+        // render passes fail with no swap chain
     }
 }
 

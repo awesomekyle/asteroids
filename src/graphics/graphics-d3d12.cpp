@@ -141,6 +141,7 @@ class CommandBufferD3D12 : public CommandBuffer
         UNUSED(hr);
         _completion = 0;
     }
+    bool begin_render_pass() final { return false; }
 };
 
 class GraphicsD3D12 : public Graphics
