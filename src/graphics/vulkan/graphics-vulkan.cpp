@@ -169,11 +169,9 @@ bool GraphicsVulkan::create_swap_chain(void* window, void* application)
         VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_FIFO_KHR,
     };
     for (auto desired : desired_modes) {
-        for (auto available : present_modes) {
-            if (available == desired) {
-                _present_mode = desired;
-                break;
-            }
+        if (std::find(present_modes.begin(), present_modes.end(), desired) != present_modes.end()) {
+            _present_mode = desired;
+            break;
         }
     }
 
