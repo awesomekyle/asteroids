@@ -7,16 +7,13 @@
 #include <atomic>
 #include <gsl/gsl_assert>
 
-#if defined(_WIN32)
-#define VK_USE_PLATFORM_WIN32_KHR 1
-#else
-#error "Must specify a Vulkan platform"
-#endif
 #define VK_NO_PROTOTYPES
 #include <vulkan/vk_platform.h>
 #include <vulkan/vulkan.h>
 
 #include "command-buffer-vulkan.h"
+
+#define VK_SUCCEEDED(res) (res == VK_SUCCESS)
 
 namespace ak {
 
@@ -49,6 +46,7 @@ class GraphicsVulkan : public Graphics
     void select_physical_device();
     void create_device();
     void create_render_passes();
+    void create_command_buffers();
 
     uint32_t get_back_buffer();
 
@@ -111,6 +109,8 @@ class GraphicsVulkan : public Graphics
 
     // execution
     VkQueue _render_queue = VK_NULL_HANDLE;
+    std::array<CommandBufferVulkan, kMaxCommandBuffers> _command_buffers;
+    std::atomic<uint32_t> _current_command_buffer = {};
 
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT _debug_report = VK_NULL_HANDLE;

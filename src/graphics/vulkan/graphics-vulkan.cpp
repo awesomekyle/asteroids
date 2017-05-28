@@ -15,7 +15,6 @@ constexpr uint32_t array_length(T (&)[kSize])
 {
     return kSize;
 }
-#define VK_SUCCEEDED(res) (res == VK_SUCCESS)
 
 ///
 /// Constants
@@ -75,10 +74,16 @@ GraphicsVulkan::GraphicsVulkan()
     create_render_passes();
 
     vkGetDeviceQueue(_device, _queue_index, 0, &_render_queue);
+
+    create_command_buffers();
 }
 
 GraphicsVulkan::~GraphicsVulkan()
 {
+    for (auto const& buffer : _command_buffers) {
+        vkDestroyCommandPool(_device, buffer._pool, _vk_allocator);
+        vkDestroyFence(_device, buffer._fence, _vk_allocator);
+    }
     for (auto const& back_buffer : _back_buffer_views) {
         vkDestroyImageView(_device, back_buffer, _vk_allocator);
     }
@@ -326,11 +331,35 @@ bool GraphicsVulkan::present()
 
 CommandBuffer* GraphicsVulkan::command_buffer()
 {
-    return nullptr;
+    uint_fast32_t const currIndex = _current_command_buffer.fetch_add(1) % kMaxCommandBuffers;
+    auto& buffer = gsl::at(_command_buffers, currIndex);
+    if (vkGetFenceStatus(_device, buffer._fence) != VK_SUCCESS || buffer._open != false) {
+        /// @TODO: This case needs to be handled
+        return nullptr;
+    }
+    buffer.reset();
+
+    VkCommandBufferBeginInfo const beginInfo = {
+        VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,  // sType
+        nullptr,                                      // pNext
+        VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,  // flags
+        nullptr,                                      // pInheritanceInfo
+    };
+    auto const result = vkBeginCommandBuffer(buffer._buffer, &beginInfo);
+    assert(VK_SUCCEEDED(result) && "Could not begin buffer");
+
+    buffer._open = true;
+    return &buffer;
 }
 int GraphicsVulkan::num_available_command_buffers()
 {
-    return 0;
+    int available_command_buffers = 0;
+    for (auto const& buffer : _command_buffers) {
+        if (buffer._open == false) {
+            available_command_buffers++;
+        }
+    }
+    return available_command_buffers;
 }
 bool GraphicsVulkan::execute(CommandBuffer* /*command_buffer*/)
 {
@@ -557,6 +586,40 @@ void GraphicsVulkan::create_render_passes()
 
     VkResult const result = vkCreateRenderPass(_device, &render_pass_info, nullptr, &_render_pass);
     assert(VK_SUCCEEDED(result) && "Could not create render pass");
+}
+
+void GraphicsVulkan::create_command_buffers()
+{
+    for (auto& buffer : _command_buffers) {
+        VkCommandPoolCreateInfo const pool_info = {
+            VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,       // sType
+            nullptr,                                          // pNext
+            VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT,  // flags
+            _queue_index,                                     // queueFamilyIndex
+        };
+        VkResult result = vkCreateCommandPool(_device, &pool_info, nullptr, &buffer._pool);
+        assert(VK_SUCCEEDED(result));
+        VkCommandBufferAllocateInfo const buffer_info = {
+            VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,  // sType
+            nullptr,                                         // pNext
+            buffer._pool,                                    // commandPool
+            VK_COMMAND_BUFFER_LEVEL_PRIMARY,                 // level
+            1,                                               // commandBufferCount
+        };
+        result = vkAllocateCommandBuffers(_device, &buffer_info, &buffer._buffer);
+        assert(VK_SUCCEEDED(result));
+
+        // Fence
+        VkFenceCreateInfo const fence_info = {
+            VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,  // sType
+            nullptr,                              // pNext
+            VK_FENCE_CREATE_SIGNALED_BIT,         // flags
+        };
+        result = vkCreateFence(_device, &fence_info, nullptr, &buffer._fence);
+        assert(VK_SUCCEEDED(result));
+
+        buffer._graphics = this;
+    }
 }
 
 uint32_t GraphicsVulkan::get_back_buffer()

@@ -2,6 +2,10 @@
 #define _AK_COMMANDBUFFER_VULKAN_H_
 #include "graphics/graphics.h"
 
+#define VK_NO_PROTOTYPES
+#include <vulkan/vk_platform.h>
+#include <vulkan/vulkan.h>
+
 namespace ak {
 
 class CommandBufferVulkan : public CommandBuffer
@@ -13,6 +17,13 @@ class CommandBufferVulkan : public CommandBuffer
 
    private:
     friend class GraphicsVulkan;
+
+    GraphicsVulkan* _graphics = nullptr;
+
+    VkCommandPool _pool = VK_NULL_HANDLE;
+    VkCommandBuffer _buffer = VK_NULL_HANDLE;
+    VkFence _fence = VK_NULL_HANDLE;
+    bool _open = false;
 };
 
 }  // namespace ak
