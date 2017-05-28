@@ -23,6 +23,7 @@
 		274204B91EDB38FF00C966CC /* posix_tls.c in Sources */ = {isa = PBXBuildFile; fileRef = 2742048C1EDB38D700C966CC /* posix_tls.c */; };
 		274204BB1EDB38FF00C966CC /* vulkan.c in Sources */ = {isa = PBXBuildFile; fileRef = 2742048E1EDB38D700C966CC /* vulkan.c */; };
 		274204BC1EDB38FF00C966CC /* window.c in Sources */ = {isa = PBXBuildFile; fileRef = 2742048F1EDB38D700C966CC /* window.c */; };
+		274204BD1EDB39C700C966CC /* libglfw.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 274204A31EDB38F000C966CC /* libglfw.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -70,6 +71,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				274204BD1EDB39C700C966CC /* libglfw.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -474,6 +476,8 @@
 					"_GLFW_USE_RETINA=1",
 					"_GLFW_USE_MENUBAR=1",
 					"_GLFW_USE_CHDIR=1",
+					"DEBUG=1",
+					"_DEBUG=1",
 				);
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_INHIBIT_ALL_WARNINGS = YES;
