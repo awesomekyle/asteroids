@@ -48,10 +48,12 @@ class GraphicsVulkan : public Graphics
     void get_physical_devices();
     void select_physical_device();
     void create_device();
+    void create_render_passes();
 
     //
     // constants
     //
+    static constexpr uint32_t kMaxBackBuffers = 8;
     VkAllocationCallbacks const* const _vk_allocator = nullptr;  // TODO(kw): change if needed
 
     //
@@ -85,6 +87,7 @@ class GraphicsVulkan : public Graphics
 
     VkDevice _device = VK_NULL_HANDLE;
 
+    // Surface
     VkSurfaceKHR _surface = VK_NULL_HANDLE;
     VkSemaphore _swap_chain_semaphore = VK_NULL_HANDLE;
     VkSurfaceCapabilitiesKHR _surface_capabilities = {};
@@ -92,6 +95,17 @@ class GraphicsVulkan : public Graphics
     VkSurfaceFormatKHR _surface_format = {
         VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
     };
+
+    // Swap chain
+    VkSwapchainKHR _swap_chain = VK_NULL_HANDLE;
+    VkImage _back_buffers[kMaxBackBuffers] = {};
+    VkImageView _back_buffer_views[kMaxBackBuffers] = {};
+    uint32_t _num_back_buffers = 0;
+    uint32_t _back_buffer_index = 0;
+    VkFramebuffer _framebuffers[kMaxBackBuffers] = {};
+
+    // Render pass info
+    VkRenderPass _render_pass = VK_NULL_HANDLE;
 
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT _debug_report = VK_NULL_HANDLE;
