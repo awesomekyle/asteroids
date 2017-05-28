@@ -1,7 +1,7 @@
 #include "graphics-vulkan.h"
 #include "graphics/graphics.h"
 
-#include <inttypes.h>
+#include <cinttypes>
 #include <gsl/gsl>
 
 #include "vulkan-debug.h"
@@ -22,7 +22,7 @@ constexpr char const* kDesiredExtensions[] = {
     VK_EXT_DEBUG_REPORT_EXTENSION_NAME,
 #endif
 };
-constexpr size_t kNumDesiredExtensions = array_length(kDesiredExtensions);
+constexpr size_t kNumDesiredExtensions = array_length(kDesiredExtensions);  // NOLINT
 
 constexpr char const* kValidationLayers[] = {
     "VK_LAYER_LUNARG_standard_validation",
@@ -48,7 +48,7 @@ namespace ak {
 
 GraphicsVulkan::GraphicsVulkan()
 {
-    auto const library = LoadLibraryW(L"vulkan-1.dll");
+    auto const library = LoadLibraryW(L"vulkan-1.dll");  // NOLINT
     Ensures(library);
     vkGetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(
         GetProcAddress(library, "vkGetInstanceProcAddr"));
@@ -89,7 +89,9 @@ GraphicsVulkan::~GraphicsVulkan()
     vkDestroySemaphore(_device, _swap_chain_semaphore, _vk_allocator);
     vkDestroySurfaceKHR(_instance, _surface, _vk_allocator);
     vkDestroyDevice(_device, _vk_allocator);
+#if defined(_DEBUG)
     vkDestroyDebugReportCallbackEXT(_instance, _debug_report, _vk_allocator);
+#endif  // _DEBUG
     vkDestroyInstance(_instance, _vk_allocator);
 }
 
@@ -98,7 +100,7 @@ Graphics::API GraphicsVulkan::api_type() const
     return kVulkan;
 }
 
-bool GraphicsVulkan::create_swap_chain(void* window, void* application)
+bool GraphicsVulkan::create_swap_chain(void* window, void* application)  // NOLINT
 {
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
     auto hwnd = static_cast<HWND>(window);
@@ -209,7 +211,7 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
 
     VkImageUsageFlags const image_usage_flags =
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT;  // TODO: check support
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT;  // TODO(kw): check support
     uint32_t const num_images = _surface_capabilities.minImageCount + 1;
 
     // Create swap chain
@@ -245,20 +247,21 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
     result = vkGetSwapchainImagesKHR(_device, _swap_chain, &_num_back_buffers, nullptr);
     assert(VK_SUCCEEDED(result));
     _num_back_buffers = std::min(_num_back_buffers, array_length(_back_buffers));
-    result = vkGetSwapchainImagesKHR(_device, _swap_chain, &_num_back_buffers, _back_buffers);
+    result = vkGetSwapchainImagesKHR(_device, _swap_chain, &_num_back_buffers,
+                                     gsl::make_span(_back_buffers).data());
     assert(VK_SUCCEEDED(result));
 
     // Create image views & framebuffers
     for (uint32_t ii = 0; ii < _num_back_buffers; ++ii) {
         // Clear originals
-        vkDestroyFramebuffer(_device, _framebuffers[ii], nullptr);
-        vkDestroyImageView(_device, _back_buffer_views[ii], nullptr);
+        vkDestroyFramebuffer(_device, gsl::at(_framebuffers, ii), nullptr);
+        vkDestroyImageView(_device, gsl::at(_back_buffer_views, ii), nullptr);
         // Image view
         VkImageViewCreateInfo const imageViewInfo = {
             VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,  // sType
             nullptr,                                   // pNext
             0,                                         // flags
-            _back_buffers[ii],                         // image
+            gsl::at(_back_buffers, ii),                // image
             VK_IMAGE_VIEW_TYPE_2D,                     // viewType
             _surface_format.format,                    // format
             // components
@@ -270,7 +273,8 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
             },
             kFullSubresourceRange,  // subresourceRange
         };
-        result = vkCreateImageView(_device, &imageViewInfo, nullptr, &_back_buffer_views[ii]);
+        result =
+            vkCreateImageView(_device, &imageViewInfo, nullptr, &gsl::at(_back_buffer_views, ii));
         assert(VK_SUCCEEDED(result) && "Could not create image view");
 
         // Framebuffer
@@ -280,12 +284,13 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
             0,                                           // flags
             _render_pass,                                // renderPass
             1,                                           // attachmentCount
-            &_back_buffer_views[ii],                     // pAttachments
+            &gsl::at(_back_buffer_views, ii),            // pAttachments
             _surface_capabilities.currentExtent.width,   // width
             _surface_capabilities.currentExtent.height,  // height
             1,                                           // layers
         };
-        result = vkCreateFramebuffer(_device, &framebufferInfo, nullptr, &_framebuffers[ii]);
+        result =
+            vkCreateFramebuffer(_device, &framebufferInfo, nullptr, &gsl::at(_framebuffers, ii));
         assert(VK_SUCCEEDED(result) && "Could not create framebuffer");
     }
     return true;
@@ -325,7 +330,7 @@ CommandBuffer* GraphicsVulkan::command_buffer()
 {
     uint_fast32_t const currIndex = _current_command_buffer.fetch_add(1) % kMaxCommandBuffers;
     auto& buffer = gsl::at(_command_buffers, currIndex);
-    if (vkGetFenceStatus(_device, buffer._fence) != VK_SUCCESS || buffer._open != false) {
+    if (vkGetFenceStatus(_device, buffer._fence) != VK_SUCCESS || buffer._open) {
         /// @TODO: This case needs to be handled
         return nullptr;
     }
@@ -347,7 +352,7 @@ int GraphicsVulkan::num_available_command_buffers()
 {
     int available_command_buffers = 0;
     for (auto const& buffer : _command_buffers) {
-        if (buffer._open == false) {
+        if (!buffer._open) {
             available_command_buffers++;
         }
     }
@@ -365,7 +370,7 @@ bool GraphicsVulkan::execute(CommandBuffer* command_buffer)
         nullptr,                        // pNext
         0,                              // waitSemaphoreCount
         nullptr,                        // pWaitSemaphores
-        0,                              // pWaitDstStageMask
+        nullptr,                        // pWaitDstStageMask
         1,                              // commandBufferCount
         &vk_buffer->_buffer,            // pCommandBuffers
         0,                              // signalSemaphoreCount
@@ -383,7 +388,7 @@ void GraphicsVulkan::get_extensions()
     VkResult result = VK_SUCCESS;
     do {
         result = vkEnumerateInstanceExtensionProperties(nullptr, &num_extensions, nullptr);
-        if (result == VK_SUCCESS && num_extensions) {
+        if (result == VK_SUCCESS && num_extensions != 0) {
             _available_extensions.resize(num_extensions);
             result = vkEnumerateInstanceExtensionProperties(nullptr, &num_extensions,
                                                             _available_extensions.data());
@@ -419,7 +424,7 @@ void GraphicsVulkan::create_instance()
         0,                                                 // flags
         &application_info,                                 // pApplicationInfo
         kNumValidationLayers,                              // enabledLayerCount
-        kValidationLayers,                                 // ppEnabledLayerNames
+        gsl::make_span(kValidationLayers).data(),          // ppEnabledLayerNames
         static_cast<uint32_t>(enabled_extensions.size()),  // enabledExtensionCount
         enabled_extensions.data(),                         // ppEnabledExtensionNames
     };
@@ -462,7 +467,7 @@ void GraphicsVulkan::get_physical_devices()
     VkResult result = VK_SUCCESS;
     do {
         result = vkEnumeratePhysicalDevices(_instance, &num_devices, nullptr);
-        if (result == VK_SUCCESS && num_devices) {
+        if (result == VK_SUCCESS && num_devices != 0) {
             _all_physical_devices.resize(num_devices);
             result =
                 vkEnumeratePhysicalDevices(_instance, &num_devices, _all_physical_devices.data());
@@ -488,7 +493,7 @@ void GraphicsVulkan::select_physical_device()
     uint32_t num_queues = 0;
     std::vector<VkQueueFamilyProperties> queue_properties;
     vkGetPhysicalDeviceQueueFamilyProperties(best_physical_device, &num_queues, nullptr);
-    if (num_queues) {
+    if (num_queues != 0) {
         queue_properties.resize(num_queues);
         vkGetPhysicalDeviceQueueFamilyProperties(best_physical_device, &num_queues,
                                                  queue_properties.data());
@@ -514,23 +519,23 @@ void GraphicsVulkan::create_device()
         0,                                           // flags
         _queue_index,                                // queueFamilyIndex
         1,                                           // queueCount
-        queuePriorities,                             // pQueuePriorities
+        gsl::make_span(queuePriorities).data(),      // pQueuePriorities
     };
     constexpr char const* known_extensions[] = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,  // TODO: Check this is supported
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,  // TODO(kw): Check this is supported
     };
     constexpr uint32_t const num_known_extensions = array_length(known_extensions);
     VkDeviceCreateInfo const device_info = {
-        VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,  // sType
-        nullptr,                               // pNext
-        0,                                     // flags
-        1,                                     // queueCreateInfoCount
-        &queue_info,                           // pQueueCreateInfos
-        0,                                     // enabledLayerCount
-        nullptr,                               // ppEnabledLayerNames
-        num_known_extensions,                  // enabledExtensionCount
-        known_extensions,                      // ppEnabledExtensionNames
-        0,                                     // pEnabledFeatures
+        VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,     // sType
+        nullptr,                                  // pNext
+        0,                                        // flags
+        1,                                        // queueCreateInfoCount
+        &queue_info,                              // pQueueCreateInfos
+        0,                                        // enabledLayerCount
+        nullptr,                                  // ppEnabledLayerNames
+        num_known_extensions,                     // enabledExtensionCount
+        gsl::make_span(known_extensions).data(),  // ppEnabledExtensionNames
+        nullptr,                                  // pEnabledFeatures
     };
     VkResult const result = vkCreateDevice(_physical_device, &device_info, nullptr, &_device);
     assert(VK_SUCCEEDED(result) && "Could not create device");
@@ -567,30 +572,30 @@ void GraphicsVulkan::create_render_passes()
     };
     constexpr uint32_t const num_color_references = array_length(color_attachment_references);
 
-    constexpr VkSubpassDescription const subpasses[] = {
+    VkSubpassDescription const subpasses[] = {
         {
-            0,                                // flags
-            VK_PIPELINE_BIND_POINT_GRAPHICS,  // pipelineBindPoint
-            0,                                // inputAttachmentCount
-            nullptr,                          // pInputAttachments
-            num_color_references,             // colorAttachmentCount
-            color_attachment_references,      // pColorAttachments
-            nullptr,                          // pResolveAttachments
-            nullptr,                          // pDepthStencilAttachment
-            0,                                // preserveAttachmentCount
-            nullptr,                          // pPreserveAttachments
+            0,                                                   // flags
+            VK_PIPELINE_BIND_POINT_GRAPHICS,                     // pipelineBindPoint
+            0,                                                   // inputAttachmentCount
+            nullptr,                                             // pInputAttachments
+            num_color_references,                                // colorAttachmentCount
+            gsl::make_span(color_attachment_references).data(),  // pColorAttachments
+            nullptr,                                             // pResolveAttachments
+            nullptr,                                             // pDepthStencilAttachment
+            0,                                                   // preserveAttachmentCount
+            nullptr,                                             // pPreserveAttachments
         },
     };
     constexpr uint32_t const num_subpasses = array_length(subpasses);
 
-    constexpr VkRenderPassCreateInfo const render_pass_info = {
+    VkRenderPassCreateInfo const render_pass_info = {
         VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,  // sType
         nullptr,                                    // pNext
         0,                                          // flags
         num_attachments,                            // attachmentCount
-        attachments,                                // pAttachments
+        gsl::make_span(attachments).data(),         // pAttachments
         num_subpasses,                              // subpassCount
-        subpasses,                                  // pSubpasses
+        gsl::make_span(subpasses).data(),           // pSubpasses
         0,                                          // dependencyCount
         nullptr,                                    // pDependencies
     };

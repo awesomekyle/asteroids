@@ -1,6 +1,6 @@
 #if defined(_MSC_VER)
 #define _CRTDBG_MAP_ALLOC
-#include <stdlib.h>
+#include <cstdlib>
 #include <crtdbg.h>
 #endif
 
@@ -149,7 +149,7 @@ int main(int const /*argc*/, char const* const /*argv*/[])
 
         // render
         auto* const command_buffer = graphics->command_buffer();
-        if (command_buffer) {
+        if (command_buffer != nullptr) {
             command_buffer->begin_render_pass();
             command_buffer->end_render_pass();
             auto const result = graphics->execute(command_buffer);

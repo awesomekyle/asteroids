@@ -26,7 +26,7 @@ bool CommandBufferVulkan::begin_render_pass()
         {
             // color
             {
-                0.0f, 0.75f, 1.0f, 1.0f,
+                {0.0f, 0.75f, 1.0f, 1.0f},
             },
             // depthStencil
             {
