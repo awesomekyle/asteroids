@@ -361,9 +361,28 @@ int GraphicsVulkan::num_available_command_buffers()
     }
     return available_command_buffers;
 }
-bool GraphicsVulkan::execute(CommandBuffer* /*command_buffer*/)
+bool GraphicsVulkan::execute(CommandBuffer* command_buffer)
 {
-    return false;
+    Expects(command_buffer);
+    Expects(_device);
+    auto* const vk_buffer = static_cast<CommandBufferVulkan*>(command_buffer);
+    VkResult result = vkEndCommandBuffer(vk_buffer->_buffer);
+    assert(VK_SUCCEEDED(result) && "Could not end command buffer");
+    VkSubmitInfo const submit_info = {
+        VK_STRUCTURE_TYPE_SUBMIT_INFO,  // sType
+        nullptr,                        // pNext
+        0,                              // waitSemaphoreCount
+        nullptr,                        // pWaitSemaphores
+        0,                              // pWaitDstStageMask
+        1,                              // commandBufferCount
+        &vk_buffer->_buffer,            // pCommandBuffers
+        0,                              // signalSemaphoreCount
+        nullptr,                        // pSignalSemaphores
+    };
+    result = vkQueueSubmit(_render_queue, 1, &submit_info, vk_buffer->_fence);
+    assert(VK_SUCCEEDED(result) && "Could not submit command buffer");
+    vk_buffer->_open = false;
+    return true;
 }
 
 void GraphicsVulkan::get_extensions()
