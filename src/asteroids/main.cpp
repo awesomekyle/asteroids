@@ -1,3 +1,9 @@
+#if defined(_MSC_VER)
+#define _CRTDBG_MAP_ALLOC
+#include <stdlib.h>
+#include <crtdbg.h>
+#endif
+
 #include <iostream>
 #include <cassert>
 #include <gsl/span>
@@ -88,6 +94,9 @@ void glfw_framebuffer_callback(GLFWwindow* window, int width, int height)
 
 int main(int const /*argc*/, char const* const /*argv*/[])
 {
+#if defined(_MSC_VER)
+    _CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+#endif  // _MSC_VER
     // Initialize GLFW
     glfwSetErrorCallback(glfw_error_callback);
     if (glfwInit() != GLFW_TRUE) {
@@ -140,10 +149,12 @@ int main(int const /*argc*/, char const* const /*argv*/[])
 
         // render
         auto* const command_buffer = graphics->command_buffer();
-        command_buffer->begin_render_pass();
-        command_buffer->end_render_pass();
-        auto const result = graphics->execute(command_buffer);
-        assert(result);
+        if (command_buffer) {
+            command_buffer->begin_render_pass();
+            command_buffer->end_render_pass();
+            auto const result = graphics->execute(command_buffer);
+            assert(result);
+        }
 
         graphics->present();
     }
