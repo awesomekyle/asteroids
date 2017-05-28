@@ -37,6 +37,8 @@ void* native_instance(void)
 {
 #if defined(_WIN32)
     return static_cast<void*>(GetModuleHandle(nullptr));
+#elif defined(__APPLE__)
+    return nullptr; // TODO: Get NSApp
 #else
 #warning "Not passing native application"
     return nullptr;
