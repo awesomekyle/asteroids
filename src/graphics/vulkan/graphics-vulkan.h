@@ -3,6 +3,7 @@
 #include "graphics/graphics.h"
 
 #include <array>
+#include <vector>
 #include <atomic>
 #include <gsl/gsl_assert>
 
@@ -11,9 +12,12 @@
 #else
 #error "Must specify a Vulkan platform"
 #endif
-#define VK_NO_PROTOTYPES
+#define VULKAN_HPP_NO_EXCEPTIONS
 #include <vulkan/vk_platform.h>
-#include <vulkan/vulkan.h>
+#pragma warning(push)
+#pragma warning(disable : 4100)  // unreferenced parameter
+#include <vulkan/vulkan.hpp>
+#pragma warning(pop)
 
 #include "command-buffer-vulkan.h"
 
@@ -41,12 +45,21 @@ class GraphicsVulkan : public Graphics
     GraphicsVulkan(GraphicsVulkan&&) = delete;
     GraphicsVulkan& operator=(GraphicsVulkan&&) = delete;
 
+    void get_extensions();
     void create_instance();
+    void create_debug_callback();
 
     //
     // data members
     //
-    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = nullptr;
+    std::vector<vk::ExtensionProperties> _available_extensions;
+
+    // TODO(kw): Enable extensions to enable vulkan smart pointers
+    vk::Instance _instance;
+
+#if defined(_DEBUG)
+    vk::DebugReportCallbackEXT _debug_report;
+#endif
 };
 
 /// @brief Creates a Vulkan Graphics device

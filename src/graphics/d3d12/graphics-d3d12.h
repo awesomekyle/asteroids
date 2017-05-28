@@ -65,6 +65,7 @@ class GraphicsD3D12 : public Graphics
     GraphicsD3D12& operator=(const GraphicsD3D12&) = delete;
     GraphicsD3D12(GraphicsD3D12&&) = delete;
     GraphicsD3D12& operator=(GraphicsD3D12&&) = delete;
+
     void create_debug_interfaces();
     void create_factory();
     void find_adapters();

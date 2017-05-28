@@ -97,15 +97,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IncludePath>$(SourceDir)graphics\include;$(VULKAN_SDK)\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\lib32;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IncludePath>$(SourceDir)graphics\include;$(VULKAN_SDK)\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\lib32;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(SourceDir)graphics\include;$(VULKAN_SDK)\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>$(SourceDir)graphics\include;$(VULKAN_SDK)\include;$(ThirdPartyDir)d3dx12\;$(ThirdPartyDir)gsl\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <LibraryPath>$(VULKAN_SDK)\lib;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -118,7 +122,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;dxguid.lib;</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;dxgi.lib;d3d12.lib;dxguid.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -132,7 +136,7 @@
       <SubSystem>Windows</SubSystem>
     </Link>
     <Lib>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;dxguid.lib;</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;dxgi.lib;d3d12.lib;dxguid.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -150,7 +154,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;dxguid.lib;</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;dxgi.lib;d3d12.lib;dxguid.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -168,7 +172,7 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <AdditionalDependencies>dxgi.lib;d3d12.lib;dxguid.lib;</AdditionalDependencies>
+      <AdditionalDependencies>vulkan-1.lib;dxgi.lib;d3d12.lib;dxguid.lib;</AdditionalDependencies>
     </Lib>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -41,6 +41,7 @@ KeepEmptyLinesAtTheStartOfBlocks: false
 MaxEmptyLinesToKeep: 1
 NamespaceIndentation: None
 ObjCSpaceAfterProperty: false
+PenaltyBreakBeforeFirstCallParameter: 1000
 PointerAlignment: Left
 ReflowComments: true
 SortIncludes: false
