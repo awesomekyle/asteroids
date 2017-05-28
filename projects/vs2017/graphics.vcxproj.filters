@@ -49,4 +49,15 @@
       <Filter>vulkan</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\graphics\vulkan\vulkan-global-method-list.inl">
+      <Filter>vulkan</Filter>
+    </None>
+    <None Include="..\..\src\graphics\vulkan\vulkan-instance-method-list.inl">
+      <Filter>vulkan</Filter>
+    </None>
+    <None Include="..\..\src\graphics\vulkan\vulkan-device-method-list.inl">
+      <Filter>vulkan</Filter>
+    </None>
+  </ItemGroup>
 </Project>

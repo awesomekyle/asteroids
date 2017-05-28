@@ -1,0 +1,3 @@
+VK_GLOBAL_FUNCTION(vkCreateInstance)
+VK_GLOBAL_FUNCTION(vkEnumerateInstanceExtensionProperties)
+VK_GLOBAL_FUNCTION(vkEnumerateInstanceLayerProperties)

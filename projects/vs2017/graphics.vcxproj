@@ -33,6 +33,11 @@
     <ClCompile Include="..\..\src\graphics\vulkan\command-buffer-vulkan.cpp" />
     <ClCompile Include="..\..\src\graphics\vulkan\graphics-vulkan.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\graphics\vulkan\vulkan-device-method-list.inl" />
+    <None Include="..\..\src\graphics\vulkan\vulkan-global-method-list.inl" />
+    <None Include="..\..\src\graphics\vulkan\vulkan-instance-method-list.inl" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{01B2825E-8937-4D2B-859B-03220C0008B1}</ProjectGuid>

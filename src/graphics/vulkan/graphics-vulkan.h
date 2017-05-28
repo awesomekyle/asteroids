@@ -12,12 +12,9 @@
 #else
 #error "Must specify a Vulkan platform"
 #endif
-#define VULKAN_HPP_NO_EXCEPTIONS
+#define VK_NO_PROTOTYPES
 #include <vulkan/vk_platform.h>
-#pragma warning(push)
-#pragma warning(disable : 4100)  // unreferenced parameter
-#include <vulkan/vulkan.hpp>
-#pragma warning(pop)
+#include <vulkan/vulkan.h>
 
 #include "command-buffer-vulkan.h"
 
@@ -53,22 +50,43 @@ class GraphicsVulkan : public Graphics
     void create_device();
 
     //
+    // constants
+    //
+    VkAllocationCallbacks const* const _vk_allocator = nullptr;  // TODO(kw): change if needed
+
+    //
+    // Vulkan function pointers
+    //
+    PFN_vkGetInstanceProcAddr vkGetInstanceProcAddr = nullptr;
+
+#define DECLARE_VK_FUNCTION(fn) PFN_##fn fn = nullptr;
+#define VK_GLOBAL_FUNCTION(fn) DECLARE_VK_FUNCTION(fn)
+#define VK_INSTANCE_FUNCTION(fn) DECLARE_VK_FUNCTION(fn)
+#define VK_DEVICE_FUNCTION(fn) DECLARE_VK_FUNCTION(fn)
+#include "vulkan-global-method-list.inl"
+#include "vulkan-instance-method-list.inl"
+#include "vulkan-device-method-list.inl"
+#undef VK_GLOBAL_FUNCTION
+#undef VK_INSTANCE_FUNCTION
+#undef VK_DEVICE_FUNCTION
+
+    //
     // data members
     //
-    std::vector<vk::ExtensionProperties> _available_extensions;
+    std::vector<VkExtensionProperties> _available_extensions;
 
-    // TODO(kw): Enable extensions to enable vulkan smart pointers
-    vk::Instance _instance;
+    // TODO(kw): Add smart pointers for RAII
+    VkInstance _instance = VK_NULL_HANDLE;
 
-    std::vector<vk::PhysicalDevice> _all_physical_devices;
+    std::vector<VkPhysicalDevice> _all_physical_devices;
 
-    vk::PhysicalDevice _physical_device;
+    VkPhysicalDevice _physical_device = VK_NULL_HANDLE;
     uint32_t _queue_index = UINT32_MAX;
 
-    vk::Device _device;
+    VkDevice _device = VK_NULL_HANDLE;
 
 #if defined(_DEBUG)
-    vk::DebugReportCallbackEXT _debug_report;
+    VkDebugReportCallbackEXT _debug_report = VK_NULL_HANDLE;
 #endif
 };
 

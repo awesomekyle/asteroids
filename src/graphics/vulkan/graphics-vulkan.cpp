@@ -10,11 +10,12 @@
 
 namespace {
 
-template<typename T, size_t kSize>
-constexpr size_t array_length(T (&)[kSize])
+template<typename T, uint32_t kSize>
+constexpr uint32_t array_length(T (&)[kSize])
 {
     return kSize;
 }
+#define VK_SUCCEEDED(res) (res == VK_SUCCESS)
 
 ///
 /// Constants
@@ -46,6 +47,17 @@ namespace ak {
 
 GraphicsVulkan::GraphicsVulkan()
 {
+    auto const library = LoadLibraryW(L"vulkan-1.dll");
+    Ensures(library);
+    vkGetInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(
+        GetProcAddress(library, "vkGetInstanceProcAddr"));
+    Ensures(vkGetInstanceProcAddr);
+
+// Load global functions
+#define VK_GLOBAL_FUNCTION(fn) fn = reinterpret_cast<PFN_##fn>(vkGetInstanceProcAddr(nullptr, #fn));
+#include "vulkan-global-method-list.inl"
+#undef VK_GLOBAL_FUNCTION
+
     get_extensions();
     create_instance();
     create_debug_callback();
@@ -56,13 +68,9 @@ GraphicsVulkan::GraphicsVulkan()
 
 GraphicsVulkan::~GraphicsVulkan()
 {
-#if defined(_DEBUG)
-    auto const pvkDestroyDebugReportCallbackEXT =
-        reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(
-            vkGetInstanceProcAddr(_instance, "vkDestroyDebugReportCallbackEXT"));
-    pvkDestroyDebugReportCallbackEXT(_instance, _debug_report, NULL);
-#endif
-    _instance.destroy();
+    vkDestroyDevice(_device, _vk_allocator);
+    vkDestroyDebugReportCallbackEXT(_instance, _debug_report, _vk_allocator);
+    vkDestroyInstance(_instance, _vk_allocator);
 }
 
 Graphics::API GraphicsVulkan::api_type() const
@@ -100,11 +108,17 @@ bool GraphicsVulkan::execute(CommandBuffer* /*command_buffer*/)
 
 void GraphicsVulkan::get_extensions()
 {
-    auto extension_result = vk::enumerateInstanceExtensionProperties();
-    if (extension_result.result != vk::Result::eSuccess) {
-        return;
-    }
-    _available_extensions = extension_result.value;
+    uint32_t num_extensions = 0;
+    VkResult result = VK_SUCCESS;
+    do {
+        result = vkEnumerateInstanceExtensionProperties(nullptr, &num_extensions, nullptr);
+        if (result == VK_SUCCESS && num_extensions) {
+            _available_extensions.resize(num_extensions);
+            result = vkEnumerateInstanceExtensionProperties(nullptr, &num_extensions,
+                                                            _available_extensions.data());
+            assert(VK_SUCCEEDED(result));
+        }
+    } while (result == VK_INCOMPLETE);
 }
 
 void GraphicsVulkan::create_instance()
@@ -119,95 +133,142 @@ void GraphicsVulkan::create_instance()
         }
     }
 
-    vk::ApplicationInfo const application_info("Vulkan Graphics", VK_MAKE_VERSION(0, 0, 1),
-                                               "Vulkan Graphics Engine", VK_MAKE_VERSION(0, 0, 1),
-                                               VK_API_VERSION_1_0);
-    vk::InstanceCreateInfo const instance_info(vk::InstanceCreateFlags::Flags(), &application_info,
-                                               kNumValidationLayers, kValidationLayers,
-                                               static_cast<uint32_t>(enabled_extensions.size()),
-                                               enabled_extensions.data());
+    VkApplicationInfo const application_info = {
+        VK_STRUCTURE_TYPE_APPLICATION_INFO,  // sType
+        NULL,                                // pNext
+        "Asteroids",                         // pApplicationName
+        0,                                   // applicationVersion
+        "Vulkan Graphics",                   // pEngineName
+        VK_MAKE_VERSION(0, 1, 0),            // engineVersion
+        VK_MAKE_VERSION(1, 0, 0),            // apiVersion
+    };
+    VkInstanceCreateInfo const create_info = {
+        VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,            // sType
+        NULL,                                              // pNext
+        0,                                                 // flags
+        &application_info,                                 // pApplicationInfo
+        kNumValidationLayers,                              // enabledLayerCount
+        kValidationLayers,                                 // ppEnabledLayerNames
+        static_cast<uint32_t>(enabled_extensions.size()),  // enabledExtensionCount
+        enabled_extensions.data(),                         // ppEnabledExtensionNames
+    };
+    auto const result = vkCreateInstance(&create_info, _vk_allocator, &_instance);
+    assert(VK_SUCCEEDED(result) && "Could not create instance");
+    Ensures(_instance);
 
-    auto const instance_result = vk::createInstance(instance_info);
-    if (instance_result.result != vk::Result::eSuccess) {
-        return;
-    }
-
-    _instance = instance_result.value;
+// Load instance methods
+#define VK_INSTANCE_FUNCTION(fn) \
+    fn = reinterpret_cast<PFN_##fn>(vkGetInstanceProcAddr(_instance, #fn));
+#include "vulkan-instance-method-list.inl"
+#undef VK_INSTANCE_FUNCTION
 }
 
 void GraphicsVulkan::create_debug_callback()
 {
     Expects(_instance);
 #if _DEBUG
-    auto const pvkCreateDebugReportCallbackEXT =
-        reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(
-            vkGetInstanceProcAddr(_instance, "vkCreateDebugReportCallbackEXT"));
-    vk::DebugReportFlagsEXT const debug_flags =
-        vk::DebugReportFlagBitsEXT::ePerformanceWarning | vk::DebugReportFlagBitsEXT::eError |
-        // vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::eInformation |
-        vk::DebugReportFlagBitsEXT::eWarning;
-    vk::DebugReportCallbackCreateInfoEXT const debug_info(debug_flags, debug_callback, this);
-
-    auto const debug_result =
-        pvkCreateDebugReportCallbackEXT(_instance,
-                                        reinterpret_cast<VkDebugReportCallbackCreateInfoEXT const*>(
-                                            &debug_info),
-                                        nullptr,
-                                        reinterpret_cast<VkDebugReportCallbackEXT*>(
-                                            &_debug_report));
-    assert(debug_result == VK_SUCCESS);
+    VkDebugReportFlagsEXT const debug_flags = VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
+                                              // VK_DEBUG_REPORT_DEBUG_BIT_EXT |
+                                              VK_DEBUG_REPORT_ERROR_BIT_EXT |
+                                              // VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
+                                              VK_DEBUG_REPORT_WARNING_BIT_EXT;
+    VkDebugReportCallbackCreateInfoEXT const debug_info = {
+        VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT,  // sType
+        NULL,                                            // pNext
+        debug_flags,                                     // flags
+        &debug_callback,                                 // pfnCallback
+        this                                             // pUserData
+    };
+    auto const result =
+        vkCreateDebugReportCallbackEXT(_instance, &debug_info, _vk_allocator, &_debug_report);
+    assert(VK_SUCCEEDED(result) && "Could not create debug features");
 #endif
 }
 
 void GraphicsVulkan::get_physical_devices()
 {
-    auto const devices_result = _instance.enumeratePhysicalDevices();
-    if (devices_result.result != vk::Result::eSuccess) {
-        return;
-    }
-    _all_physical_devices = devices_result.value;
+    uint32_t num_devices = 0;
+    VkResult result = VK_SUCCESS;
+    do {
+        result = vkEnumeratePhysicalDevices(_instance, &num_devices, nullptr);
+        if (result == VK_SUCCESS && num_devices) {
+            _all_physical_devices.resize(num_devices);
+            result =
+                vkEnumeratePhysicalDevices(_instance, &num_devices, _all_physical_devices.data());
+            assert(VK_SUCCEEDED(result));
+        }
+    } while (result == VK_INCOMPLETE);
 }
 
 void GraphicsVulkan::select_physical_device()
 {
-    vk::PhysicalDevice best_physical_device;
+    VkPhysicalDevice best_physical_device = VK_NULL_HANDLE;
     for (auto const& device : _all_physical_devices) {
-        auto const properties = device.getProperties();
-        if (properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
+        VkPhysicalDeviceProperties properties = {};
+        vkGetPhysicalDeviceProperties(device, &properties);
+        if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
             best_physical_device = device;
             break;
         }
     }
-
     assert(best_physical_device);
 
     // TODO(kw): Support multiple queue types
-    auto const queue_properties = best_physical_device.getQueueFamilyProperties();
+    uint32_t num_queues = 0;
+    std::vector<VkQueueFamilyProperties> queue_properties;
+    vkGetPhysicalDeviceQueueFamilyProperties(best_physical_device, &num_queues, nullptr);
+    if (num_queues) {
+        queue_properties.resize(num_queues);
+        vkGetPhysicalDeviceQueueFamilyProperties(best_physical_device, &num_queues,
+                                                 queue_properties.data());
+    }
     for (uint32_t ii = 0; ii < static_cast<uint32_t>(queue_properties.size()); ++ii) {
         if (queue_properties[ii].queueCount >= 1 &&
-            queue_properties[ii].queueFlags & vk::QueueFlagBits::eGraphics) {
+            queue_properties[ii].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
             _queue_index = ii;
             break;
         }
     }
     assert(_queue_index != UINT32_MAX);
+
+    _physical_device = best_physical_device;
 }
 
 void GraphicsVulkan::create_device()
 {
-    constexpr float queue_priorities[] = {1.0f};
-    vk::DeviceQueueCreateInfo const queue_info(vk::DeviceQueueCreateFlags::Flags(), _queue_index, 1,
-                                               queue_priorities);
+    constexpr float queuePriorities[] = {1.0f};
+    VkDeviceQueueCreateInfo const queue_info = {
+        VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,  // sType
+        nullptr,                                     // pNext
+        0,                                           // flags
+        _queue_index,                                // queueFamilyIndex
+        1,                                           // queueCount
+        queuePriorities,                             // pQueuePriorities
+    };
+    constexpr char const* known_extensions[] = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME,  // TODO: Check this is supported
+    };
+    constexpr uint32_t const num_known_extensions = array_length(known_extensions);
+    VkDeviceCreateInfo const device_info = {
+        VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,  // sType
+        nullptr,                               // pNext
+        0,                                     // flags
+        1,                                     // queueCreateInfoCount
+        &queue_info,                           // pQueueCreateInfos
+        0,                                     // enabledLayerCount
+        nullptr,                               // ppEnabledLayerNames
+        num_known_extensions,                  // enabledExtensionCount
+        known_extensions,                      // ppEnabledExtensionNames
+        0,                                     // pEnabledFeatures
+    };
+    VkResult const result = vkCreateDevice(_physical_device, &device_info, nullptr, &_device);
+    assert(VK_SUCCEEDED(result) && "Could not create device");
 
-    constexpr char const* known_extensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-    vk::DeviceCreateInfo const device_info(vk::DeviceCreateFlags::Flags(), 1, &queue_info, 0,
-                                           nullptr, 1, known_extensions);
-
-    auto const device_result = _physical_device.createDevice(device_info);
-    if (device_result.result != vk::Result::eSuccess) {
-        return;
-    }
-    _device = device_result.value;
+// Load device methods
+#define VK_DEVICE_FUNCTION(fn) \
+    fn = reinterpret_cast<PFN_##fn>(vkGetInstanceProcAddr(_instance, #fn));
+#include "vulkan-device-method-list.inl"
+#undef VK_DEVICE_FUNCTION
 }
 
 ScopedGraphics create_graphics_vulkan()

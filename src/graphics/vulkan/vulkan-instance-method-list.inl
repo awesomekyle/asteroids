@@ -1,0 +1,10 @@
+VK_INSTANCE_FUNCTION(vkDestroyInstance)
+VK_INSTANCE_FUNCTION(vkCreateDebugReportCallbackEXT)
+VK_INSTANCE_FUNCTION(vkDestroyDebugReportCallbackEXT)
+VK_INSTANCE_FUNCTION(vkEnumeratePhysicalDevices)
+VK_INSTANCE_FUNCTION(vkGetPhysicalDeviceProperties)
+VK_INSTANCE_FUNCTION(vkGetPhysicalDeviceQueueFamilyProperties)
+VK_INSTANCE_FUNCTION(vkCreateDevice)
+VK_INSTANCE_FUNCTION(vkDestroyDevice)
+VK_INSTANCE_FUNCTION(vkGetDeviceProcAddr)
+
