@@ -1,14 +1,19 @@
 VK_DEVICE_FUNCTION(vkCreateSemaphore)
 VK_DEVICE_FUNCTION(vkDestroySemaphore)
 VK_DEVICE_FUNCTION(vkDeviceWaitIdle)
+VK_DEVICE_FUNCTION(vkGetDeviceQueue)
 
-VK_DEVICE_FUNCTION(vkCreateSwapchainKHR)
-VK_DEVICE_FUNCTION(vkDestroySwapchainKHR)
-VK_DEVICE_FUNCTION(vkGetSwapchainImagesKHR)
 VK_DEVICE_FUNCTION(vkCreateImageView)
 VK_DEVICE_FUNCTION(vkDestroyImageView)
+
 VK_DEVICE_FUNCTION(vkCreateFramebuffer)
 VK_DEVICE_FUNCTION(vkDestroyFramebuffer)
 
 VK_DEVICE_FUNCTION(vkCreateRenderPass)
 VK_DEVICE_FUNCTION(vkDestroyRenderPass)
+
+VK_DEVICE_FUNCTION(vkCreateSwapchainKHR)
+VK_DEVICE_FUNCTION(vkDestroySwapchainKHR)
+VK_DEVICE_FUNCTION(vkGetSwapchainImagesKHR)
+VK_DEVICE_FUNCTION(vkAcquireNextImageKHR)
+VK_DEVICE_FUNCTION(vkQueuePresentKHR)

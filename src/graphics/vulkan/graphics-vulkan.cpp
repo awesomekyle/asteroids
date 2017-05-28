@@ -73,6 +73,8 @@ GraphicsVulkan::GraphicsVulkan()
     select_physical_device();
     create_device();
     create_render_passes();
+
+    vkGetDeviceQueue(_device, _queue_index, 0, &_render_queue);
 }
 
 GraphicsVulkan::~GraphicsVulkan()
@@ -187,7 +189,8 @@ bool GraphicsVulkan::create_swap_chain(void* window, void* application)
     assert(_surface_format.format != VK_FORMAT_UNDEFINED);
     assert(_surface_capabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT &&
            "Cannot clear surface");
-    return true;
+
+    return resize(0, 0);
 #else
 #warning "No swap chain implementation"
     return false;
@@ -196,8 +199,6 @@ bool GraphicsVulkan::create_swap_chain(void* window, void* application)
 
 bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
 {
-    Expects(_surface);
-
     if (_surface == VK_NULL_HANDLE) {
         return false;
     }
@@ -209,11 +210,10 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
                                                        &_surface_capabilities);
     assert(VK_SUCCEEDED(result) && "Could not get surface capabilities");
 
-    VkImageUsageFlags const imageUsageFlags =
+    VkImageUsageFlags const image_usage_flags =
         VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
-        VK_IMAGE_USAGE_TRANSFER_DST_BIT;                               // TODO: check support
-    VkPresentModeKHR const presentMode = VK_PRESENT_MODE_MAILBOX_KHR;  // TODO: check support
-    uint32_t const numImages = _surface_capabilities.minImageCount + 1;
+        VK_IMAGE_USAGE_TRANSFER_DST_BIT;  // TODO: check support
+    uint32_t const num_images = _surface_capabilities.minImageCount + 1;
 
     // Create swap chain
     VkSwapchainCreateInfoKHR const swapChainInfo = {
@@ -221,28 +221,28 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
         nullptr,                                      // pNext
         0,                                            // flags
         _surface,                                     // surface
-        numImages,                                    // minImageCount
+        num_images,                                   // minImageCount
         _surface_format.format,                       // imageFormat
         _surface_format.colorSpace,                   // imageColorSpace
         _surface_capabilities.currentExtent,          // imageExtent
         1,                                            // imageArrayLayers
-        imageUsageFlags,                              // imageUsage
+        image_usage_flags,                            // imageUsage
         VK_SHARING_MODE_EXCLUSIVE,                    // imageSharingMode
         0,                                            // queueFamilyIndexCount
         nullptr,                                      // pQueueFamilyIndices
         _surface_capabilities.currentTransform,       // preTransform
         VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,            // compositeAlpha
-        presentMode,                                  // presentMode
+        _present_mode,                                // presentMode
         VK_TRUE,                                      // clipped
         _swap_chain,                                  // oldSwapchain
     };
-    VkSwapchainKHR newSwapChain = VK_NULL_HANDLE;
-    result = vkCreateSwapchainKHR(_device, &swapChainInfo, nullptr, &newSwapChain);
+    VkSwapchainKHR new_swap_chain = VK_NULL_HANDLE;
+    result = vkCreateSwapchainKHR(_device, &swapChainInfo, nullptr, &new_swap_chain);
     assert(VK_SUCCEEDED(result) && "Could not create swap chain");
     if (_swap_chain != VK_NULL_HANDLE) {
         vkDestroySwapchainKHR(_device, _swap_chain, nullptr);
     }
-    _swap_chain = newSwapChain;
+    _swap_chain = new_swap_chain;
 
     // Get images
     result = vkGetSwapchainImagesKHR(_device, _swap_chain, &_num_back_buffers, nullptr);
@@ -296,7 +296,32 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
 
 bool GraphicsVulkan::present()
 {
-    return false;
+    if (_swap_chain == VK_NULL_HANDLE) {
+        return false;
+    }
+    uint32_t const curr_index = get_back_buffer();
+
+    // Present
+    VkPresentInfoKHR const presentInfo = {
+        VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,  // sType
+        nullptr,                             // pNext
+        1,                                   // waitSemaphoreCount
+        &_swap_chain_semaphore,              // pWaitSemaphores
+        1,                                   // swapchainCount
+        &_swap_chain,                        // pSwapchains
+        &curr_index,                         // pImageIndices
+        nullptr,                             // pResults
+    };
+    VkResult const result = vkQueuePresentKHR(_render_queue, &presentInfo);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        resize(0, 0);
+    }
+    _back_buffer_index = UINT32_MAX;
+    if (result != VK_ERROR_VALIDATION_FAILED_EXT) {
+        assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
+    }
+
+    return true;
 }
 
 CommandBuffer* GraphicsVulkan::command_buffer()
@@ -532,6 +557,24 @@ void GraphicsVulkan::create_render_passes()
 
     VkResult const result = vkCreateRenderPass(_device, &render_pass_info, nullptr, &_render_pass);
     assert(VK_SUCCEEDED(result) && "Could not create render pass");
+}
+
+uint32_t GraphicsVulkan::get_back_buffer()
+{
+    Expects(_swap_chain);
+    if (_back_buffer_index != UINT32_MAX) {
+        return _back_buffer_index;
+    }
+    VkResult const result =
+        vkAcquireNextImageKHR(_device, _swap_chain, UINT64_MAX, _swap_chain_semaphore,
+                              VK_NULL_HANDLE, &_back_buffer_index);
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        resize(0, 0);
+        return get_back_buffer();
+    }
+    assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
+
+    return _back_buffer_index;
 }
 
 ScopedGraphics create_graphics_vulkan()

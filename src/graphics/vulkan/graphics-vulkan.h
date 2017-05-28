@@ -50,6 +50,8 @@ class GraphicsVulkan : public Graphics
     void create_device();
     void create_render_passes();
 
+    uint32_t get_back_buffer();
+
     //
     // constants
     //
@@ -101,11 +103,14 @@ class GraphicsVulkan : public Graphics
     VkImage _back_buffers[kMaxBackBuffers] = {};
     VkImageView _back_buffer_views[kMaxBackBuffers] = {};
     uint32_t _num_back_buffers = 0;
-    uint32_t _back_buffer_index = 0;
+    uint32_t _back_buffer_index = UINT32_MAX;
     VkFramebuffer _framebuffers[kMaxBackBuffers] = {};
 
     // Render pass info
     VkRenderPass _render_pass = VK_NULL_HANDLE;
+
+    // execution
+    VkQueue _render_queue = VK_NULL_HANDLE;
 
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT _debug_report = VK_NULL_HANDLE;
