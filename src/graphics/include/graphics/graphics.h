@@ -7,6 +7,8 @@ namespace ak {
 class CommandBuffer
 {
    public:
+    virtual ~CommandBuffer();
+    
     /// @brief Resets a command buffer to restore it to the Gfx device without execution
     /// @note After this call, the buffer should no longer be accessed
     virtual void reset() = 0;
