@@ -85,6 +85,14 @@ class GraphicsVulkan : public Graphics
 
     VkDevice _device = VK_NULL_HANDLE;
 
+    VkSurfaceKHR _surface = VK_NULL_HANDLE;
+    VkSemaphore _swap_chain_semaphore = VK_NULL_HANDLE;
+    VkSurfaceCapabilitiesKHR _surface_capabilities = {};
+    VkPresentModeKHR _present_mode = VK_PRESENT_MODE_FIFO_KHR;
+    VkSurfaceFormatKHR _surface_format = {
+        VK_FORMAT_UNDEFINED, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR,
+    };
+
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT _debug_report = VK_NULL_HANDLE;
 #endif

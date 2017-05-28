@@ -8,3 +8,12 @@ VK_INSTANCE_FUNCTION(vkCreateDevice)
 VK_INSTANCE_FUNCTION(vkDestroyDevice)
 VK_INSTANCE_FUNCTION(vkGetDeviceProcAddr)
 
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+VK_INSTANCE_FUNCTION(vkCreateWin32SurfaceKHR)
+#endif // VK_USE_PLATFORM_WIN32_KHR
+VK_INSTANCE_FUNCTION(vkDestroySurfaceKHR)
+VK_INSTANCE_FUNCTION(vkGetPhysicalDeviceSurfaceSupportKHR)
+VK_INSTANCE_FUNCTION(vkGetPhysicalDeviceSurfaceFormatsKHR)
+VK_INSTANCE_FUNCTION(vkGetPhysicalDeviceSurfacePresentModesKHR)
+VK_INSTANCE_FUNCTION(vkGetPhysicalDeviceSurfaceCapabilitiesKHR)
+

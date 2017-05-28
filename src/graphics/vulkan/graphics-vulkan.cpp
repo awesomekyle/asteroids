@@ -68,6 +68,8 @@ GraphicsVulkan::GraphicsVulkan()
 
 GraphicsVulkan::~GraphicsVulkan()
 {
+    vkDestroySemaphore(_device, _swap_chain_semaphore, _vk_allocator);
+    vkDestroySurfaceKHR(_instance, _surface, _vk_allocator);
     vkDestroyDevice(_device, _vk_allocator);
     vkDestroyDebugReportCallbackEXT(_instance, _debug_report, _vk_allocator);
     vkDestroyInstance(_instance, _vk_allocator);
@@ -78,9 +80,101 @@ Graphics::API GraphicsVulkan::api_type() const
     return kVulkan;
 }
 
-bool GraphicsVulkan::create_swap_chain(void* /*window*/, void* /*application*/)
+bool GraphicsVulkan::create_swap_chain(void* window, void* application)
 {
+#if defined(VK_USE_PLATFORM_WIN32_KHR)
+    auto hwnd = static_cast<HWND>(window);
+    auto hinstance = static_cast<HINSTANCE>(application);
+    VkWin32SurfaceCreateInfoKHR const surface_create_info = {
+        VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,  // sType
+        nullptr,                                          // pNext
+        0,                                                // flags
+        hinstance,                                        // hinstance
+        hwnd,                                             // hwnd
+    };
+
+    VkResult result = vkCreateWin32SurfaceKHR(_instance, &surface_create_info, nullptr, &_surface);
+    assert(VK_SUCCEEDED(result) && "Could not create surface");
+
+    // Check that the queue supports present
+    VkBool32 present_supported = VK_FALSE;
+    vkGetPhysicalDeviceSurfaceSupportKHR(_physical_device, _queue_index, _surface,
+                                         &present_supported);
+    assert(present_supported && "Present not supported on selected queue");
+
+    // create semaphore
+    VkSemaphoreCreateInfo const semaphore_info = {
+        VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,  // sType
+        nullptr,                                  // pNext
+        0                                         // flags
+    };
+    result = vkCreateSemaphore(_device, &semaphore_info, nullptr, &_swap_chain_semaphore);
+    assert(VK_SUCCEEDED(result) && "Could not create semaphore");
+
+    // Get surface capabilities
+    result = vkGetPhysicalDeviceSurfaceCapabilitiesKHR(_physical_device, _surface,
+                                                       &_surface_capabilities);
+    assert(VK_SUCCEEDED(result) && "Could not get surface capabilities");
+
+    // Get supported formats
+    uint32_t num_formats = 0;
+    std::vector<VkSurfaceFormatKHR> surface_formats;
+    do {
+        result =
+            vkGetPhysicalDeviceSurfaceFormatsKHR(_physical_device, _surface, &num_formats, nullptr);
+        if (result == VK_SUCCESS && num_formats) {
+            surface_formats.resize(num_formats);
+            result = vkGetPhysicalDeviceSurfaceFormatsKHR(_physical_device, _surface, &num_formats,
+                                                          surface_formats.data());
+            assert(VK_SUCCEEDED(result));
+        }
+    } while (result == VK_INCOMPLETE);
+
+    // Get supported present modes
+    uint32_t num_present_modes = 0;
+    std::vector<VkPresentModeKHR> present_modes;
+    do {
+        result = vkGetPhysicalDeviceSurfacePresentModesKHR(_physical_device, _surface,
+                                                           &num_present_modes, nullptr);
+        if (result == VK_SUCCESS && num_present_modes) {
+            present_modes.resize(num_present_modes);
+            result =
+                vkGetPhysicalDeviceSurfacePresentModesKHR(_physical_device, _surface,
+                                                          &num_present_modes, present_modes.data());
+            assert(VK_SUCCEEDED(result));
+        }
+    } while (result == VK_INCOMPLETE);
+
+    // select present mode
+    constexpr VkPresentModeKHR desired_modes[] = {
+        // TODO(kw): Only use IMMEDIATE for profiling
+        VK_PRESENT_MODE_MAILBOX_KHR, VK_PRESENT_MODE_IMMEDIATE_KHR, VK_PRESENT_MODE_FIFO_KHR,
+    };
+    for (auto desired : desired_modes) {
+        for (auto available : present_modes) {
+            if (available == desired) {
+                _present_mode = desired;
+                break;
+            }
+        }
+    }
+
+    // select surface format
+    for (auto const& format : surface_formats) {
+        if (format.format == VK_FORMAT_B8G8R8A8_SRGB) {  // TODO(kw): support other formats
+            _surface_format = format;
+            break;
+        }
+    }
+
+    assert(_surface_format.format != VK_FORMAT_UNDEFINED);
+    assert(_surface_capabilities.supportedUsageFlags & VK_IMAGE_USAGE_TRANSFER_DST_BIT &&
+           "Cannot clear surface");
+    return true;
+#else
+#warning "No swap chain implementation"
     return false;
+#endif
 }
 
 bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
@@ -135,7 +229,7 @@ void GraphicsVulkan::create_instance()
 
     VkApplicationInfo const application_info = {
         VK_STRUCTURE_TYPE_APPLICATION_INFO,  // sType
-        NULL,                                // pNext
+        nullptr,                             // pNext
         "Asteroids",                         // pApplicationName
         0,                                   // applicationVersion
         "Vulkan Graphics",                   // pEngineName
@@ -144,7 +238,7 @@ void GraphicsVulkan::create_instance()
     };
     VkInstanceCreateInfo const create_info = {
         VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,            // sType
-        NULL,                                              // pNext
+        nullptr,                                           // pNext
         0,                                                 // flags
         &application_info,                                 // pApplicationInfo
         kNumValidationLayers,                              // enabledLayerCount
@@ -174,7 +268,7 @@ void GraphicsVulkan::create_debug_callback()
                                               VK_DEBUG_REPORT_WARNING_BIT_EXT;
     VkDebugReportCallbackCreateInfoEXT const debug_info = {
         VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT,  // sType
-        NULL,                                            // pNext
+        nullptr,                                         // pNext
         debug_flags,                                     // flags
         &debug_callback,                                 // pfnCallback
         this                                             // pUserData

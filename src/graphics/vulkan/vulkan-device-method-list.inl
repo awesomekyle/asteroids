@@ -1,0 +1,3 @@
+VK_DEVICE_FUNCTION(vkCreateSemaphore)
+VK_DEVICE_FUNCTION(vkDestroySemaphore)
+
