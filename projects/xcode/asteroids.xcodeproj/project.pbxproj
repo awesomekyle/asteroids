@@ -24,14 +24,12 @@
 		274204BB1EDB38FF00C966CC /* vulkan.c in Sources */ = {isa = PBXBuildFile; fileRef = 2742048E1EDB38D700C966CC /* vulkan.c */; };
 		274204BC1EDB38FF00C966CC /* window.c in Sources */ = {isa = PBXBuildFile; fileRef = 2742048F1EDB38D700C966CC /* window.c */; };
 		274204BD1EDB39C700C966CC /* libglfw.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 274204A31EDB38F000C966CC /* libglfw.a */; };
-		274204CA1EDB3F3D00C966CC /* graphics.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 274204C91EDB3F3D00C966CC /* graphics.hpp */; };
-		274204CC1EDB3F3D00C966CC /* graphicsPriv.hpp in Headers */ = {isa = PBXBuildFile; fileRef = 274204CB1EDB3F3D00C966CC /* graphicsPriv.hpp */; };
-		274204CE1EDB3F3D00C966CC /* graphics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 274204CD1EDB3F3D00C966CC /* graphics.cpp */; };
 		274204D71EDB3F6300C966CC /* command-buffer-metal.h in Headers */ = {isa = PBXBuildFile; fileRef = 274204D31EDB3F6300C966CC /* command-buffer-metal.h */; };
 		274204D81EDB3F6300C966CC /* command-buffer-metal.mm in Sources */ = {isa = PBXBuildFile; fileRef = 274204D41EDB3F6300C966CC /* command-buffer-metal.mm */; };
 		274204D91EDB3F6300C966CC /* graphics-metal.h in Headers */ = {isa = PBXBuildFile; fileRef = 274204D51EDB3F6300C966CC /* graphics-metal.h */; };
 		274204DA1EDB3F6300C966CC /* graphics-metal.mm in Sources */ = {isa = PBXBuildFile; fileRef = 274204D61EDB3F6300C966CC /* graphics-metal.mm */; };
 		274204DC1EDB3F6B00C966CC /* graphics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 274204DB1EDB3F6B00C966CC /* graphics.cpp */; };
+		274204DD1EDB444800C966CC /* libgraphics.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 274204C71EDB3F3D00C966CC /* libgraphics.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -74,9 +72,6 @@
 		274204A31EDB38F000C966CC /* libglfw.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libglfw.a; sourceTree = BUILT_PRODUCTS_DIR; };
 		274204C21EDB3F2900C966CC /* graphics.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = graphics.h; path = ../../../../../src/graphics/include/graphics/graphics.h; sourceTree = "<group>"; };
 		274204C71EDB3F3D00C966CC /* libgraphics.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libgraphics.a; sourceTree = BUILT_PRODUCTS_DIR; };
-		274204C91EDB3F3D00C966CC /* graphics.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = graphics.hpp; sourceTree = "<group>"; };
-		274204CB1EDB3F3D00C966CC /* graphicsPriv.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = graphicsPriv.hpp; sourceTree = "<group>"; };
-		274204CD1EDB3F3D00C966CC /* graphics.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = graphics.cpp; sourceTree = "<group>"; };
 		274204D31EDB3F6300C966CC /* command-buffer-metal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "command-buffer-metal.h"; path = "../../../../../src/graphics/metal/command-buffer-metal.h"; sourceTree = "<group>"; };
 		274204D41EDB3F6300C966CC /* command-buffer-metal.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = "command-buffer-metal.mm"; path = "../../../../../src/graphics/metal/command-buffer-metal.mm"; sourceTree = "<group>"; };
 		274204D51EDB3F6300C966CC /* graphics-metal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = "graphics-metal.h"; path = "../../../../../src/graphics/metal/graphics-metal.h"; sourceTree = "<group>"; };
@@ -89,6 +84,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				274204DD1EDB444800C966CC /* libgraphics.a in Frameworks */,
 				274204BD1EDB39C700C966CC /* libglfw.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -117,7 +113,6 @@
 				274204701EDB365500C966CC /* asteroids */,
 				274204BF1EDB3E0400C966CC /* graphics */,
 				274204DB1EDB3F6B00C966CC /* graphics.cpp */,
-				274204C81EDB3F3D00C966CC /* graphics */,
 				2742046F1EDB365500C966CC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -202,16 +197,6 @@
 			path = graphics;
 			sourceTree = "<group>";
 		};
-		274204C81EDB3F3D00C966CC /* graphics */ = {
-			isa = PBXGroup;
-			children = (
-				274204C91EDB3F3D00C966CC /* graphics.hpp */,
-				274204CB1EDB3F3D00C966CC /* graphicsPriv.hpp */,
-				274204CD1EDB3F3D00C966CC /* graphics.cpp */,
-			);
-			path = graphics;
-			sourceTree = "<group>";
-		};
 		274204D21EDB3F5500C966CC /* metal */ = {
 			isa = PBXGroup;
 			children = (
@@ -239,8 +224,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				274204D71EDB3F6300C966CC /* command-buffer-metal.h in Headers */,
-				274204CC1EDB3F3D00C966CC /* graphicsPriv.hpp in Headers */,
-				274204CA1EDB3F3D00C966CC /* graphics.hpp in Headers */,
 				274204D91EDB3F6300C966CC /* graphics-metal.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -375,7 +358,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				274204CE1EDB3F3D00C966CC /* graphics.cpp in Sources */,
 				274204D81EDB3F6300C966CC /* command-buffer-metal.mm in Sources */,
 				274204DC1EDB3F6B00C966CC /* graphics.cpp in Sources */,
 				274204DA1EDB3F6300C966CC /* graphics-metal.mm in Sources */,
