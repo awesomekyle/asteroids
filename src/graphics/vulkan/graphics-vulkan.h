@@ -48,6 +48,9 @@ class GraphicsVulkan : public Graphics
     void get_extensions();
     void create_instance();
     void create_debug_callback();
+    void get_physical_devices();
+    void select_physical_device();
+    void create_device();
 
     //
     // data members
@@ -56,6 +59,13 @@ class GraphicsVulkan : public Graphics
 
     // TODO(kw): Enable extensions to enable vulkan smart pointers
     vk::Instance _instance;
+
+    std::vector<vk::PhysicalDevice> _all_physical_devices;
+
+    vk::PhysicalDevice _physical_device;
+    uint32_t _queue_index = UINT32_MAX;
+
+    vk::Device _device;
 
 #if defined(_DEBUG)
     vk::DebugReportCallbackEXT _debug_report;

@@ -49,6 +49,9 @@ GraphicsVulkan::GraphicsVulkan()
     get_extensions();
     create_instance();
     create_debug_callback();
+    get_physical_devices();
+    select_physical_device();
+    create_device();
 }
 
 GraphicsVulkan::~GraphicsVulkan()
@@ -154,6 +157,57 @@ void GraphicsVulkan::create_debug_callback()
                                             &_debug_report));
     assert(debug_result == VK_SUCCESS);
 #endif
+}
+
+void GraphicsVulkan::get_physical_devices()
+{
+    auto const devices_result = _instance.enumeratePhysicalDevices();
+    if (devices_result.result != vk::Result::eSuccess) {
+        return;
+    }
+    _all_physical_devices = devices_result.value;
+}
+
+void GraphicsVulkan::select_physical_device()
+{
+    vk::PhysicalDevice best_physical_device;
+    for (auto const& device : _all_physical_devices) {
+        auto const properties = device.getProperties();
+        if (properties.deviceType == vk::PhysicalDeviceType::eDiscreteGpu) {
+            best_physical_device = device;
+            break;
+        }
+    }
+
+    assert(best_physical_device);
+
+    // TODO(kw): Support multiple queue types
+    auto const queue_properties = best_physical_device.getQueueFamilyProperties();
+    for (uint32_t ii = 0; ii < static_cast<uint32_t>(queue_properties.size()); ++ii) {
+        if (queue_properties[ii].queueCount >= 1 &&
+            queue_properties[ii].queueFlags & vk::QueueFlagBits::eGraphics) {
+            _queue_index = ii;
+            break;
+        }
+    }
+    assert(_queue_index != UINT32_MAX);
+}
+
+void GraphicsVulkan::create_device()
+{
+    constexpr float queue_priorities[] = {1.0f};
+    vk::DeviceQueueCreateInfo const queue_info(vk::DeviceQueueCreateFlags::Flags(), _queue_index, 1,
+                                               queue_priorities);
+
+    constexpr char const* known_extensions[] = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    vk::DeviceCreateInfo const device_info(vk::DeviceCreateFlags::Flags(), 1, &queue_info, 0,
+                                           nullptr, 1, known_extensions);
+
+    auto const device_result = _physical_device.createDevice(device_info);
+    if (device_result.result != vk::Result::eSuccess) {
+        return;
+    }
+    _device = device_result.value;
 }
 
 ScopedGraphics create_graphics_vulkan()
