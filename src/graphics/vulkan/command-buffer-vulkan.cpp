@@ -18,11 +18,49 @@ void CommandBufferVulkan::reset()
 
 bool CommandBufferVulkan::begin_render_pass()
 {
-    return false;
+    if (_graphics->_swap_chain == VK_NULL_HANDLE) {
+        return false;
+    }
+    auto const back_buffer_index = _graphics->get_back_buffer();
+    constexpr VkClearValue clear_values[] = {
+        {
+            // color
+            {
+                0.0f, 0.75f, 1.0f, 1.0f,
+            },
+            // depthStencil
+            {
+                0.0f,  // depth
+                0x0,   // stencil
+            },
+        },
+    };
+    constexpr uint32_t num_clear_values = array_length(clear_values);
+
+    VkRenderPassBeginInfo const render_pass_begin_info = {
+        VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,     // sType
+        nullptr,                                      // pNext
+        _graphics->_render_pass,                      // renderPass
+        _graphics->_framebuffers[back_buffer_index],  // framebuffer
+        // renderArea
+        {
+            // offset
+            {
+                0,  // x
+                0,  // y
+            },
+            _graphics->_surface_capabilities.currentExtent,  // extent
+        },
+        num_clear_values,  // clearValueCount
+        clear_values,      // pClearValues
+    };
+    _graphics->vkCmdBeginRenderPass(_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+    return true;
 }
 
 void CommandBufferVulkan::end_render_pass()
 {
+    _graphics->vkCmdEndRenderPass(_buffer);
 }
 
 }  // namespace ak

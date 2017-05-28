@@ -31,3 +31,6 @@ VK_DEVICE_FUNCTION(vkResetCommandPool)
 VK_DEVICE_FUNCTION(vkResetCommandBuffer)
 VK_DEVICE_FUNCTION(vkEndCommandBuffer)
 VK_DEVICE_FUNCTION(vkQueueSubmit)
+
+VK_DEVICE_FUNCTION(vkCmdBeginRenderPass)
+VK_DEVICE_FUNCTION(vkCmdEndRenderPass)

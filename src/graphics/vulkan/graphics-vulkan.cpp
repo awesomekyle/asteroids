@@ -10,12 +10,6 @@
 
 namespace {
 
-template<typename T, uint32_t kSize>
-constexpr uint32_t array_length(T (&)[kSize])
-{
-    return kSize;
-}
-
 ///
 /// Constants
 ///
@@ -339,7 +333,7 @@ CommandBuffer* GraphicsVulkan::command_buffer()
     }
     buffer.reset();
 
-    VkCommandBufferBeginInfo const beginInfo = {
+    constexpr VkCommandBufferBeginInfo const beginInfo = {
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,  // sType
         nullptr,                                      // pNext
         VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT,  // flags

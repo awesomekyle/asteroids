@@ -15,6 +15,12 @@
 
 #define VK_SUCCEEDED(res) (res == VK_SUCCESS)
 
+template<typename T, uint32_t kSize>
+constexpr uint32_t array_length(T (&)[kSize])
+{
+    return kSize;
+}
+
 namespace ak {
 
 class GraphicsVulkan : public Graphics
