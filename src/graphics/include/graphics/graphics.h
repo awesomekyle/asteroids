@@ -29,8 +29,9 @@ class Graphics
     ///
     /// Constants
     ///
-    static constexpr size_t kMaxCommandBuffers = 128;
-
+    enum {
+        kMaxCommandBuffers = 128,
+    };
     enum API {
         kDefault = 0,
         kD3D12,
