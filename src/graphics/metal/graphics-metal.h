@@ -5,6 +5,10 @@
 #include <array>
 #include <gsl/gsl_assert>
 
+#import <AppKit/AppKit.h>
+#import <Metal/Metal.h>
+#import <QuartzCore/CAMetalLayer.h>
+
 #include "command-buffer-metal.h"
 
 namespace ak {
@@ -32,7 +36,6 @@ class GraphicsMetal : public Graphics
     GraphicsMetal(GraphicsMetal&&) = delete;
     GraphicsMetal& operator=(GraphicsMetal&&) = delete;
 
-
     //
     // Constants
     //
@@ -40,6 +43,15 @@ class GraphicsMetal : public Graphics
     //
     // Types
     //
+    id<MTLDevice> _device = nil;
+    id<MTLCommandQueue> _render_queue = nil;
+
+    NSWindow* _window = nil;
+    CAMetalLayer* _layer = nil;
+
+    std::atomic<int_fast32_t> _available_command_buffers = {};
+
+    id<CAMetalDrawable> _current_drawable = nil;
 
     //
     // Data members

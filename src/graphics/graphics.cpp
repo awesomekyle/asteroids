@@ -3,6 +3,9 @@
 #include "d3d12/graphics-d3d12.h"
 #include "vulkan/graphics-vulkan.h"
 #endif
+#if defined(__APPLE__)
+#include "metal/graphics-metal.h"
+#endif
 
 namespace {
 
@@ -39,7 +42,7 @@ ScopedGraphics create_graphics(Graphics::API api)
 #endif  // _WIN32
 #if defined(__APPLE__)
         case ak::Graphics::kMetal:
-            break;
+            return create_graphics_metal();
 #endif  // __APPLE__
         case ak::Graphics::kDefault:
         case ak::Graphics::kUnknown:

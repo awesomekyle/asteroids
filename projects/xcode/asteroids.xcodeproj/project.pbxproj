@@ -68,7 +68,7 @@
 		2715156C1EDBA00F00B58139 /* command-buffer-metal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "command-buffer-metal.h"; sourceTree = "<group>"; };
 		2715156D1EDBA00F00B58139 /* graphics-metal.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "graphics-metal.mm"; sourceTree = "<group>"; };
 		271515701EDBA00F00B58139 /* graphics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graphics.h; sourceTree = "<group>"; };
-		271515711EDBA00F00B58139 /* graphics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graphics.cpp; sourceTree = "<group>"; };
+		271515711EDBA00F00B58139 /* graphics.cpp */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; fileEncoding = 4; path = graphics.cpp; sourceTree = "<group>"; };
 		2742046E1EDB365500C966CC /* asteroids */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = asteroids; sourceTree = BUILT_PRODUCTS_DIR; };
 		2742047A1EDB38D700C966CC /* cocoa_init.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = cocoa_init.m; path = "../../../../3rd-party/glfw-e4e3e50/src/cocoa_init.m"; sourceTree = "<group>"; };
 		2742047B1EDB38D700C966CC /* cocoa_joystick.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = cocoa_joystick.h; path = "../../../../3rd-party/glfw-e4e3e50/src/cocoa_joystick.h"; sourceTree = "<group>"; };
