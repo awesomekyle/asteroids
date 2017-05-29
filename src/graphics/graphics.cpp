@@ -22,6 +22,7 @@ constexpr ak::Graphics::API platform_default_api()
 
 namespace ak {
 
+CommandBuffer::~CommandBuffer() = default;
 Graphics::~Graphics() = default;
 
 ScopedGraphics create_graphics(Graphics::API api)
