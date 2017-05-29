@@ -3,6 +3,7 @@
 #include "graphics/graphics.h"
 
 #include <cassert>
+#import <Metal/Metal.h>
 
 namespace ak {
 
@@ -20,6 +21,8 @@ class CommandBufferMetal : public CommandBuffer
 
     GraphicsMetal* _graphics = nullptr;
 
+    id<MTLCommandBuffer> _buffer = nil;
+    id<MTLRenderCommandEncoder> _render_encoder = nil;
 };
 
 }  // namespace ak

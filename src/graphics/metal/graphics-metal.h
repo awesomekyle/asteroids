@@ -36,6 +36,8 @@ class GraphicsMetal : public Graphics
     GraphicsMetal(GraphicsMetal&&) = delete;
     GraphicsMetal& operator=(GraphicsMetal&&) = delete;
 
+    id<CAMetalDrawable> get_next_drawable();
+
     //
     // Constants
     //
@@ -49,9 +51,11 @@ class GraphicsMetal : public Graphics
     NSWindow* _window = nil;
     CAMetalLayer* _layer = nil;
 
-    std::atomic<int_fast32_t> _available_command_buffers = {};
+    std::atomic<int_fast32_t> _current_command_buffer = {};
 
     id<CAMetalDrawable> _current_drawable = nil;
+
+    std::array<CommandBufferMetal, kMaxCommandBuffers> _command_buffers;
 
     //
     // Data members

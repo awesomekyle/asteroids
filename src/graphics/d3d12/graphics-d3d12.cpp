@@ -227,13 +227,13 @@ CommandBuffer* GraphicsD3D12::command_buffer()
 int GraphicsD3D12::num_available_command_buffers()
 {
     Expects(_device);
-    int freeBuffers = 0;
+    int free_buffers = 0;
     for (auto const& command_buffer : _command_lists) {
         if (_render_fence->GetCompletedValue() >= command_buffer._completion) {
-            freeBuffers++;
+            free_buffers++;
         }
     }
-    return freeBuffers;
+    return free_buffers;
 }
 bool GraphicsD3D12::execute(CommandBuffer* command_buffer)
 {

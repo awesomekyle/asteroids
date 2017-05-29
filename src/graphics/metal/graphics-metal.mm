@@ -17,6 +17,10 @@ GraphicsMetal::GraphicsMetal()
     , _render_queue([_device newCommandQueueWithMaxCommandBufferCount:kMaxCommandBuffers])
 {
     _render_queue.label = @"Render Queue";
+
+    for (auto& buffer : _command_buffers) {
+        buffer._graphics = this;
+    }
 }
 GraphicsMetal::~GraphicsMetal()
 {
@@ -64,15 +68,44 @@ bool GraphicsMetal::present()
 
 CommandBuffer* GraphicsMetal::command_buffer()
 {
-    return nullptr;
+    Expects(_device);
+    uint_fast32_t const curr_index = _current_command_buffer.fetch_add(1) % kMaxCommandBuffers;
+    auto& buffer = gsl::at(_command_buffers, curr_index);
+    if (buffer._buffer != nil) {
+        /// @TODO: This case needs to be handled. The oldest command buffer hasn't
+        /// yet finished.
+        return nullptr;
+    }
+    buffer._buffer = [_render_queue commandBuffer];
+    return &buffer;
 }
 int GraphicsMetal::num_available_command_buffers()
 {
-    return 0;
+    Expects(_device);
+    int free_buffers = 0;
+    for (auto const& command_buffer : _command_buffers) {
+        if (command_buffer._buffer == nil) {
+            free_buffers++;
+        }
+    }
+    return free_buffers;
 }
-bool GraphicsMetal::execute(CommandBuffer* /*command_buffer*/)
+bool GraphicsMetal::execute(CommandBuffer* command_buffer)
 {
-    return false;
+    auto* const metal_buffer = static_cast<CommandBufferMetal*>(command_buffer);
+    [metal_buffer->_buffer addCompletedHandler:^(id<MTLCommandBuffer> /*buffer*/) {
+        metal_buffer->reset();
+    }];
+    [metal_buffer->_buffer commit];
+    return true;
+}
+
+id<CAMetalDrawable> GraphicsMetal::get_next_drawable()
+{
+    if (_current_drawable == nil) {
+        _current_drawable = _layer.nextDrawable;
+    }
+    return _current_drawable;
 }
 
 ScopedGraphics create_graphics_metal()
