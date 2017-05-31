@@ -20,6 +20,11 @@
 
 #include "graphics/graphics.h"
 
+#if defined(_WIN32)
+#include "simple-vs.h"
+#include "simple-ps.h"
+#endif
+
 namespace {
 
 constexpr int kInitialWidth = 1920;
@@ -127,21 +132,18 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     //
     // Create resources
     //
-    char const* vs_source = nullptr;
-    char const* ps_source = nullptr;
+    void const* vs_source = nullptr;
+    void const* ps_source = nullptr;
+    size_t vs_size = 0;
+    size_t ps_size = 0;
     if (graphics->api_type() == ak::Graphics::kD3D12) {
-        vs_source =
-            "float4 main(uint vertexId : SV_VertexID) : SV_POSITION {"
-            "    float2 pos[3] = { float2(-0.7, 0.7), float2(0.7, 0.7), float2(0.0, -0.7) };"
-            "    return float4(pos[vertexId], 0.0f, 1.0f);"
-            "}";
-        ps_source =
-            "float4 main() : SV_TARGET {"
-            "    return float4(0.3f, 0.5f, 0.7f, 1.0f);"
-            "}";
+        vs_source = kSimpleVShader;
+        vs_size = sizeof(kSimpleVShader);
+        ps_source = kSimplePShader;
+        ps_size = sizeof(kSimplePShader);
     }
     auto render_state = graphics->create_render_state({
-        {vs_source, "main"}, {ps_source, "main"}, "Simple Render State",
+        {vs_source, vs_size}, {ps_source, ps_size}, "Simple Render State",
     });
 
     // timing

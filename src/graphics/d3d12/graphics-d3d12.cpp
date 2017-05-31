@@ -2,7 +2,6 @@
 #include "graphics/graphics.h"
 
 #include <iostream>
-#include <d3dcompiler.h>
 #include <gsl/gsl>
 
 #define UNUSED(v) ((void)(v))
@@ -89,37 +88,6 @@ bool developer_mode_enabled()
         return false;
     }
     return value != 0;
-}
-
-CComPtr<ID3DBlob> compile_hlsl_shader(char const* const sourceCode, char const* const target,
-                                      char const* const entrypoint)
-{
-    Expects(sourceCode);
-    Expects(target);
-    Expects(entrypoint);
-    auto const compiler_module = LoadLibraryA("d3dcompiler_47.dll");
-    Ensures(compiler_module && "Need a D3D compiler");
-    decltype(D3DCompile)* const pD3DCompile =
-        reinterpret_cast<decltype(&D3DCompile)>(GetProcAddress(compiler_module, "D3DCompile"));
-    Ensures(pD3DCompile && "Can't find D3DCompile method");
-
-    UINT compiler_flags = D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR | D3DCOMPILE_ENABLE_STRICTNESS |
-                          D3DCOMPILE_WARNINGS_ARE_ERRORS |
-                          D3DCOMPILE_ENABLE_UNBOUNDED_DESCRIPTOR_TABLES;
-#if _DEBUG
-    compiler_flags |= D3DCOMPILE_DEBUG;
-#endif
-    size_t const source_code_length = strnlen(sourceCode, 1024 * 1024);
-    CComPtr<ID3DBlob> shader_blog = nullptr;
-    CComPtr<ID3DBlob> error_blob = nullptr;
-    HRESULT const hr =
-        pD3DCompile(sourceCode, source_code_length, nullptr, nullptr, nullptr, entrypoint, target,
-                    compiler_flags, 0, &shader_blog, &error_blob);
-    if (error_blob) {
-        std::cerr << "Eror compiling shader: "
-                  << static_cast<char const*>(error_blob->GetBufferPointer()) << std::endl;
-    }
-    return shader_blog;
 }
 
 }  // anonymous namespace
@@ -286,12 +254,6 @@ std::unique_ptr<RenderState> GraphicsD3D12::create_render_state(RenderStateDesc 
 {
     auto state = std::make_unique<RenderStateD3D12>();
 
-    // Compile shaders
-    CComPtr<ID3DBlob> vs_bytecode =
-        compile_hlsl_shader(desc.vertex_shader.source, "vs_5_1", desc.vertex_shader.entrypoint);
-    CComPtr<ID3DBlob> ps_bytecode =
-        compile_hlsl_shader(desc.pixel_shader.source, "ps_5_1", desc.pixel_shader.entrypoint);
-
     // Root signature
     CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(D3D12_DEFAULT);
 
@@ -303,15 +265,16 @@ std::unique_ptr<RenderState> GraphicsD3D12::create_render_state(RenderStateDesc 
     hr = _device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(),
                                       IID_PPV_ARGS(&state->_root_signature));
     assert(SUCCEEDED(hr));
+    set_name(state->_root_signature, "%s Root Signature", desc.name);
 
     // PSO
     D3D12_GRAPHICS_PIPELINE_STATE_DESC const pso_desc = {
-        state->_root_signature,                // pRootSignature
-        CD3DX12_SHADER_BYTECODE(vs_bytecode),  // VS
-        CD3DX12_SHADER_BYTECODE(ps_bytecode),  // PS
-        {nullptr, 0},                          // DS
-        {nullptr, 0},                          // HS
-        {nullptr, 0},                          // GS
+        state->_root_signature,                                  // pRootSignature
+        {desc.vertex_shader.bytecode, desc.vertex_shader.size},  // VS
+        {desc.pixel_shader.bytecode, desc.pixel_shader.size},    // PS
+        {nullptr, 0},                                            // DS
+        {nullptr, 0},                                            // HS
+        {nullptr, 0},                                            // GS
         {
             // StreamOutput
             nullptr,  // pSODeclaration
@@ -340,6 +303,7 @@ std::unique_ptr<RenderState> GraphicsD3D12::create_render_state(RenderStateDesc 
     if (FAILED(hr)) {
         return nullptr;
     }
+    set_name(state->_state, "%s PSO", desc.name);
 
     return state;
 }

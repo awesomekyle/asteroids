@@ -19,7 +19,7 @@ namespace {
 int const glfwInitialized = glfwInit();
 int const glfwTerminationRegistered = atexit(glfwTerminate);
 
-constexpr ak::Graphics::API kTestApi = ak::Graphics::kVulkan;
+constexpr ak::Graphics::API kTestApi = ak::Graphics::kD3D12;
 
 void* native_window(GLFWwindow* const window)
 {
@@ -182,6 +182,7 @@ TEST_CASE("graphics resources")
         auto graphics = ak::create_graphics(kTestApi);
         REQUIRE(graphics);
 
+#if 0  // TODO(kw): When using binary shaders, how do we test this?
         WHEN("a render state is created")
         {
             auto const default_vertex_source = [&]() -> char const* {
@@ -220,6 +221,7 @@ TEST_CASE("graphics resources")
 
             THEN("a valid render state is returned") { REQUIRE(render_state); }
         }
+#endif
     }
 }
 

@@ -3,4 +3,23 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\asteroids\main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Filter Include="assets">
+      <UniqueIdentifier>{f21386a9-677a-4789-918f-c8eb995e1d6e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\shaders">
+      <UniqueIdentifier>{7e4d93a6-2eb4-4ea2-a885-b856dcfaccc3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="assets\shaders\hlsl">
+      <UniqueIdentifier>{67070dba-ae0e-45b8-8557-cc331c1e428e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple-vs.hlsl">
+      <Filter>assets\shaders\hlsl</Filter>
+    </FxCompile>
+    <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple-ps.hlsl">
+      <Filter>assets\shaders\hlsl</Filter>
+    </FxCompile>
+  </ItemGroup>
 </Project>

@@ -6,8 +6,8 @@ namespace ak {
 
 struct ShaderDesc
 {
-    char const* source;      ///< High-level source code (HLSL, GLSL, Metal)
-    char const* entrypoint;  ///< Entrypoint function name
+    void const* bytecode;  ///< Shader bytecode
+    size_t size;
 };
 
 struct RenderStateDesc
