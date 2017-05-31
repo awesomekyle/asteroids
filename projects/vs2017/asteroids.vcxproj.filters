@@ -13,6 +13,9 @@
     <Filter Include="assets\shaders\hlsl">
       <UniqueIdentifier>{67070dba-ae0e-45b8-8557-cc331c1e428e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="assets\shaders\glsl">
+      <UniqueIdentifier>{e0641c51-d576-43fe-a523-c444641a71d0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple_ps.hlsl">
@@ -21,5 +24,13 @@
     <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple_vs.hlsl">
       <Filter>assets\shaders\hlsl</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\asteroids\assets\shaders\glsl\simple.frag">
+      <Filter>assets\shaders\glsl</Filter>
+    </None>
+    <None Include="..\..\src\asteroids\assets\shaders\glsl\simple.vert">
+      <Filter>assets\shaders\glsl</Filter>
+    </None>
   </ItemGroup>
 </Project>

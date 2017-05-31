@@ -221,6 +221,12 @@
       </ObjectFileOutput>
     </FxCompile>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\asteroids\assets\shaders\glsl\simple.frag">
+      <FileType>Document</FileType>
+    </CustomBuild>
+    <None Include="..\..\src\asteroids\assets\shaders\glsl\simple.vert" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
