@@ -15,10 +15,10 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple-vs.hlsl">
+    <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple_ps.hlsl">
       <Filter>assets\shaders\hlsl</Filter>
     </FxCompile>
-    <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple-ps.hlsl">
+    <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple_vs.hlsl">
       <Filter>assets\shaders\hlsl</Filter>
     </FxCompile>
   </ItemGroup>

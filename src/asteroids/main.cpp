@@ -21,8 +21,8 @@
 #include "graphics/graphics.h"
 
 #if defined(_WIN32)
-#include "simple-vs.h"
-#include "simple-ps.h"
+#include "hlsl/simple_vs.h"
+#include "hlsl/simple_ps.h"
 #endif
 
 namespace {
@@ -132,18 +132,18 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     //
     // Create resources
     //
-    void const* vs_source = nullptr;
-    void const* ps_source = nullptr;
+    void const* vs_bytecode = nullptr;
+    void const* ps_bytecode = nullptr;
     size_t vs_size = 0;
     size_t ps_size = 0;
     if (graphics->api_type() == ak::Graphics::kD3D12) {
-        vs_source = kSimpleVShader;
-        vs_size = sizeof(kSimpleVShader);
-        ps_source = kSimplePShader;
-        ps_size = sizeof(kSimplePShader);
+        vs_bytecode = simple_vs_bytecode;
+        vs_size = sizeof(simple_vs_bytecode);
+        ps_bytecode = simple_ps_bytecode;
+        ps_size = sizeof(simple_ps_bytecode);
     }
     auto render_state = graphics->create_render_state({
-        {vs_source, vs_size}, {ps_source, ps_size}, "Simple Render State",
+        {vs_bytecode, vs_size}, {ps_bytecode, ps_size}, "Simple Render State",
     });
 
     // timing
