@@ -58,6 +58,14 @@ bool CommandBufferVulkan::begin_render_pass()
     return true;
 }
 
+void CommandBufferVulkan::set_render_state(RenderState* const /*state*/)
+{
+}
+
+void CommandBufferVulkan::draw(uint32_t /*vertex_count*/)
+{
+}
+
 void CommandBufferVulkan::end_render_pass()
 {
     _graphics->vkCmdEndRenderPass(_buffer);

@@ -328,7 +328,7 @@ std::unique_ptr<RenderState> GraphicsD3D12::create_render_state(RenderStateDesc 
         D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED,  // IBStripCutValue
         D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,       // PrimitiveTopologyType
         1,                                            // NumRenderTargets
-        {_swap_chain_desc.Format},                    // RTVFormats TODO: Parameterize
+        {DXGI_FORMAT_B8G8R8A8_UNORM_SRGB},            // RTVFormats TODO: Parameterize
         DXGI_FORMAT_UNKNOWN,                          // DSVFormat
         {1, 0},                                       // SampleDesc
         0,                                            // NodeMask
@@ -369,8 +369,8 @@ void GraphicsD3D12::create_debug_interfaces()
     D3D12GetDebugInterface(IID_PPV_ARGS(&d3d12_debug));
     if (d3d12_debug) {
         d3d12_debug->EnableDebugLayer();
-        d3d12_debug->SetEnableGPUBasedValidation(TRUE);
-        d3d12_debug->SetEnableSynchronizedCommandQueueValidation(TRUE);
+        // d3d12_debug->SetEnableGPUBasedValidation(TRUE);
+        // d3d12_debug->SetEnableSynchronizedCommandQueueValidation(TRUE);
     }
 #endif  // _DEBUG
 }
@@ -512,6 +512,11 @@ std::pair<uint32_t, ID3D12Resource*> const& GraphicsD3D12::current_back_buffer()
         _current_back_buffer = {frame_index, back_buffer};
     }
     return _current_back_buffer;
+}
+
+std::pair<uint32_t, uint32_t> GraphicsD3D12::get_dimensions()
+{
+    return std::make_pair(_swap_chain_desc.Width, _swap_chain_desc.Height);
 }
 
 ScopedGraphics create_graphics_d3d12()

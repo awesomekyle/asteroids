@@ -17,6 +17,10 @@ struct RenderStateDesc
     char const* name;
 };
 
+class CommandBuffer;
+class RenderState;
+class Graphics;
+
 class CommandBuffer
 {
    public:
@@ -29,6 +33,12 @@ class CommandBuffer
     /// @brief Begins a "render pass", a collection of API calls that all occur on the final
     /// framebuffer.
     virtual bool begin_render_pass() = 0;
+
+    /// @brief Sets the current render state used for rendering
+    virtual void set_render_state(RenderState* const state) = 0;
+
+    /// @brief Makes a non-indexed draw call
+    virtual void draw(uint32_t vertex_count) = 0;
 
     /// @brief Ends a previously started render pass
     virtual void end_render_pass() = 0;

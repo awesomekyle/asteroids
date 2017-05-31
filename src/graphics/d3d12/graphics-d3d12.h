@@ -48,6 +48,7 @@ class RenderStateD3D12 : public RenderState
 {
    private:
     friend class GraphicsD3D12;
+    friend class CommandBufferD3D12;
 
     CComPtr<ID3D12RootSignature> _root_signature;
     CComPtr<ID3D12PipelineState> _state;
@@ -86,6 +87,7 @@ class GraphicsD3D12 : public Graphics
     void wait_for_idle();
 
     std::pair<uint32_t, ID3D12Resource*> const& current_back_buffer();
+    std::pair<uint32_t, uint32_t> get_dimensions();
 
     //
     // Constants

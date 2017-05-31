@@ -45,7 +45,7 @@ void* native_instance()
 #if defined(_WIN32)
     return static_cast<void*>(GetModuleHandle(nullptr));
 #elif defined(__APPLE__)
-    return nullptr; // TODO(kw): return NSApp
+    return nullptr;  // TODO(kw): return NSApp
 #else
 #warning "Not passing native application"
     return nullptr;
@@ -124,6 +124,26 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     // GLFW callback
     set_framebuffer_size(window, kInitialWidth, kInitialHeight);
 
+    //
+    // Create resources
+    //
+    char const* vs_source = nullptr;
+    char const* ps_source = nullptr;
+    if (graphics->api_type() == ak::Graphics::kD3D12) {
+        vs_source =
+            "float4 main(uint vertexId : SV_VertexID) : SV_POSITION {"
+            "    float2 pos[3] = { float2(-0.7, 0.7), float2(0.7, 0.7), float2(0.0, -0.7) };"
+            "    return float4(pos[vertexId], 0.0f, 1.0f);"
+            "}";
+        ps_source =
+            "float4 main() : SV_TARGET {"
+            "    return float4(0.3f, 0.5f, 0.7f, 1.0f);"
+            "}";
+    }
+    auto render_state = graphics->create_render_state({
+        {vs_source, "main"}, {ps_source, "main"}, "Simple Render State",
+    });
+
     // timing
     int frame_count = 0;
     float fps_elapsed_time = 0.0f;
@@ -153,6 +173,8 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         auto* const command_buffer = graphics->command_buffer();
         if (command_buffer != nullptr) {
             command_buffer->begin_render_pass();
+            command_buffer->set_render_state(render_state.get());
+            command_buffer->draw(3);
             command_buffer->end_render_pass();
             auto const result = graphics->execute(command_buffer);
             assert(result);
