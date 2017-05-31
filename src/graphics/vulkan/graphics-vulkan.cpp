@@ -382,6 +382,11 @@ bool GraphicsVulkan::execute(CommandBuffer* command_buffer)
     return true;
 }
 
+std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc const& /*desc*/)
+{
+    return std::unique_ptr<RenderState>();
+}
+
 void GraphicsVulkan::get_extensions()
 {
     uint32_t num_extensions = 0;

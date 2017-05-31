@@ -4,11 +4,24 @@
 
 namespace ak {
 
+struct ShaderDesc
+{
+    char const* source;      ///< High-level source code (HLSL, GLSL, Metal)
+    char const* entrypoint;  ///< Entrypoint function name
+};
+
+struct RenderStateDesc
+{
+    ShaderDesc vertex_shader;
+    ShaderDesc pixel_shader;
+    char const* name;
+};
+
 class CommandBuffer
 {
    public:
     virtual ~CommandBuffer();
-    
+
     /// @brief Resets a command buffer to restore it to the Gfx device without execution
     /// @note After this call, the buffer should no longer be accessed
     virtual void reset() = 0;
@@ -19,6 +32,14 @@ class CommandBuffer
 
     /// @brief Ends a previously started render pass
     virtual void end_render_pass() = 0;
+};
+
+/// Represents a render pipeline state (PSO for modern APIs, collection of states
+///     in D3D11)
+class RenderState
+{
+   public:
+    virtual ~RenderState();
 };
 
 class Graphics
@@ -69,6 +90,8 @@ class Graphics
 
     /// @brief Executes a command buffer on the GPU
     virtual bool execute(CommandBuffer* command_buffer) = 0;
+
+    virtual std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) = 0;
 };
 
 using ScopedGraphics = std::unique_ptr<Graphics>;

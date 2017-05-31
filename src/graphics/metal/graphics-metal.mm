@@ -100,6 +100,11 @@ bool GraphicsMetal::execute(CommandBuffer* command_buffer)
     return true;
 }
 
+std::unique_ptr<RenderState> GraphicsMetal::create_render_state(RenderStateDesc const& /*desc*/)
+{
+    return std::unique_ptr<RenderState>();
+}
+
 id<CAMetalDrawable> GraphicsMetal::get_next_drawable()
 {
     if (_current_drawable == nil) {

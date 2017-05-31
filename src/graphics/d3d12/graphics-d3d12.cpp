@@ -1,6 +1,8 @@
 #include "graphics-d3d12.h"
 #include "graphics/graphics.h"
 
+#include <iostream>
+#include <d3dcompiler.h>
 #include <gsl/gsl>
 
 #define UNUSED(v) ((void)(v))
@@ -36,8 +38,9 @@ CComPtr<I> create_dxgi_debug_interface()
         return nullptr;
     }
 
-    auto const pDXGIGetDebugInterface = GetProcAddressSafe<decltype(&DXGIGetDebugInterface)>(
-        dxgi_debugModule, "DXGIGetDebugInterface");
+    auto const pDXGIGetDebugInterface =
+        GetProcAddressSafe<decltype(&DXGIGetDebugInterface)>(dxgi_debugModule,
+                                                             "DXGIGetDebugInterface");
     if (pDXGIGetDebugInterface == nullptr) {
         return nullptr;
     }
@@ -86,6 +89,37 @@ bool developer_mode_enabled()
         return false;
     }
     return value != 0;
+}
+
+CComPtr<ID3DBlob> compile_hlsl_shader(char const* const sourceCode, char const* const target,
+                                      char const* const entrypoint)
+{
+    Expects(sourceCode);
+    Expects(target);
+    Expects(entrypoint);
+    auto const compiler_module = LoadLibraryA("d3dcompiler_47.dll");
+    Ensures(compiler_module && "Need a D3D compiler");
+    decltype(D3DCompile)* const pD3DCompile =
+        reinterpret_cast<decltype(&D3DCompile)>(GetProcAddress(compiler_module, "D3DCompile"));
+    Ensures(pD3DCompile && "Can't find D3DCompile method");
+
+    UINT compiler_flags = D3DCOMPILE_PACK_MATRIX_COLUMN_MAJOR | D3DCOMPILE_ENABLE_STRICTNESS |
+                          D3DCOMPILE_WARNINGS_ARE_ERRORS |
+                          D3DCOMPILE_ENABLE_UNBOUNDED_DESCRIPTOR_TABLES;
+#if _DEBUG
+    compiler_flags |= D3DCOMPILE_DEBUG;
+#endif
+    size_t const source_code_length = strnlen(sourceCode, 1024 * 1024);
+    CComPtr<ID3DBlob> shader_blog = nullptr;
+    CComPtr<ID3DBlob> error_blob = nullptr;
+    HRESULT const hr =
+        pD3DCompile(sourceCode, source_code_length, nullptr, nullptr, nullptr, entrypoint, target,
+                    compiler_flags, 0, &shader_blog, &error_blob);
+    if (error_blob) {
+        std::cerr << "Eror compiling shader: "
+                  << static_cast<char const*>(error_blob->GetBufferPointer()) << std::endl;
+    }
+    return shader_blog;
 }
 
 }  // anonymous namespace
@@ -248,6 +282,68 @@ bool GraphicsD3D12::execute(CommandBuffer* command_buffer)
     return SUCCEEDED(hr);
 }
 
+std::unique_ptr<RenderState> GraphicsD3D12::create_render_state(RenderStateDesc const& desc)
+{
+    auto state = std::make_unique<RenderStateD3D12>();
+
+    // Compile shaders
+    CComPtr<ID3DBlob> vs_bytecode =
+        compile_hlsl_shader(desc.vertex_shader.source, "vs_5_1", desc.vertex_shader.entrypoint);
+    CComPtr<ID3DBlob> ps_bytecode =
+        compile_hlsl_shader(desc.pixel_shader.source, "ps_5_1", desc.pixel_shader.entrypoint);
+
+    // Root signature
+    CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc(D3D12_DEFAULT);
+
+    CComPtr<ID3DBlob> signature;
+    CComPtr<ID3DBlob> error;
+    HRESULT hr = D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+                                             &signature, &error);
+    assert(SUCCEEDED(hr));
+    hr = _device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(),
+                                      IID_PPV_ARGS(&state->_root_signature));
+    assert(SUCCEEDED(hr));
+
+    // PSO
+    D3D12_GRAPHICS_PIPELINE_STATE_DESC const pso_desc = {
+        state->_root_signature,                // pRootSignature
+        CD3DX12_SHADER_BYTECODE(vs_bytecode),  // VS
+        CD3DX12_SHADER_BYTECODE(ps_bytecode),  // PS
+        {nullptr, 0},                          // DS
+        {nullptr, 0},                          // HS
+        {nullptr, 0},                          // GS
+        {
+            // StreamOutput
+            nullptr,  // pSODeclaration
+            0,        // NumEntries
+            nullptr,  // pBufferStrides
+            0,        // NumStrides
+            0,        // RasterizedStream
+        },
+        CD3DX12_BLEND_DESC(D3D12_DEFAULT),            // BlendState
+        UINT_MAX,                                     // SampleMask
+        CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT),       // RasterizerState
+        CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT),    // DepthStencilState
+        {nullptr, 0},                                 // InputLayout
+        D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_DISABLED,  // IBStripCutValue
+        D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE,       // PrimitiveTopologyType
+        1,                                            // NumRenderTargets
+        {_swap_chain_desc.Format},                    // RTVFormats TODO: Parameterize
+        DXGI_FORMAT_UNKNOWN,                          // DSVFormat
+        {1, 0},                                       // SampleDesc
+        0,                                            // NodeMask
+        {nullptr, 0},                                 // CachedPSO
+        D3D12_PIPELINE_STATE_FLAG_NONE,               // Flags
+    };
+
+    hr = _device->CreateGraphicsPipelineState(&pso_desc, IID_PPV_ARGS(&state->_state));
+    if (FAILED(hr)) {
+        return nullptr;
+    }
+
+    return state;
+}
+
 void GraphicsD3D12::create_debug_interfaces()
 {
 #if defined(_DEBUG)
@@ -330,10 +426,11 @@ void GraphicsD3D12::create_device()
         HRESULT hr =
             D3D12CreateDevice(adapter.adapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&_device));
         if (SUCCEEDED(hr)) {
-            constexpr D3D_FEATURE_LEVEL levels[] = {
-                D3D_FEATURE_LEVEL_9_1,  D3D_FEATURE_LEVEL_9_2,  D3D_FEATURE_LEVEL_9_3,
-                D3D_FEATURE_LEVEL_10_0, D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0,
-                D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_12_0, D3D_FEATURE_LEVEL_12_1};
+            constexpr D3D_FEATURE_LEVEL levels[] = {D3D_FEATURE_LEVEL_9_1,  D3D_FEATURE_LEVEL_9_2,
+                                                    D3D_FEATURE_LEVEL_9_3,  D3D_FEATURE_LEVEL_10_0,
+                                                    D3D_FEATURE_LEVEL_10_1, D3D_FEATURE_LEVEL_11_0,
+                                                    D3D_FEATURE_LEVEL_11_1, D3D_FEATURE_LEVEL_12_0,
+                                                    D3D_FEATURE_LEVEL_12_1};
             D3D12_FEATURE_DATA_FEATURE_LEVELS featureLevels = {
                 _countof(levels), levels,  // NOLINT
             };
@@ -354,9 +451,9 @@ void GraphicsD3D12::create_device()
 void GraphicsD3D12::create_queue()
 {
     Expects(_device);
-    constexpr D3D12_COMMAND_QUEUE_DESC queue_desc = {
-        D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT, 0,
-        D3D12_COMMAND_QUEUE_FLAGS::D3D12_COMMAND_QUEUE_FLAG_NONE, 0};
+    constexpr D3D12_COMMAND_QUEUE_DESC queue_desc =
+        {D3D12_COMMAND_LIST_TYPE::D3D12_COMMAND_LIST_TYPE_DIRECT, 0,
+         D3D12_COMMAND_QUEUE_FLAGS::D3D12_COMMAND_QUEUE_FLAG_NONE, 0};
     HRESULT hr = _device->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&_render_queue));
     assert(SUCCEEDED(hr) && "Could not create queue");
     set_name(_render_queue, "Render Queue");

@@ -27,6 +27,7 @@ class GraphicsMetal : public Graphics
     CommandBuffer* command_buffer() final;
     int num_available_command_buffers() final;
     bool execute(CommandBuffer* command_buffer) final;
+    std::unique_ptr<RenderState> GraphicsMetal::create_render_state(RenderStateDesc const& /*desc*/) final;
 
    private:
     friend class CommandBufferMetal;

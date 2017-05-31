@@ -38,7 +38,7 @@ void* native_instance(void)
 #if defined(_WIN32)
     return static_cast<void*>(GetModuleHandle(nullptr));
 #elif defined(__APPLE__)
-    return nullptr; // TODO: Get NSApp
+    return nullptr;  // TODO: Get NSApp
 #else
 #warning "Not passing native application"
     return nullptr;
@@ -171,6 +171,54 @@ TEST_CASE("graphics command interface")
             // TODO(kw): end with no begin
 
             glfwDestroyWindow(window);
+        }
+    }
+}
+
+TEST_CASE("graphics resources")
+{
+    GIVEN("a graphics device")
+    {
+        auto graphics = ak::create_graphics(kTestApi);
+        REQUIRE(graphics);
+
+        WHEN("a render state is created")
+        {
+            auto const default_vertex_source = [&]() -> char const* {
+                if (graphics->api_type() == ak::Graphics::kD3D12) {
+                    return "float4 main(uint vertexId : SV_VertexID) : SV_POSITION {"
+                           "    float2 pos[3] = { float2(-0.7, 0.7), float2(0.7, 0.7), float2(0.0, "
+                           "-0.7) };"
+                           "    return float4(pos[vertexId], 0.0f, 1.0f);"
+                           "}";
+                }
+                return nullptr;
+            };
+            auto const default_pixel_source = [&]() -> char const* {
+                if (graphics->api_type() == ak::Graphics::kD3D12) {
+                    return "float4 main() : SV_TARGET {"
+                           "    return float4(0.3f, 0.5f, 0.7f, 1.0f);"
+                           "}";
+                }
+                return nullptr;
+            };
+
+            auto* const vertex_source = default_vertex_source();
+            auto* const pixel_source = default_pixel_source();
+
+            ak::RenderStateDesc const desc = {
+                {
+                    vertex_source, "main",
+                },
+                {
+                    pixel_source, "main",
+                },
+                "Simple State",
+            };
+
+            auto const render_state = graphics->create_render_state(desc);
+
+            THEN("a valid render state is returned") { REQUIRE(render_state); }
         }
     }
 }

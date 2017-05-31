@@ -44,6 +44,15 @@ struct DescriptorHeap
     explicit operator ID3D12DescriptorHeap*() { return heap; }
 };
 
+class RenderStateD3D12 : public RenderState
+{
+   private:
+    friend class GraphicsD3D12;
+
+    CComPtr<ID3D12RootSignature> _root_signature;
+    CComPtr<ID3D12PipelineState> _state;
+};
+
 class GraphicsD3D12 : public Graphics
 {
    public:
@@ -57,6 +66,7 @@ class GraphicsD3D12 : public Graphics
     CommandBuffer* command_buffer() final;
     int num_available_command_buffers() final;
     bool execute(CommandBuffer* command_buffer) final;
+    std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) final;
 
    private:
     friend class CommandBufferD3D12;
