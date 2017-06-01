@@ -118,6 +118,15 @@
       </HeaderFileOutput>
       <ObjectFileOutput>$(OutputPath)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+    <CustomBuild>
+      <Command>glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
+    </CustomBuild>
+    <CustomBuild>
+      <Message>Compiling %(Filename) SPIR-V...</Message>
+    </CustomBuild>
+    <CustomBuild>
+      <Outputs>$(OutputPath)%(Filename)%(Extension).spv</Outputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -141,6 +150,15 @@
       </HeaderFileOutput>
       <ObjectFileOutput>$(OutputPath)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+    <CustomBuild>
+      <Command>glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
+    </CustomBuild>
+    <CustomBuild>
+      <Message>Compiling %(Filename) SPIR-V...</Message>
+    </CustomBuild>
+    <CustomBuild>
+      <Outputs>$(OutputPath)%(Filename)%(Extension).spv</Outputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -168,6 +186,15 @@
       </HeaderFileOutput>
       <ObjectFileOutput>$(OutputPath)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+    <CustomBuild>
+      <Command>glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
+    </CustomBuild>
+    <CustomBuild>
+      <Message>Compiling %(Filename) SPIR-V...</Message>
+    </CustomBuild>
+    <CustomBuild>
+      <Outputs>$(OutputPath)%(Filename)%(Extension).spv</Outputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -195,6 +222,15 @@
       </HeaderFileOutput>
       <ObjectFileOutput>$(OutputPath)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
+    <CustomBuild>
+      <Command>glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
+    </CustomBuild>
+    <CustomBuild>
+      <Message>Compiling %(Filename) SPIR-V...</Message>
+    </CustomBuild>
+    <CustomBuild>
+      <Outputs>$(OutputPath)%(Filename)%(Extension).spv</Outputs>
+    </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\asteroids\main.cpp" />
@@ -225,7 +261,9 @@
     <CustomBuild Include="..\..\src\asteroids\assets\shaders\glsl\simple.frag">
       <FileType>Document</FileType>
     </CustomBuild>
-    <None Include="..\..\src\asteroids\assets\shaders\glsl\simple.vert" />
+    <CustomBuild Include="..\..\src\asteroids\assets\shaders\glsl\simple.vert">
+      <FileType>Document</FileType>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
