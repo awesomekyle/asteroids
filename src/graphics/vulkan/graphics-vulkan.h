@@ -23,6 +23,22 @@ constexpr uint32_t array_length(T (&)[kSize])
 
 namespace ak {
 
+class RenderStateVulkan : public RenderState
+{
+   public:
+    ~RenderStateVulkan();
+
+   private:
+    friend class GraphicsVulkan;
+    friend class CommandBufferVulkan;
+
+    class GraphicsVulkan* _graphics = nullptr;
+    VkShaderModule _vs_module = VK_NULL_HANDLE;
+    VkShaderModule _ps_module = VK_NULL_HANDLE;
+    VkPipelineLayout _pipeline_layout = VK_NULL_HANDLE;
+    VkPipeline _pso = VK_NULL_HANDLE;
+};
+
 class GraphicsVulkan : public Graphics
 {
    public:
@@ -40,6 +56,7 @@ class GraphicsVulkan : public Graphics
 
    private:
     friend class CommandBufferVulkan;
+    friend class RenderStateVulkan;
 
     GraphicsVulkan(const GraphicsVulkan&) = delete;
     GraphicsVulkan& operator=(const GraphicsVulkan&) = delete;

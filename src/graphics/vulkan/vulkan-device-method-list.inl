@@ -34,3 +34,12 @@ VK_DEVICE_FUNCTION(vkQueueSubmit)
 
 VK_DEVICE_FUNCTION(vkCmdBeginRenderPass)
 VK_DEVICE_FUNCTION(vkCmdEndRenderPass)
+
+VK_DEVICE_FUNCTION(vkCreateShaderModule)
+VK_DEVICE_FUNCTION(vkDestroyShaderModule)
+
+VK_DEVICE_FUNCTION(vkCreatePipelineLayout)
+VK_DEVICE_FUNCTION(vkDestroyPipelineLayout)
+
+VK_DEVICE_FUNCTION(vkCreateGraphicsPipelines)
+VK_DEVICE_FUNCTION(vkDestroyPipeline)
