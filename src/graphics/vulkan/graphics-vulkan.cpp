@@ -3,6 +3,7 @@
 
 #include <cinttypes>
 #include <gsl/gsl>
+#include <utility>
 
 #include "vulkan-debug.h"
 
@@ -475,7 +476,7 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         VK_FALSE,                                                    // depthClampEnable
         VK_TRUE,                                                     // rasterizerDiscardEnable
         VK_POLYGON_MODE_FILL,                                        // polygonMode
-        VK_CULL_MODE_BACK_BIT,                                       // cullMode
+        VK_CULL_MODE_NONE,                                           // cullMode
         VK_FRONT_FACE_CLOCKWISE,                                     // frontFace
         VK_FALSE,                                                    // depthBiasEnable
         0.0f,                                                        // depthBiasConstantFactor
@@ -836,6 +837,11 @@ uint32_t GraphicsVulkan::get_back_buffer()
     assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
 
     return _back_buffer_index;
+}
+
+VkExtent2D GraphicsVulkan::get_dimensions() const
+{
+    return _surface_capabilities.currentExtent;
 }
 
 ScopedGraphics create_graphics_vulkan()

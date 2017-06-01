@@ -43,3 +43,8 @@ VK_DEVICE_FUNCTION(vkDestroyPipelineLayout)
 
 VK_DEVICE_FUNCTION(vkCreateGraphicsPipelines)
 VK_DEVICE_FUNCTION(vkDestroyPipeline)
+
+VK_DEVICE_FUNCTION(vkCmdSetViewport)
+VK_DEVICE_FUNCTION(vkCmdSetScissor)
+VK_DEVICE_FUNCTION(vkCmdBindPipeline)
+VK_DEVICE_FUNCTION(vkCmdDraw)

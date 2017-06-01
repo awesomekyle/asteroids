@@ -55,15 +55,31 @@ bool CommandBufferVulkan::begin_render_pass()
         clear_values,      // pClearValues
     };
     _graphics->vkCmdBeginRenderPass(_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+
+    auto const extents = _graphics->get_dimensions();
+    VkRect2D const rect = {
+        {0, 0},   // offset
+        extents,  // extents
+    };
+    _graphics->vkCmdSetScissor(_buffer, 0, 1, &rect);
+
+    VkViewport const viewport = {
+        0, 0, static_cast<float>(extents.width), static_cast<float>(extents.height), 0.0f, 1.0f,
+    };
+    _graphics->vkCmdSetViewport(_buffer, 0, 1, &viewport);
+
     return true;
 }
 
-void CommandBufferVulkan::set_render_state(RenderState* const /*state*/)
+void CommandBufferVulkan::set_render_state(RenderState* const state)
 {
+    auto* const vulkan_state = static_cast<RenderStateVulkan*>(state);
+    _graphics->vkCmdBindPipeline(_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_state->_pso);
 }
 
-void CommandBufferVulkan::draw(uint32_t /*vertex_count*/)
+void CommandBufferVulkan::draw(uint32_t const vertex_count)
 {
+    _graphics->vkCmdDraw(_buffer, vertex_count, 1, 0, 0);
 }
 
 void CommandBufferVulkan::end_render_pass()
