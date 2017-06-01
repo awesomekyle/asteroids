@@ -524,28 +524,14 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         {0.0f, 0.0f, 0.0f, 0.0f}                                   // blendConstants
     };
 
-    VkViewport const viewport = {
-        0.0f,    // x
-        0.0f,    // y
-        512.0f,  // width
-        512.0f,  // height
-        0.0f,    // minDepth
-        1.0f     // maxDepth
-    };
-
-    VkRect2D const scissor = {
-        {0, 0},     // offset
-        {512, 512}  // extent
-    };
-
     VkPipelineViewportStateCreateInfo const viewport_info = {
         VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,  // sType
         nullptr,                                                // pNext
         0,                                                      // flags
         1,                                                      // viewportCount
-        &viewport,                                              // pViewports
+        nullptr,                                                // pViewports
         1,                                                      // scissorCount
-        &scissor                                                // pScissors
+        nullptr                                                 // pScissors
     };
 
     // dynamic state
