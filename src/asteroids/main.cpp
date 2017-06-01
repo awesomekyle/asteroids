@@ -170,9 +170,17 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     //
     std::vector<uint8_t> vs_bytecode;
     std::vector<uint8_t> ps_bytecode;
-    if (graphics->api_type() == ak::Graphics::kD3D12) {
-        vs_bytecode = get_file_contents("simple-vs.cso");
-        ps_bytecode = get_file_contents("simple-ps.cso");
+    switch (graphics->api_type()) {
+        case ak::Graphics::kD3D12:
+            vs_bytecode = get_file_contents("simple-vs.cso");
+            ps_bytecode = get_file_contents("simple-ps.cso");
+            break;
+        case ak::Graphics::kVulkan:
+            vs_bytecode = get_file_contents("simple.vert.spv");
+            ps_bytecode = get_file_contents("simple.frag.spv");
+            break;
+        default:
+            break;
     }
     auto render_state = graphics->create_render_state({
         {vs_bytecode.data(), vs_bytecode.size()},
