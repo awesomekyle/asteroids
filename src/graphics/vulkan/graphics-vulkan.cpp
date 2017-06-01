@@ -474,7 +474,7 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         nullptr,                                                     // pNext
         0,                                                           // flags
         VK_FALSE,                                                    // depthClampEnable
-        VK_TRUE,                                                     // rasterizerDiscardEnable
+        VK_FALSE,                                                    // rasterizerDiscardEnable
         VK_POLYGON_MODE_FILL,                                        // polygonMode
         VK_CULL_MODE_NONE,                                           // cullMode
         VK_FRONT_FACE_CLOCKWISE,                                     // frontFace
@@ -524,11 +524,35 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         {0.0f, 0.0f, 0.0f, 0.0f}                                   // blendConstants
     };
 
+    VkViewport const viewport = {
+        0.0f,    // x
+        0.0f,    // y
+        512.0f,  // width
+        512.0f,  // height
+        0.0f,    // minDepth
+        1.0f     // maxDepth
+    };
+
+    VkRect2D const scissor = {
+        {0, 0},     // offset
+        {512, 512}  // extent
+    };
+
+    VkPipelineViewportStateCreateInfo const viewport_info = {
+        VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,  // sType
+        nullptr,                                                // pNext
+        0,                                                      // flags
+        1,                                                      // viewportCount
+        &viewport,                                              // pViewports
+        1,                                                      // scissorCount
+        &scissor                                                // pScissors
+    };
+
     // dynamic state
     VkDynamicState const dynamic_states[] = {
         VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_VIEWPORT,
     };
-    VkPipelineDynamicStateCreateInfo dynamic_info = {
+    VkPipelineDynamicStateCreateInfo const dynamic_info = {
         VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,  // sType
         nullptr,                                               // pNext
         0,                                                     // flags
@@ -546,7 +570,7 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         &vertex_input_state_info,                         // pVertexInputState;
         &input_assembly_info,                             // pInputAssemblyState
         nullptr,                                          // pTessellationState
-        nullptr,                                          // pViewportState
+        &viewport_info,                                   // pViewportState
         &rasterization_info,                              // pRasterizationState
         &msaa_info,                                       // pMultisampleState
         nullptr,                                          // pDepthStencilState
@@ -837,11 +861,6 @@ uint32_t GraphicsVulkan::get_back_buffer()
     assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
 
     return _back_buffer_index;
-}
-
-VkExtent2D GraphicsVulkan::get_dimensions() const
-{
-    return _surface_capabilities.currentExtent;
 }
 
 ScopedGraphics create_graphics_vulkan()

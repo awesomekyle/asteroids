@@ -1,12 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+VisualStudioVersion = 15.0.26430.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "asteroids", "asteroids.vcxproj", "{75F5E039-4313-4B9C-9815-A2BAD893A7CF}"
-	ProjectSection(ProjectDependencies) = postProject
-		{50C9246B-D8B3-46AA-86E6-2A5A6C5905A5} = {50C9246B-D8B3-46AA-86E6-2A5A6C5905A5}
-	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glfw", "glfw.vcxproj", "{FD5B9A38-86EF-4EDE-A696-3C3D9D8CB904}"
 EndProject

@@ -37,6 +37,7 @@ bool CommandBufferVulkan::begin_render_pass()
     };
     constexpr uint32_t num_clear_values = array_length(clear_values);
 
+    auto const extent = _graphics->_surface_capabilities.currentExtent;
     VkRenderPassBeginInfo const render_pass_begin_info = {
         VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,     // sType
         nullptr,                                      // pNext
@@ -49,22 +50,21 @@ bool CommandBufferVulkan::begin_render_pass()
                 0,  // x
                 0,  // y
             },
-            _graphics->_surface_capabilities.currentExtent,  // extent
+            extent,  // extent
         },
         num_clear_values,  // clearValueCount
         clear_values,      // pClearValues
     };
     _graphics->vkCmdBeginRenderPass(_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 
-    auto const extents = _graphics->get_dimensions();
-    VkRect2D const rect = {
-        {0, 0},   // offset
-        extents,  // extents
+    VkRect2D const scissor = {
+        {0, 0},  // offset
+        extent,  // extent
     };
-    _graphics->vkCmdSetScissor(_buffer, 0, 1, &rect);
+    _graphics->vkCmdSetScissor(_buffer, 0, 1, &scissor);
 
     VkViewport const viewport = {
-        0, 0, static_cast<float>(extents.width), static_cast<float>(extents.height), 0.0f, 1.0f,
+        0, 0, static_cast<float>(extent.width), static_cast<float>(extent.height), 0.0f, 1.0f,
     };
     _graphics->vkCmdSetViewport(_buffer, 0, 1, &viewport);
 

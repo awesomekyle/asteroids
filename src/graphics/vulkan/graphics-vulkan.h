@@ -74,8 +74,6 @@ class GraphicsVulkan : public Graphics
 
     uint32_t get_back_buffer();
 
-    VkExtent2D get_dimensions() const;
-
     //
     // constants
     //
