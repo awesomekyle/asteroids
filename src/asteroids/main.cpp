@@ -7,6 +7,9 @@
 #include <iostream>
 #include <cassert>
 #include <gsl/span>
+#include <codecvt>
+#include <fstream>
+#include <vector>
 
 #if defined(_WIN32)
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -21,8 +24,7 @@
 #include "graphics/graphics.h"
 
 #if defined(_WIN32)
-#include "hlsl/simple_vs.h"
-#include "hlsl/simple_ps.h"
+#include <Pathcch.h>
 #endif
 
 namespace {
@@ -75,6 +77,40 @@ void set_framebuffer_size(GLFWwindow* window, int width, int height)
 ak::Graphics* get_window_graphics(GLFWwindow* window)
 {
     return static_cast<ak::Graphics*>(glfwGetWindowUserPointer(window));
+}
+
+std::string get_executable_directory()
+{
+#if defined(_WIN32)
+    HMODULE const module = GetModuleHandleW(nullptr);
+    wchar_t exe_name[2048] = {};
+    GetModuleFileNameW(module, exe_name, sizeof(exe_name));
+    HRESULT const hr = PathCchRemoveFileSpec(exe_name, sizeof(exe_name));
+    assert(SUCCEEDED(hr));
+    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+    return converter.to_bytes(exe_name);
+#endif
+}
+
+std::string get_absolute_path(char const* const filename)
+{
+    auto const exe_dir = get_executable_directory();
+    return exe_dir + "/" + std::string(filename);
+}
+
+std::vector<uint8_t> get_file_contents(char const* const filename)
+{
+    std::ifstream file(get_absolute_path(filename), std::ios::binary);
+    if (!file) {
+        return std::vector<uint8_t>();
+    }
+    file.seekg(0, std::ios::end);
+    size_t const filesize = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    std::vector<uint8_t> contents(filesize);
+    file.read(reinterpret_cast<char*>(&contents[0]), contents.size());
+    return contents;
 }
 
 ////
@@ -132,18 +168,16 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     //
     // Create resources
     //
-    void const* vs_bytecode = nullptr;
-    void const* ps_bytecode = nullptr;
-    size_t vs_size = 0;
-    size_t ps_size = 0;
+    std::vector<uint8_t> vs_bytecode;
+    std::vector<uint8_t> ps_bytecode;
     if (graphics->api_type() == ak::Graphics::kD3D12) {
-        vs_bytecode = simple_vs_bytecode;
-        vs_size = sizeof(simple_vs_bytecode);
-        ps_bytecode = simple_ps_bytecode;
-        ps_size = sizeof(simple_ps_bytecode);
+        vs_bytecode = get_file_contents("simple-vs.cso");
+        ps_bytecode = get_file_contents("simple-ps.cso");
     }
     auto render_state = graphics->create_render_state({
-        {vs_bytecode, vs_size}, {ps_bytecode, ps_size}, "Simple Render State",
+        {vs_bytecode.data(), vs_bytecode.size()},
+        {ps_bytecode.data(), ps_bytecode.size()},
+        "Simple Render State",
     });
 
     // timing

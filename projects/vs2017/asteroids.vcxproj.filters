@@ -18,19 +18,19 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple_ps.hlsl">
+    <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple-ps.hlsl">
       <Filter>assets\shaders\hlsl</Filter>
     </FxCompile>
-    <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple_vs.hlsl">
+    <FxCompile Include="..\..\src\asteroids\assets\shaders\hlsl\simple-vs.hlsl">
       <Filter>assets\shaders\hlsl</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\src\asteroids\assets\shaders\glsl\simple.frag">
-      <Filter>assets\shaders\glsl</Filter>
-    </None>
     <None Include="..\..\src\asteroids\assets\shaders\glsl\simple.vert">
       <Filter>assets\shaders\glsl</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\asteroids\assets\shaders\glsl\simple.frag" />
   </ItemGroup>
 </Project>
