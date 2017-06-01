@@ -308,6 +308,24 @@ std::unique_ptr<RenderState> GraphicsD3D12::create_render_state(RenderStateDesc 
     return state;
 }
 
+std::unique_ptr<VertexBuffer> GraphicsD3D12::create_vertex_buffer(uint32_t size,
+                                                                  void const* /*data*/)
+{
+    auto buffer = std::make_unique<VertexBufferD3D12>();
+
+    // Create resource
+    auto const buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(size);
+    CD3DX12_HEAP_PROPERTIES const heap_properties(D3D12_HEAP_TYPE_DEFAULT);
+    HRESULT const hr =
+        _device->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &buffer_desc,
+                                         D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
+                                         IID_PPV_ARGS(&buffer->_buffer));
+    assert(SUCCEEDED(hr));
+
+    // TODO(kw): Upload data
+    return buffer;
+}
+
 void GraphicsD3D12::create_debug_interfaces()
 {
 #if defined(_DEBUG)

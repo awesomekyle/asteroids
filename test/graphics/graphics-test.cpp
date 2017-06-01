@@ -222,6 +222,14 @@ TEST_CASE("graphics resources")
             THEN("a valid render state is returned") { REQUIRE(render_state); }
         }
 #endif
+        WHEN("a vertex buffer is created")
+        {
+            float const data[] = {
+                0.0f, 1.0f, 2.0f, 3.0f,
+            };
+            auto vertex_buffer = graphics->create_vertex_buffer(sizeof(data), data);
+            THEN("a valid buffer is returned") { REQUIRE(vertex_buffer); }
+        }
     }
 }
 

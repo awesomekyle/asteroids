@@ -28,6 +28,7 @@ class GraphicsMetal : public Graphics
     int num_available_command_buffers() final;
     bool execute(CommandBuffer* command_buffer) final;
     std::unique_ptr<RenderState> GraphicsMetal::create_render_state(RenderStateDesc const& /*desc*/) final;
+    std::unique_ptr<VertexBuffer> create_vertex_buffer(uint32_t size, void const* data) final;
 
    private:
     friend class CommandBufferMetal;

@@ -52,6 +52,13 @@ class RenderState
     virtual ~RenderState();
 };
 
+class VertexBuffer
+{
+   public:
+    virtual ~VertexBuffer();
+};
+
+/// @todo Enable renaming of all graphics objects
 class Graphics
 {
    public:
@@ -102,6 +109,7 @@ class Graphics
     virtual bool execute(CommandBuffer* command_buffer) = 0;
 
     virtual std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) = 0;
+    virtual std::unique_ptr<VertexBuffer> create_vertex_buffer(uint32_t size, void const* data) = 0;
 };
 
 using ScopedGraphics = std::unique_ptr<Graphics>;

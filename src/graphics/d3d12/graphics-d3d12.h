@@ -46,12 +46,15 @@ struct DescriptorHeap
 
 class RenderStateD3D12 : public RenderState
 {
-   private:
-    friend class GraphicsD3D12;
-    friend class CommandBufferD3D12;
-
+   public:
     CComPtr<ID3D12RootSignature> _root_signature;
     CComPtr<ID3D12PipelineState> _state;
+};
+
+class VertexBufferD3D12 : public VertexBuffer
+{
+   public:
+    CComPtr<ID3D12Resource> _buffer;
 };
 
 class GraphicsD3D12 : public Graphics
@@ -68,6 +71,7 @@ class GraphicsD3D12 : public Graphics
     int num_available_command_buffers() final;
     bool execute(CommandBuffer* command_buffer) final;
     std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) final;
+    std::unique_ptr<VertexBuffer> create_vertex_buffer(uint32_t size, void const* data) final;
 
    private:
     friend class CommandBufferD3D12;

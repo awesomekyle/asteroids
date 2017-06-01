@@ -575,6 +575,12 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
     return state;
 }
 
+std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t /*size*/,
+                                                                   void const* /*data*/)
+{
+    return std::unique_ptr<VertexBuffer>();
+}
+
 void GraphicsVulkan::get_extensions()
 {
     uint32_t num_extensions = 0;

@@ -104,6 +104,10 @@ std::unique_ptr<RenderState> GraphicsMetal::create_render_state(RenderStateDesc 
 {
     return std::unique_ptr<RenderState>();
 }
+std::unique_ptr<VertexBuffer> GraphicsMetal::create_vertex_buffer(uint32_t /*size*/, void const * /*data*/)
+{
+    return std::unique_ptr<VertexBuffer>();
+}
 
 id<CAMetalDrawable> GraphicsMetal::get_next_drawable()
 {
