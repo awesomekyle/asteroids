@@ -10,6 +10,10 @@ configuration:
   - Debug
   - Release
 
+init:
+  - appveyor DownloadFile https://vulkan.lunarg.com/sdk/home#sdk/downloadConfirm/1.0.49.0/windows/VulkanSDK-1.0.49.0-Installer.exe -FileName vulkan-installer.exe
+  - vulkan-installer.exe /S
+
 install:
   - git submodule update --init --recursive
 
