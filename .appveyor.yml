@@ -13,6 +13,7 @@ configuration:
 init:
   - appveyor DownloadFile https://vulkan.lunarg.com/sdk/download/1.0.49.0/windows/VulkanSDK-1.0.49.0-Installer.exe -FileName vulkan-installer.exe
   - vulkan-installer.exe /S
+  - rm -f vulkan-installer.exe
 
 install:
   - git submodule update --init
