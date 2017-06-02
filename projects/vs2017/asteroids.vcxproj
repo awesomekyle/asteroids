@@ -119,7 +119,7 @@
       <ObjectFileOutput>$(OutputPath)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <CustomBuild>
-      <Command>glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
+      <Command>$(VULKAN_SDK)\bin\glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
     </CustomBuild>
     <CustomBuild>
       <Message>Compiling %(Filename) SPIR-V...</Message>
@@ -151,7 +151,7 @@
       <ObjectFileOutput>$(OutputPath)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <CustomBuild>
-      <Command>glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
+      <Command>$(VULKAN_SDK)\bin\glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
     </CustomBuild>
     <CustomBuild>
       <Message>Compiling %(Filename) SPIR-V...</Message>
@@ -187,7 +187,7 @@
       <ObjectFileOutput>$(OutputPath)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <CustomBuild>
-      <Command>glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
+      <Command>$(VULKAN_SDK)\bin\glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
     </CustomBuild>
     <CustomBuild>
       <Message>Compiling %(Filename) SPIR-V...</Message>
@@ -223,7 +223,7 @@
       <ObjectFileOutput>$(OutputPath)%(Filename).cso</ObjectFileOutput>
     </FxCompile>
     <CustomBuild>
-      <Command>glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
+      <Command>$(VULKAN_SDK)\bin\glslangvalidator -V -e main -o $(OutputPath)%(Filename)%(Extension).spv %(FullPath)</Command>
     </CustomBuild>
     <CustomBuild>
       <Message>Compiling %(Filename) SPIR-V...</Message>
