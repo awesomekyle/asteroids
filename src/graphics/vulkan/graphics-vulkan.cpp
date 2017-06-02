@@ -4,6 +4,7 @@
 #include <cinttypes>
 #include <gsl/gsl>
 #include <utility>
+#include <Windows.h>
 
 #include "vulkan-debug.h"
 

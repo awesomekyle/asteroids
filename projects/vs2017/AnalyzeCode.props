@@ -6,14 +6,14 @@
     <RunCodeAnalysis>false</RunCodeAnalysis>
     <EnableCppCoreCheck>false</EnableCppCoreCheck>
     <EnableExperimentalCppCoreCheck>false</EnableExperimentalCppCoreCheck>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
       <EnablePREfast>false</EnablePREfast>
     </ClCompile>
     <PostBuildEvent>
-      <Command>@echo on
-cd $(SourceDir)$(ProjectName)
+      <Command>cd $(SourceDir)$(ProjectName)
 IF EXIST "C:\Program Files\LLVM\bin\clang-tidy.exe" (
     setlocal ENABLEDELAYEDEXPANSION
     set filelist=

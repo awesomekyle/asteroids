@@ -31,7 +31,6 @@ BreakStringLiterals: true
 ColumnLimit: 100
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 Cpp11BracedListStyle: true
-FixNamespaceComments: true
 IndentCaseLabels: true
 IndentWidth: 4
 IndentWrappedFunctionNames: true
