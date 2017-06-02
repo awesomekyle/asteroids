@@ -75,7 +75,7 @@ inline VkBool32 VKAPI_CALL debug_callback(VkDebugReportFlagsEXT flags,
 {
     char message[1024] = {'\0'};
     snprintf(message, sizeof(message),
-             "Vulkan:\n\t%s\n\t%s\n\t%" PRIu64 "\n\t%" PRIu64 "\n\t%d\n\t%s\n\t%s\n\n",
+             "Vulkan:\n\t%s\n\t%s\n\t%" PRIu64 "\n\t%zu\n\t%d\n\t%s\n\t%s\n\n",
              debug_flag_string(flags), debug_object_type_string(objectType), object, location,
              messageCode, pLayerPrefix, pMessage);
 #ifdef _MSC_VER

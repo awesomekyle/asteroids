@@ -105,7 +105,7 @@ std::vector<uint8_t> get_file_contents(char const* const filename)
         return std::vector<uint8_t>();
     }
     file.seekg(0, std::ios::end);
-    size_t const filesize = file.tellg();
+    uint32_t const filesize = static_cast<uint32_t>(file.tellg());
     file.seekg(0, std::ios::beg);
 
     std::vector<uint8_t> contents(filesize);
