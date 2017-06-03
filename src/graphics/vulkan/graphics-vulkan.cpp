@@ -576,8 +576,8 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
     return state;
 }
 
-std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t const size,
-                                                                   void const* const data)
+std::unique_ptr<Buffer> GraphicsVulkan::create_vertex_buffer(uint32_t const size,
+                                                             void const* const data)
 {
     VkBufferCreateInfo const buffer_info = {
         VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // sType
@@ -634,12 +634,78 @@ std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t cons
     vkUnmapMemory(_device, memory);
 
     // return values
-    auto vertex_buffer = std::make_unique<VertexBufferVulkan>();
+    auto vertex_buffer = std::make_unique<BufferVulkan>();
     vertex_buffer->_graphics = this;
     vertex_buffer->_buffer = buffer;
     vertex_buffer->_memory = memory;
 
     return vertex_buffer;
+}
+
+std::unique_ptr<Buffer> GraphicsVulkan::create_index_buffer(uint32_t const size,
+                                                            void const* const data)
+{
+    VkBufferCreateInfo const buffer_info = {
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // sType
+        nullptr,                               // pNext
+        0,                                     // flags
+        size,                                  // size
+        VK_BUFFER_USAGE_INDEX_BUFFER_BIT,      // usage
+        VK_SHARING_MODE_EXCLUSIVE,             // sharingMode
+        1,                                     // queueFamilyIndexCount
+        &_queue_index,                         // pQueueFamilyIndices
+    };
+    VkBuffer buffer = VK_NULL_HANDLE;
+    auto result = vkCreateBuffer(_device, &buffer_info, _vk_allocator, &buffer);
+    assert(VK_SUCCEEDED(result));
+
+    // Get memory requirements
+    VkMemoryRequirements memory_requirements = {};
+    vkGetBufferMemoryRequirements(_device, buffer, &memory_requirements);
+
+    uint32_t const memory_type_index =
+        get_memory_type_index(memory_requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    assert(memory_type_index != UINT32_MAX && "Could not find acceptalbe memory type");
+
+    // Allocate memory
+    VkMemoryAllocateInfo const allocation_info = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // sType
+        nullptr,                                 // pNext
+        memory_requirements.size,                // allocationSize
+        memory_type_index,                       // memoryTypeIndex
+    };
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+    result = vkAllocateMemory(_device, &allocation_info, _vk_allocator, &memory);
+    assert(VK_SUCCEEDED(result));
+
+    result = vkBindBufferMemory(_device, buffer, memory, 0);
+    assert(VK_SUCCEEDED(result));
+
+    // upload data
+    void* gpu_data = nullptr;
+    result = vkMapMemory(_device, memory, 0, size, 0, &gpu_data);
+    assert(VK_SUCCEEDED(result) && gpu_data);
+
+    memcpy(gpu_data, data, size);
+
+    VkMappedMemoryRange const range = {
+        VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,  // sType
+        nullptr,                                // pNext
+        memory,                                 // memory
+        0,                                      // offset
+        VK_WHOLE_SIZE                           // size
+    };
+    vkFlushMappedMemoryRanges(_device, 1, &range);
+
+    vkUnmapMemory(_device, memory);
+
+    // return values
+    auto index_buffer = std::make_unique<BufferVulkan>();
+    index_buffer->_graphics = this;
+    index_buffer->_buffer = buffer;
+    index_buffer->_memory = memory;
+
+    return index_buffer;
 }
 
 void GraphicsVulkan::get_extensions()
@@ -946,7 +1012,7 @@ RenderStateVulkan::~RenderStateVulkan()
     _graphics->vkDestroyPipeline(device, _pso, _graphics->_vk_allocator);
 }
 
-VertexBufferVulkan::~VertexBufferVulkan()
+BufferVulkan::~BufferVulkan()
 {
     auto allocator = _graphics->_vk_allocator;
     auto device = _graphics->_device;

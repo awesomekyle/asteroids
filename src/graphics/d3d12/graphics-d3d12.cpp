@@ -308,10 +308,9 @@ std::unique_ptr<RenderState> GraphicsD3D12::create_render_state(RenderStateDesc 
     return state;
 }
 
-std::unique_ptr<VertexBuffer> GraphicsD3D12::create_vertex_buffer(uint32_t size,
-                                                                  void const* /*data*/)
+std::unique_ptr<Buffer> GraphicsD3D12::create_vertex_buffer(uint32_t size, void const* /*data*/)
 {
-    auto buffer = std::make_unique<VertexBufferD3D12>();
+    auto buffer = std::make_unique<BufferD3D12>();
 
     // Create resource
     auto const buffer_desc = CD3DX12_RESOURCE_DESC::Buffer(size);
@@ -323,7 +322,12 @@ std::unique_ptr<VertexBuffer> GraphicsD3D12::create_vertex_buffer(uint32_t size,
     assert(SUCCEEDED(hr));
 
     // TODO(kw): Upload data
-    return buffer;
+    return nullptr;
+}
+
+std::unique_ptr<Buffer> GraphicsD3D12::create_index_buffer(uint32_t /*size*/, void const* /*data*/)
+{
+    return std::unique_ptr<Buffer>();
 }
 
 void GraphicsD3D12::create_debug_interfaces()

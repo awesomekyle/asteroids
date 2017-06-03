@@ -27,7 +27,7 @@ namespace ak {
 
 CommandBuffer::~CommandBuffer() = default;
 RenderState::~RenderState() = default;
-VertexBuffer::~VertexBuffer() = default;
+Buffer::~Buffer() = default;
 Graphics::~Graphics() = default;
 
 ScopedGraphics create_graphics(Graphics::API api)

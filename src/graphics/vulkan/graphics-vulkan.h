@@ -35,10 +35,10 @@ class RenderStateVulkan : public RenderState
     VkPipeline _pso = VK_NULL_HANDLE;
 };
 
-class VertexBufferVulkan : public VertexBuffer
+class BufferVulkan : public Buffer
 {
    public:
-    ~VertexBufferVulkan();
+    ~BufferVulkan();
 
     class GraphicsVulkan* _graphics = nullptr;
     VkDeviceMemory _memory = VK_NULL_HANDLE;
@@ -59,12 +59,13 @@ class GraphicsVulkan : public Graphics
     int num_available_command_buffers() final;
     bool execute(CommandBuffer* command_buffer) final;
     std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) final;
-    std::unique_ptr<VertexBuffer> create_vertex_buffer(uint32_t size, void const* data) final;
+    std::unique_ptr<Buffer> create_vertex_buffer(uint32_t size, void const* data) final;
+    std::unique_ptr<Buffer> create_index_buffer(uint32_t size, void const* data) final;
 
    private:
     friend class CommandBufferVulkan;
     friend class RenderStateVulkan;
-    friend class VertexBufferVulkan;
+    friend class BufferVulkan;
 
     GraphicsVulkan(const GraphicsVulkan&) = delete;
     GraphicsVulkan& operator=(const GraphicsVulkan&) = delete;

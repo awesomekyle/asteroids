@@ -51,7 +51,7 @@ class RenderStateD3D12 : public RenderState
     CComPtr<ID3D12PipelineState> _state;
 };
 
-class VertexBufferD3D12 : public VertexBuffer
+class BufferD3D12 : public Buffer
 {
    public:
     CComPtr<ID3D12Resource> _buffer;
@@ -71,7 +71,8 @@ class GraphicsD3D12 : public Graphics
     int num_available_command_buffers() final;
     bool execute(CommandBuffer* command_buffer) final;
     std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) final;
-    std::unique_ptr<VertexBuffer> create_vertex_buffer(uint32_t size, void const* data) final;
+    std::unique_ptr<Buffer> create_vertex_buffer(uint32_t size, void const* data) final;
+    std::unique_ptr<Buffer> create_index_buffer(uint32_t size, void const* data) final;
 
    private:
     friend class CommandBufferD3D12;

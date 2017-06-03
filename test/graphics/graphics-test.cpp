@@ -230,6 +230,14 @@ TEST_CASE("graphics resources")
             auto vertex_buffer = graphics->create_vertex_buffer(sizeof(data), data);
             THEN("a valid buffer is returned") { REQUIRE(vertex_buffer); }
         }
+        WHEN("an index buffer is created")
+        {
+            size_t const data[] = {
+                0, 1, 2, 3,
+            };
+            auto index_buffer = graphics->create_index_buffer(sizeof(data), data);
+            THEN("a valid buffer is returned") { REQUIRE(index_buffer); }
+        }
     }
 }
 

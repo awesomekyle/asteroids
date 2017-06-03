@@ -105,10 +105,15 @@ std::unique_ptr<RenderState> GraphicsMetal::create_render_state(RenderStateDesc 
     // UNIMPLEMENTED
     return std::unique_ptr<RenderState>();
 }
-std::unique_ptr<VertexBuffer> GraphicsMetal::create_vertex_buffer(uint32_t /*size*/, void const * /*data*/)
+std::unique_ptr<Buffer> GraphicsMetal::create_vertex_buffer(uint32_t /*size*/, void const * /*data*/)
 {
     // UNIMPLEMENTED
-    return std::unique_ptr<VertexBuffer>();
+    return std::unique_ptr<Buffer>();
+}
+std::unique_ptr<Buffer> GraphicsMetal::create_index_buffer(uint32_t /*size*/, void const* /*data*/)
+{
+    // UNIMPLEMENTED
+    return std::unique_ptr<Buffer>();
 }
 
 id<CAMetalDrawable> GraphicsMetal::get_next_drawable()
