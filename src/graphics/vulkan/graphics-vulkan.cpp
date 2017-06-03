@@ -590,10 +590,25 @@ std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t size
         &_queue_index,                         // pQueueFamilyIndices
     };
     VkBuffer buffer = VK_NULL_HANDLE;
-    auto const result = vkCreateBuffer(_device, &buffer_info, _vk_allocator, &buffer);
+    auto result = vkCreateBuffer(_device, &buffer_info, _vk_allocator, &buffer);
+    assert(VK_SUCCEEDED(result));
+
+    // Allocate memory
+    VkMemoryAllocateInfo const allocation_info = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // sType
+        nullptr,                                 // pNext
+        size,                                    // allocationSize
+        0,                                       // TODO: Get correct memory type // memoryTypeIndex
+    };
+    VkDeviceMemory memory = VK_NULL_HANDLE;
+    result = vkAllocateMemory(_device, &allocation_info, _vk_allocator, &memory);
+    assert(VK_SUCCEEDED(result));
+
+    // result = vkBindBufferMemory(_device, buffer, memory, offset);
     assert(VK_SUCCEEDED(result));
 
     // TEMP
+    vkFreeMemory(_device, memory, _vk_allocator);
     vkDestroyBuffer(_device, buffer, _vk_allocator);
 
     return std::unique_ptr<VertexBuffer>();

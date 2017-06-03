@@ -51,3 +51,7 @@ VK_DEVICE_FUNCTION(vkCmdDraw)
 
 VK_DEVICE_FUNCTION(vkCreateBuffer)
 VK_DEVICE_FUNCTION(vkDestroyBuffer)
+
+VK_DEVICE_FUNCTION(vkAllocateMemory)
+VK_DEVICE_FUNCTION(vkFreeMemory)
+VK_DEVICE_FUNCTION(vkBindBufferMemory)
