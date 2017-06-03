@@ -14,6 +14,10 @@ class CommandBufferMetal : public CommandBuffer
    public:
     void reset() final;
     bool begin_render_pass() final;
+    void set_render_state(RenderState* const state) final {/*UNIMPLEMENTED*/}
+    void set_vertex_buffer(Buffer* const buffer) final {/*UNIMPLEMENTED*/}
+    void set_index_buffer(Buffer* const buffer) final {/*UNIMPLEMENTED*/}
+    void draw(uint32_t vertex_count) final {/*UNIMPLEMENTED*/}
     void end_render_pass() final;
 
    private:

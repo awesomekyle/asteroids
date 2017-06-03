@@ -20,6 +20,7 @@ struct RenderStateDesc
 class CommandBuffer;
 class RenderState;
 class Graphics;
+class Buffer;
 
 class CommandBuffer
 {
@@ -36,6 +37,11 @@ class CommandBuffer
 
     /// @brief Sets the current render state used for rendering
     virtual void set_render_state(RenderState* const state) = 0;
+
+    /// @brief Sets the vertex buffer in slot 0
+    virtual void set_vertex_buffer(Buffer* const buffer) = 0;
+
+    virtual void set_index_buffer(Buffer* const buffer) = 0;
 
     /// @brief Makes a non-indexed draw call
     virtual void draw(uint32_t vertex_count) = 0;

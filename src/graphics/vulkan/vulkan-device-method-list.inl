@@ -47,6 +47,8 @@ VK_DEVICE_FUNCTION(vkDestroyPipeline)
 VK_DEVICE_FUNCTION(vkCmdSetViewport)
 VK_DEVICE_FUNCTION(vkCmdSetScissor)
 VK_DEVICE_FUNCTION(vkCmdBindPipeline)
+VK_DEVICE_FUNCTION(vkCmdBindVertexBuffers)
+VK_DEVICE_FUNCTION(vkCmdBindIndexBuffer)
 VK_DEVICE_FUNCTION(vkCmdDraw)
 
 VK_DEVICE_FUNCTION(vkCreateBuffer)

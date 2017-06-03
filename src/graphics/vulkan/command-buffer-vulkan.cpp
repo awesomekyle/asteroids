@@ -77,6 +77,27 @@ void CommandBufferVulkan::set_render_state(RenderState* const state)
     _graphics->vkCmdBindPipeline(_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_state->_pso);
 }
 
+void CommandBufferVulkan::set_vertex_buffer(Buffer* const buffer)
+{
+    if (!buffer) {
+        return;
+    }
+
+    auto* const vulkan_buffer = static_cast<BufferVulkan*>(buffer);
+    VkDeviceSize const offset = 0;
+    _graphics->vkCmdBindVertexBuffers(_buffer, 0, 1, &vulkan_buffer->_buffer, &offset);
+}
+
+void CommandBufferVulkan::set_index_buffer(Buffer* const buffer)
+{
+    if (!buffer) {
+        return;
+    }
+    auto* const vulkan_buffer = static_cast<BufferVulkan*>(buffer);
+    VkDeviceSize const offset = 0;
+    _graphics->vkCmdBindIndexBuffer(_buffer, vulkan_buffer->_buffer, 0, VK_INDEX_TYPE_UINT16);
+}
+
 void CommandBufferVulkan::draw(uint32_t const vertex_count)
 {
     _graphics->vkCmdDraw(_buffer, vertex_count, 1, 0, 0);

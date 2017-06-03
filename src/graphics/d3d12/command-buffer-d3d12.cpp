@@ -56,6 +56,14 @@ void CommandBufferD3D12::set_render_state(RenderState* const state)
     _list->SetPipelineState(d3d12_state->_state);
 }
 
+void CommandBufferD3D12::set_vertex_buffer(Buffer* const /*buffer*/)
+{
+}
+
+void CommandBufferD3D12::set_index_buffer(Buffer* const /*buffer*/)
+{
+}
+
 void CommandBufferD3D12::draw(uint32_t vertex_count)
 {
     _list->DrawInstanced(vertex_count, 1, 0, 0);

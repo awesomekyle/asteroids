@@ -14,6 +14,8 @@ class CommandBufferD3D12 : public CommandBuffer
     void reset() final;
     bool begin_render_pass() final;
     void set_render_state(RenderState* const state) final;
+    void set_vertex_buffer(Buffer* const buffer) final;
+    void set_index_buffer(Buffer* const buffer) final;
     void draw(uint32_t vertex_count) final;
     void end_render_pass() final;
 
