@@ -48,3 +48,6 @@ VK_DEVICE_FUNCTION(vkCmdSetViewport)
 VK_DEVICE_FUNCTION(vkCmdSetScissor)
 VK_DEVICE_FUNCTION(vkCmdBindPipeline)
 VK_DEVICE_FUNCTION(vkCmdDraw)
+
+VK_DEVICE_FUNCTION(vkCreateBuffer)
+VK_DEVICE_FUNCTION(vkDestroyBuffer)

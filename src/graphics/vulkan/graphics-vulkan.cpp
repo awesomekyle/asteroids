@@ -576,9 +576,26 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
     return state;
 }
 
-std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t /*size*/,
+std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t size,
                                                                    void const* /*data*/)
 {
+    VkBufferCreateInfo const buffer_info = {
+        VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // sType
+        nullptr,                               // pNext
+        0,                                     // flags
+        size,                                  // size
+        VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,     // usage
+        VK_SHARING_MODE_EXCLUSIVE,             // sharingMode
+        1,                                     // queueFamilyIndexCount
+        &_queue_index,                         // pQueueFamilyIndices
+    };
+    VkBuffer buffer = VK_NULL_HANDLE;
+    auto const result = vkCreateBuffer(_device, &buffer_info, _vk_allocator, &buffer);
+    assert(VK_SUCCEEDED(result));
+
+    // TEMP
+    vkDestroyBuffer(_device, buffer, _vk_allocator);
+
     return std::unique_ptr<VertexBuffer>();
 }
 
