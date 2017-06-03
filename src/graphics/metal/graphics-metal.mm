@@ -102,10 +102,12 @@ bool GraphicsMetal::execute(CommandBuffer* command_buffer)
 
 std::unique_ptr<RenderState> GraphicsMetal::create_render_state(RenderStateDesc const& /*desc*/)
 {
+    // UNIMPLEMENTED
     return std::unique_ptr<RenderState>();
 }
 std::unique_ptr<VertexBuffer> GraphicsMetal::create_vertex_buffer(uint32_t /*size*/, void const * /*data*/)
 {
+    // UNIMPLEMENTED
     return std::unique_ptr<VertexBuffer>();
 }
 
