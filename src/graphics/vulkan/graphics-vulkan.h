@@ -68,6 +68,8 @@ class GraphicsVulkan : public Graphics
     void create_device();
     void create_render_passes();
     void create_command_buffers();
+    uint32_t get_memory_type_index(VkMemoryRequirements const& requirements,
+                                   VkMemoryPropertyFlags const property_flags);
 
     uint32_t get_back_buffer();
 

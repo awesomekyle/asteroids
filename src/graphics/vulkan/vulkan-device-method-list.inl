@@ -55,3 +55,5 @@ VK_DEVICE_FUNCTION(vkDestroyBuffer)
 VK_DEVICE_FUNCTION(vkAllocateMemory)
 VK_DEVICE_FUNCTION(vkFreeMemory)
 VK_DEVICE_FUNCTION(vkBindBufferMemory)
+
+VK_DEVICE_FUNCTION(vkGetBufferMemoryRequirements)

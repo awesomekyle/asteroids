@@ -19,7 +19,7 @@ namespace {
 int const glfwInitialized = glfwInit();
 int const glfwTerminationRegistered = atexit(glfwTerminate);
 
-constexpr ak::Graphics::API kTestApi = ak::Graphics::kD3D12;
+constexpr ak::Graphics::API kTestApi = ak::Graphics::kVulkan;
 
 void* native_window(GLFWwindow* const window)
 {

@@ -6,7 +6,6 @@
 
 #include <iostream>
 #include <cassert>
-#include <gsl/span>
 #include <codecvt>
 #include <fstream>
 #include <vector>
@@ -157,7 +156,7 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     //
     // Initialize
     //
-    auto graphics = ak::create_graphics();
+    auto graphics = ak::create_graphics(ak::Graphics::kVulkan);
     graphics->create_swap_chain(native_window(window), native_instance());
     glfwSetWindowUserPointer(window, graphics.get());
 

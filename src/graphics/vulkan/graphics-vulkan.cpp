@@ -593,18 +593,26 @@ std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t size
     auto result = vkCreateBuffer(_device, &buffer_info, _vk_allocator, &buffer);
     assert(VK_SUCCEEDED(result));
 
+    // Get memory requirements
+    VkMemoryRequirements memory_requirements = {};
+    vkGetBufferMemoryRequirements(_device, buffer, &memory_requirements);
+
+    uint32_t const memory_type_index =
+        get_memory_type_index(memory_requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    assert(memory_type_index != UINT32_MAX && "Could not find acceptalbe memory type");
+
     // Allocate memory
     VkMemoryAllocateInfo const allocation_info = {
         VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // sType
         nullptr,                                 // pNext
-        size,                                    // allocationSize
-        0,                                       // TODO: Get correct memory type // memoryTypeIndex
+        memory_requirements.size,                // allocationSize
+        memory_type_index,                       // memoryTypeIndex
     };
     VkDeviceMemory memory = VK_NULL_HANDLE;
     result = vkAllocateMemory(_device, &allocation_info, _vk_allocator, &memory);
     assert(VK_SUCCEEDED(result));
 
-    // result = vkBindBufferMemory(_device, buffer, memory, offset);
+    result = vkBindBufferMemory(_device, buffer, memory, 0);
     assert(VK_SUCCEEDED(result));
 
     // TEMP
@@ -886,6 +894,22 @@ uint32_t GraphicsVulkan::get_back_buffer()
     assert(VK_SUCCEEDED(result) && "Could not get swap chain image index");
 
     return _back_buffer_index;
+}
+uint32_t GraphicsVulkan::get_memory_type_index(VkMemoryRequirements const& requirements,
+                                               VkMemoryPropertyFlags const property_flags)
+{
+    VkPhysicalDeviceMemoryProperties memory_properties = {};
+    vkGetPhysicalDeviceMemoryProperties(_physical_device, &memory_properties);
+
+    for (uint32_t ii = 0; ii < memory_properties.memoryTypeCount; ++ii) {
+        if ((requirements.memoryTypeBits & (1 << ii)) == 0) {
+            continue;
+        }
+        if (memory_properties.memoryTypes[ii].propertyFlags & property_flags) {
+            return ii;
+        }
+    }
+    return UINT32_MAX;
 }
 
 ScopedGraphics create_graphics_vulkan()
