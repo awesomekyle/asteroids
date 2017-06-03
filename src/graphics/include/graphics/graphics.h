@@ -46,6 +46,9 @@ class CommandBuffer
     /// @brief Makes a non-indexed draw call
     virtual void draw(uint32_t vertex_count) = 0;
 
+    /// @brief Makes an indexed draw call
+    virtual void draw_indexed(uint32_t index_count) = 0;
+
     /// @brief Ends a previously started render pass
     virtual void end_render_pass() = 0;
 };

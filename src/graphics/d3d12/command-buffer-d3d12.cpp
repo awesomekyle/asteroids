@@ -58,13 +58,20 @@ void CommandBufferD3D12::set_render_state(RenderState* const state)
 
 void CommandBufferD3D12::set_vertex_buffer(Buffer* const /*buffer*/)
 {
+    // UNIMPLEMENTED
 }
 
 void CommandBufferD3D12::set_index_buffer(Buffer* const /*buffer*/)
 {
+    // UNIMPLEMENTED
 }
 
-void CommandBufferD3D12::draw(uint32_t vertex_count)
+void CommandBufferD3D12::draw_indexed(uint32_t const /*index_count*/)
+{
+    // UNIMPLEMENTED
+}
+
+void CommandBufferD3D12::draw(uint32_t const vertex_count)
 {
     _list->DrawInstanced(vertex_count, 1, 0, 0);
 }

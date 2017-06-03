@@ -103,6 +103,11 @@ void CommandBufferVulkan::draw(uint32_t const vertex_count)
     _graphics->vkCmdDraw(_buffer, vertex_count, 1, 0, 0);
 }
 
+void CommandBufferVulkan::draw_indexed(uint32_t const index_count)
+{
+    _graphics->vkCmdDrawIndexed(_buffer, index_count, 1, 0, 0, 0);
+}
+
 void CommandBufferVulkan::end_render_pass()
 {
     _graphics->vkCmdEndRenderPass(_buffer);

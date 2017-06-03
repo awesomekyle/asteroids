@@ -26,7 +26,11 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\..\src\asteroids\assets\shaders\glsl\simple.frag" />
-    <CustomBuild Include="..\..\src\asteroids\assets\shaders\glsl\simple.vert" />
+    <CustomBuild Include="..\..\src\asteroids\assets\shaders\glsl\simple.vert">
+      <Filter>assets\shaders\glsl</Filter>
+    </CustomBuild>
+    <CustomBuild Include="..\..\src\asteroids\assets\shaders\glsl\simple.frag">
+      <Filter>assets\shaders\glsl</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

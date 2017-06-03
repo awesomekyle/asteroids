@@ -187,6 +187,33 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         "Simple Render State",
     });
 
+    struct Vertex
+    {
+        float pos[4];
+        float col[4];
+    };
+    Vertex const vertices[] = {
+        {
+            {-0.7f, -0.7f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 0.0f},
+        },
+        {
+            {-0.7f, 0.7f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 0.0f},
+        },
+        {
+            {0.7f, -0.7f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 0.0f},
+        },
+        {
+            {0.7f, 0.7f, 0.0f, 1.0f}, {0.3f, 0.3f, 0.3f, 0.0f},
+        },
+    };
+    uint16_t const indices[] = {
+        0, 1, 2,  //
+        2, 3, 0,  //
+    };
+
+    auto vertex_buffer = graphics->create_vertex_buffer(sizeof(vertices), vertices);
+    auto index_buffer = graphics->create_index_buffer(sizeof(indices), indices);
+
     // timing
     int frame_count = 0;
     float fps_elapsed_time = 0.0f;
@@ -217,7 +244,9 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         if (command_buffer != nullptr) {
             command_buffer->begin_render_pass();
             command_buffer->set_render_state(render_state.get());
-            command_buffer->draw(3);
+            command_buffer->set_vertex_buffer(vertex_buffer.get());
+            command_buffer->set_index_buffer(index_buffer.get());
+            command_buffer->draw(4);
             command_buffer->end_render_pass();
             auto const result = graphics->execute(command_buffer);
             assert(result);

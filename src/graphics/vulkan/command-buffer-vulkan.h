@@ -17,6 +17,7 @@ class CommandBufferVulkan : public CommandBuffer
     void set_vertex_buffer(Buffer* const buffer) final;
     void set_index_buffer(Buffer* const buffer) final;
     void draw(uint32_t vertex_count) final;
+    void draw_indexed(uint32_t index_count) final;
     void end_render_pass() final;
 
    private:

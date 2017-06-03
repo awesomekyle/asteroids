@@ -18,6 +18,7 @@ class CommandBufferMetal : public CommandBuffer
     void set_vertex_buffer(Buffer* const buffer) final {/*UNIMPLEMENTED*/}
     void set_index_buffer(Buffer* const buffer) final {/*UNIMPLEMENTED*/}
     void draw(uint32_t vertex_count) final {/*UNIMPLEMENTED*/}
+    void draw_indexed(uint32_t index_count) final {/*UNIMPLEMENTED*/}
     void end_render_pass() final;
 
    private:

@@ -50,6 +50,7 @@ VK_DEVICE_FUNCTION(vkCmdBindPipeline)
 VK_DEVICE_FUNCTION(vkCmdBindVertexBuffers)
 VK_DEVICE_FUNCTION(vkCmdBindIndexBuffer)
 VK_DEVICE_FUNCTION(vkCmdDraw)
+VK_DEVICE_FUNCTION(vkCmdDrawIndexed)
 
 VK_DEVICE_FUNCTION(vkCreateBuffer)
 VK_DEVICE_FUNCTION(vkDestroyBuffer)
