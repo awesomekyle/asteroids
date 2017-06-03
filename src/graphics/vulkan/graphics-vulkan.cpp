@@ -615,11 +615,13 @@ std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t size
     result = vkBindBufferMemory(_device, buffer, memory, 0);
     assert(VK_SUCCEEDED(result));
 
-    // TEMP
-    vkFreeMemory(_device, memory, _vk_allocator);
-    vkDestroyBuffer(_device, buffer, _vk_allocator);
+    // return values
+    auto vertex_buffer = std::make_unique<VertexBufferVulkan>();
+    vertex_buffer->_graphics = this;
+    vertex_buffer->_buffer = buffer;
+    vertex_buffer->_memory = memory;
 
-    return std::unique_ptr<VertexBuffer>();
+    return vertex_buffer;
 }
 
 void GraphicsVulkan::get_extensions()
@@ -924,6 +926,14 @@ RenderStateVulkan::~RenderStateVulkan()
     _graphics->vkDestroyShaderModule(device, _ps_module, _graphics->_vk_allocator);
     _graphics->vkDestroyPipelineLayout(device, _pipeline_layout, _graphics->_vk_allocator);
     _graphics->vkDestroyPipeline(device, _pso, _graphics->_vk_allocator);
+}
+
+VertexBufferVulkan::~VertexBufferVulkan()
+{
+    auto allocator = _graphics->_vk_allocator;
+    auto device = _graphics->_device;
+    _graphics->vkFreeMemory(device, _memory, allocator);
+    _graphics->vkDestroyBuffer(device, _buffer, allocator);
 }
 
 }  // namespace ak

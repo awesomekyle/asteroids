@@ -35,6 +35,16 @@ class RenderStateVulkan : public RenderState
     VkPipeline _pso = VK_NULL_HANDLE;
 };
 
+class VertexBufferVulkan : public VertexBuffer
+{
+   public:
+    ~VertexBufferVulkan();
+
+    class GraphicsVulkan* _graphics = nullptr;
+    VkDeviceMemory _memory = VK_NULL_HANDLE;
+    VkBuffer _buffer = VK_NULL_HANDLE;
+};
+
 class GraphicsVulkan : public Graphics
 {
    public:
@@ -54,6 +64,7 @@ class GraphicsVulkan : public Graphics
    private:
     friend class CommandBufferVulkan;
     friend class RenderStateVulkan;
+    friend class VertexBufferVulkan;
 
     GraphicsVulkan(const GraphicsVulkan&) = delete;
     GraphicsVulkan& operator=(const GraphicsVulkan&) = delete;
