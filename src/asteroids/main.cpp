@@ -167,25 +167,6 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     //
     // Create resources
     //
-    std::vector<uint8_t> vs_bytecode;
-    std::vector<uint8_t> ps_bytecode;
-    switch (graphics->api_type()) {
-        case ak::Graphics::kD3D12:
-            vs_bytecode = get_file_contents("simple-vs.cso");
-            ps_bytecode = get_file_contents("simple-ps.cso");
-            break;
-        case ak::Graphics::kVulkan:
-            vs_bytecode = get_file_contents("simple.vert.spv");
-            ps_bytecode = get_file_contents("simple.frag.spv");
-            break;
-        default:
-            break;
-    }
-    auto render_state = graphics->create_render_state({
-        {vs_bytecode.data(), vs_bytecode.size()},
-        {ps_bytecode.data(), ps_bytecode.size()},
-        "Simple Render State",
-    });
 
     struct Vertex
     {
@@ -203,16 +184,46 @@ int main(int const /*argc*/, char const* const /*argv*/[])
             {0.7f, -0.7f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 0.0f},
         },
         {
-            {0.7f, 0.7f, 0.0f, 1.0f}, {0.3f, 0.3f, 0.3f, 0.0f},
+            {0.7f, 0.7f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 0.0f},
         },
     };
     uint16_t const indices[] = {
         0, 1, 2,  //
-        2, 3, 0,  //
+        2, 3, 1,  //
     };
 
     auto vertex_buffer = graphics->create_vertex_buffer(sizeof(vertices), vertices);
     auto index_buffer = graphics->create_index_buffer(sizeof(indices), indices);
+
+    std::vector<uint8_t> vs_bytecode;
+    std::vector<uint8_t> ps_bytecode;
+    switch (graphics->api_type()) {
+        case ak::Graphics::kD3D12:
+            vs_bytecode = get_file_contents("simple-vs.cso");
+            ps_bytecode = get_file_contents("simple-ps.cso");
+            break;
+        case ak::Graphics::kVulkan:
+            vs_bytecode = get_file_contents("simple.vert.spv");
+            ps_bytecode = get_file_contents("simple.frag.spv");
+            break;
+        default:
+            break;
+    }
+    ak::InputLayout const input_layout[] = {
+        {
+            "POSITION", 0, 4,
+        },
+        {
+            "COLOR", 1, 4,
+        },
+        ak::kEndLayout,
+    };
+    auto render_state = graphics->create_render_state({
+        {vs_bytecode.data(), vs_bytecode.size()},
+        {ps_bytecode.data(), ps_bytecode.size()},
+        input_layout,
+        "Simple Render State",
+    });
 
     // timing
     int frame_count = 0;
@@ -246,7 +257,7 @@ int main(int const /*argc*/, char const* const /*argv*/[])
             command_buffer->set_render_state(render_state.get());
             command_buffer->set_vertex_buffer(vertex_buffer.get());
             command_buffer->set_index_buffer(index_buffer.get());
-            command_buffer->draw(4);
+            command_buffer->draw_indexed(6);
             command_buffer->end_render_pass();
             auto const result = graphics->execute(command_buffer);
             assert(result);

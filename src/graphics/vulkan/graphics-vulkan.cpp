@@ -450,14 +450,53 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
     };
 
     // input layout
+    std::vector<VkVertexInputAttributeDescription> attribute_desc;
+    auto const* layout = desc.input_layout;
+    uint32_t current_offset = 0;
+    while (layout && layout->name) {
+        VkFormat format = VK_FORMAT_UNDEFINED;
+        switch (layout->num_floats) {
+            case 1:
+                format = VK_FORMAT_R32_SFLOAT;
+                break;
+            case 2:
+                format = VK_FORMAT_R32G32_SFLOAT;
+                break;
+            case 3:
+                format = VK_FORMAT_R32G32B32_SFLOAT;
+                break;
+            case 4:
+                format = VK_FORMAT_R32G32B32A32_SFLOAT;
+                break;
+            default:
+                break;
+        }
+        attribute_desc.push_back({
+            layout->slot,   // location
+            0,              // binding
+            format,         // format
+            current_offset  // offset
+        });
+        current_offset += sizeof(float) * layout->num_floats;
+        layout++;
+    }
+
+    VkVertexInputBindingDescription const vertex_binding_desc[] = {
+        {
+            0,                           // binding
+            current_offset,              // stride
+            VK_VERTEX_INPUT_RATE_VERTEX  // inputRate
+        },
+    };
+
     VkPipelineVertexInputStateCreateInfo const vertex_input_state_info = {
         VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,  // sType
         nullptr,                                                    // pNext
-        0,                                                          // flags;
-        0,                                                          // vertexBindingDescriptionCount
-        nullptr,                                                    // pVertexBindingDescriptions
-        0,        // vertexAttributeDescriptionCount
-        nullptr,  // pVertexAttributeDescriptions
+        0,                                                          // flags
+        array_length(vertex_binding_desc),                          // vertexBindingDescriptionCount
+        vertex_binding_desc,                                        // pVertexBindingDescriptions
+        static_cast<uint32_t>(attribute_desc.size()),  // vertexAttributeDescriptionCount
+        attribute_desc.data(),                         // pVertexAttributeDescriptions
     };
 
     // input assembler

@@ -1,7 +1,9 @@
-#version 400
+#version 450
+
+layout(location = 0) in vec4 int_color;
 
 layout(location = 0) out vec4 out_Color;
 
 void main() {
-  out_Color = vec4( 1.0, 0.4, 0.0, 1.0 );
+  out_Color = int_color;
 }

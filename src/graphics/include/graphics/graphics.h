@@ -10,10 +10,20 @@ struct ShaderDesc
     size_t size;
 };
 
+struct InputLayout
+{
+    char const* name;
+    uint32_t slot;
+    uint32_t num_floats;  // TODO(kw): Support more than just float
+};
+static InputLayout const kEndLayout = {
+    nullptr, 0, 0,
+};
 struct RenderStateDesc
 {
     ShaderDesc vertex_shader;
     ShaderDesc pixel_shader;
+    InputLayout const* input_layout;
     char const* name;
 };
 
