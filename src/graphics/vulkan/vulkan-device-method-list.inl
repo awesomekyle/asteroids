@@ -41,6 +41,9 @@ VK_DEVICE_FUNCTION(vkDestroyShaderModule)
 VK_DEVICE_FUNCTION(vkCreatePipelineLayout)
 VK_DEVICE_FUNCTION(vkDestroyPipelineLayout)
 
+VK_DEVICE_FUNCTION(vkCreateDescriptorSetLayout)
+VK_DEVICE_FUNCTION(vkDestroyDescriptorSetLayout)
+
 VK_DEVICE_FUNCTION(vkCreateGraphicsPipelines)
 VK_DEVICE_FUNCTION(vkDestroyPipeline)
 

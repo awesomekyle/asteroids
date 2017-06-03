@@ -169,21 +169,21 @@ int main(int const /*argc*/, char const* const /*argv*/[])
 
     struct Vertex
     {
-        float pos[4];
+        float pos[3];
         float col[4];
     };
     Vertex const vertices[] = {
         {
-            {-0.7f, -0.7f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f, 0.0f},
+            {-0.7f, -0.7f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f},
         },
         {
-            {-0.7f, 0.7f, 0.0f, 1.0f}, {0.0f, 1.0f, 0.0f, 0.0f},
+            {-0.7f, 0.7f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f},
         },
         {
-            {0.7f, -0.7f, 0.0f, 1.0f}, {0.0f, 0.0f, 1.0f, 0.0f},
+            {0.7f, -0.7f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f},
         },
         {
-            {0.7f, 0.7f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f, 0.0f},
+            {0.7f, 0.7f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f},
         },
     };
     uint16_t const indices[] = {
@@ -210,7 +210,7 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     }
     ak::InputLayout const input_layout[] = {
         {
-            "POSITION", 0, 4,
+            "POSITION", 0, 3,
         },
         {
             "COLOR", 1, 4,

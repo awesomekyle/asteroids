@@ -418,12 +418,32 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
     assert(VK_SUCCEEDED(result));
 
     // pipeline layout
+    VkDescriptorSetLayoutBinding const layout_bindings[] = {
+        {
+            0,                                  // binding
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
+            1,                                  // descriptorCount
+            VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
+            nullptr,                            // pImmutableSamplers
+        },
+    };
+    VkDescriptorSetLayoutCreateInfo const descriptor_set_info = {
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,  // sType
+        nullptr,                                              // pNext
+        0,                                                    // flags
+        array_length(layout_bindings),                        // bindingCount
+        layout_bindings,                                      // pBindings
+    };
+    result = vkCreateDescriptorSetLayout(_device, &descriptor_set_info, _vk_allocator,
+                                         &state->_desc_set_layout);
+    assert(VK_SUCCEEDED(result));
+
     VkPipelineLayoutCreateInfo const layout_info = {
         VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,  // sType
         nullptr,                                        // pNext
         0,                                              // flags
-        0,                                              // setLayoutCount
-        nullptr,                                        // pSetLayouts
+        1,                                              // setLayoutCount
+        &state->_desc_set_layout,                       // pSetLayouts
         0,                                              // pushConstantRangeCount
         nullptr                                         // pPushConstantRanges
     };
@@ -618,7 +638,7 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
     assert(VK_SUCCEEDED(result));
 
     return state;
-}
+}  // namespace ak
 
 std::unique_ptr<Buffer> GraphicsVulkan::create_vertex_buffer(uint32_t const size,
                                                              void const* const data)
@@ -1052,6 +1072,7 @@ RenderStateVulkan::~RenderStateVulkan()
     auto device = _graphics->_device;
     _graphics->vkDestroyShaderModule(device, _vs_module, _graphics->_vk_allocator);
     _graphics->vkDestroyShaderModule(device, _ps_module, _graphics->_vk_allocator);
+    _graphics->vkDestroyDescriptorSetLayout(device, _desc_set_layout, _graphics->_vk_allocator);
     _graphics->vkDestroyPipelineLayout(device, _pipeline_layout, _graphics->_vk_allocator);
     _graphics->vkDestroyPipeline(device, _pso, _graphics->_vk_allocator);
 }

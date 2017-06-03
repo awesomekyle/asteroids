@@ -31,6 +31,7 @@ class RenderStateVulkan : public RenderState
     class GraphicsVulkan* _graphics = nullptr;
     VkShaderModule _vs_module = VK_NULL_HANDLE;
     VkShaderModule _ps_module = VK_NULL_HANDLE;
+    VkDescriptorSetLayout _desc_set_layout = VK_NULL_HANDLE;
     VkPipelineLayout _pipeline_layout = VK_NULL_HANDLE;
     VkPipeline _pso = VK_NULL_HANDLE;
 };
