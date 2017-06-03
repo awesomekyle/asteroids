@@ -250,6 +250,16 @@ bool GraphicsD3D12::execute(CommandBuffer* command_buffer)
     return SUCCEEDED(hr);
 }
 
+void GraphicsD3D12::wait_for_idle()
+{
+    Expects(_render_queue);
+    _last_fence_completion++;
+    _render_queue->Signal(_render_fence, _last_fence_completion);
+    while (_render_fence->GetCompletedValue() < _last_fence_completion) {
+        continue;  // NOLINT
+    }
+}
+
 std::unique_ptr<RenderState> GraphicsD3D12::create_render_state(RenderStateDesc const& desc)
 {
     auto state = std::make_unique<RenderStateD3D12>();
@@ -477,16 +487,6 @@ void GraphicsD3D12::create_command_buffers()
 
         command_buffer._graphics = this;
         index++;
-    }
-}
-
-void GraphicsD3D12::wait_for_idle()
-{
-    Expects(_render_queue);
-    _last_fence_completion++;
-    _render_queue->Signal(_render_fence, _last_fence_completion);
-    while (_render_fence->GetCompletedValue() < _last_fence_completion) {
-        continue;  // NOLINT
     }
 }
 

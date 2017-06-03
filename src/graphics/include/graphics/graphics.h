@@ -127,6 +127,9 @@ class Graphics
     /// @brief Executes a command buffer on the GPU
     virtual bool execute(CommandBuffer* command_buffer) = 0;
 
+    /// @brief Waits on the CPU until the GPU is idle
+    virtual void wait_for_idle() = 0;
+
     virtual std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) = 0;
     virtual std::unique_ptr<Buffer> create_vertex_buffer(uint32_t size, void const* data) = 0;
     virtual std::unique_ptr<Buffer> create_index_buffer(uint32_t size, void const* data) = 0;

@@ -58,6 +58,7 @@ class GraphicsVulkan : public Graphics
     CommandBuffer* command_buffer() final;
     int num_available_command_buffers() final;
     bool execute(CommandBuffer* command_buffer) final;
+    void wait_for_idle() final;
     std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) final;
     std::unique_ptr<Buffer> create_vertex_buffer(uint32_t size, void const* data) final;
     std::unique_ptr<Buffer> create_index_buffer(uint32_t size, void const* data) final;

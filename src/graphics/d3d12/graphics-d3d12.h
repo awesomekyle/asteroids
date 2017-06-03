@@ -70,6 +70,7 @@ class GraphicsD3D12 : public Graphics
     CommandBuffer* command_buffer() final;
     int num_available_command_buffers() final;
     bool execute(CommandBuffer* command_buffer) final;
+    void wait_for_idle() final;
     std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) final;
     std::unique_ptr<Buffer> create_vertex_buffer(uint32_t size, void const* data) final;
     std::unique_ptr<Buffer> create_index_buffer(uint32_t size, void const* data) final;
@@ -89,7 +90,6 @@ class GraphicsD3D12 : public Graphics
     void create_queue();
     void create_descriptor_heaps();
     void create_command_buffers();
-    void wait_for_idle();
 
     std::pair<uint32_t, ID3D12Resource*> const& current_back_buffer();
     std::pair<uint32_t, uint32_t> get_dimensions();

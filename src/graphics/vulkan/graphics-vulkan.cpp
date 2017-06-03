@@ -385,6 +385,11 @@ bool GraphicsVulkan::execute(CommandBuffer* command_buffer)
     return true;
 }
 
+void GraphicsVulkan::wait_for_idle()
+{
+    vkDeviceWaitIdle(_device);
+}
+
 std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc const& desc)
 {
     auto state = std::make_unique<RenderStateVulkan>();

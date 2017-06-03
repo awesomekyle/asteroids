@@ -148,7 +148,6 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     std::cout << "GLFW initialization succeeded: " << glfwGetVersionString() << "\n";
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
     GLFWwindow* const window = glfwCreateWindow(800, 600, "Asteroids", nullptr, nullptr);
     glfwSetKeyCallback(window, glfw_keyboard_callback);
     glfwSetFramebufferSizeCallback(window, glfw_framebuffer_callback);
@@ -269,6 +268,7 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     //
     // Shutdown
     //
+    graphics->wait_for_idle();
 
     glfwTerminate();
 
