@@ -500,7 +500,7 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
     };
 
     // blending
-    VkPipelineColorBlendAttachmentState color_blend_states[] = {
+    VkPipelineColorBlendAttachmentState const color_blend_states[] = {
         {
             VK_FALSE,                                              // blendEnable
             VK_BLEND_FACTOR_ONE,                                   // srcColorBlendFactor
@@ -514,7 +514,7 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         },
     };
 
-    VkPipelineColorBlendStateCreateInfo color_blend_state_info = {
+    VkPipelineColorBlendStateCreateInfo const color_blend_state_info = {
         VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,  // sType
         nullptr,                                                   // pNext
         0,                                                         // flags
@@ -548,7 +548,7 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
     };
 
     // finally create the PSO
-    VkGraphicsPipelineCreateInfo pipeline_create_info = {
+    VkGraphicsPipelineCreateInfo const pipeline_create_info = {
         VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,  // sType
         nullptr,                                          // pNext
         0,                                                // flags
