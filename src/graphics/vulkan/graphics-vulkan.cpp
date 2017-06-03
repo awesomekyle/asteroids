@@ -576,8 +576,8 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
     return state;
 }
 
-std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t size,
-                                                                   void const* /*data*/)
+std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t const size,
+                                                                   void const* const data)
 {
     VkBufferCreateInfo const buffer_info = {
         VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // sType
@@ -614,6 +614,24 @@ std::unique_ptr<VertexBuffer> GraphicsVulkan::create_vertex_buffer(uint32_t size
 
     result = vkBindBufferMemory(_device, buffer, memory, 0);
     assert(VK_SUCCEEDED(result));
+
+    // upload data
+    void* gpu_data = nullptr;
+    result = vkMapMemory(_device, memory, 0, size, 0, &gpu_data);
+    assert(VK_SUCCEEDED(result) && gpu_data);
+
+    memcpy(gpu_data, data, size);
+
+    VkMappedMemoryRange const range = {
+        VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE,  // sType
+        nullptr,                                // pNext
+        memory,                                 // memory
+        0,                                      // offset
+        VK_WHOLE_SIZE                           // size
+    };
+    vkFlushMappedMemoryRanges(_device, 1, &range);
+
+    vkUnmapMemory(_device, memory);
 
     // return values
     auto vertex_buffer = std::make_unique<VertexBufferVulkan>();

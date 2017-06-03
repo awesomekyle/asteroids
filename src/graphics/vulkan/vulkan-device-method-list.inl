@@ -55,5 +55,8 @@ VK_DEVICE_FUNCTION(vkDestroyBuffer)
 VK_DEVICE_FUNCTION(vkAllocateMemory)
 VK_DEVICE_FUNCTION(vkFreeMemory)
 VK_DEVICE_FUNCTION(vkBindBufferMemory)
+VK_DEVICE_FUNCTION(vkMapMemory)
+VK_DEVICE_FUNCTION(vkFlushMappedMemoryRanges)
+VK_DEVICE_FUNCTION(vkUnmapMemory)
 
 VK_DEVICE_FUNCTION(vkGetBufferMemoryRequirements)
