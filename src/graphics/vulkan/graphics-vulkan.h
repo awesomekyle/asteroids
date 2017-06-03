@@ -82,6 +82,8 @@ class GraphicsVulkan : public Graphics
     void create_device();
     void create_render_passes();
     void create_command_buffers();
+    std::unique_ptr<BufferVulkan> create_buffer(uint32_t size, VkBufferUsageFlags usage);
+    void create_upload_buffer();
     uint32_t get_memory_type_index(VkMemoryRequirements const& requirements,
                                    VkMemoryPropertyFlags const property_flags);
 
@@ -148,6 +150,9 @@ class GraphicsVulkan : public Graphics
     VkQueue _render_queue = VK_NULL_HANDLE;
     std::array<CommandBufferVulkan, kMaxCommandBuffers> _command_buffers;
     std::atomic<uint32_t> _current_command_buffer = {};
+
+    // upload buffer
+    BufferVulkan _upload_buffer;
 
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT _debug_report = VK_NULL_HANDLE;
