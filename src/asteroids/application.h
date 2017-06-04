@@ -1,16 +1,44 @@
 #pragma once
+#include "graphics/graphics.h"
+
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4201)  // nameless struct/union
+#endif
+#include <mathfu/hlsl_mappings.h>
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif
 
 struct GLFWWindow;
-namespace ak {
-class Graphics;
-}  // namespace ak
 
 class Application
 {
    public:
-    Application(GLFWWindow* window, ak::Graphics* graphics);
+    Application(void* native_window, void* native_instance);
     ~Application();
 
-    GLFWWindow* const _window = nullptr;
-    ak::Graphics* const _graphics = nullptr;
+    void on_resize(int width, int height);
+    void on_frame(float delta_time);
+
+   private:
+    struct ConstantBuffer
+    {
+        mathfu::float4x4 projection;
+        mathfu::float4x4 view;
+        mathfu::float4x4 world;
+    };
+
+    void* const _window = nullptr;
+    void* const _instance = nullptr;
+    ak::ScopedGraphics const _graphics = nullptr;
+
+    int _width = 0;
+    int _height = 0;
+
+    std::unique_ptr<ak::Buffer> _vertex_buffer;
+    std::unique_ptr<ak::Buffer> _index_buffer;
+    std::unique_ptr<ak::RenderState> _render_state;
+
+    ConstantBuffer _constant_buffer = {};
 };
