@@ -274,11 +274,10 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         };
         auto* const constant_buffer = graphics->get_upload_data<ConstantBuffer>();
         auto const dimensions = get_window_size(window);
-        auto const half_width = dimensions.first / 2;
-        auto const half_height = dimensions.second / 2;
+        auto const half_width = dimensions.first / 64.0f;
+        auto const half_height = dimensions.second / 64.0f;
         *constant_buffer = {
-            mathfu::float4x4::Identity(),  // mathfu::float4x4::Ortho(-half_width, half_width,
-                                           // -half_height, half_height, 0, 1.0f),
+            mathfu::float4x4::Ortho(-half_width, half_width, -half_height, half_height, 0.0f, 1.0f),
             mathfu::float4x4::Identity(), mathfu::float4x4::Identity(),
         };
 
