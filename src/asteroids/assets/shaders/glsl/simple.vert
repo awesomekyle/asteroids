@@ -3,7 +3,7 @@
 layout(location=0) in vec4 position;
 layout(location=1) in vec4 color;
 
-layout(binding = 0) uniform Uniforms {
+layout(set = 0,binding = 0) uniform Uniforms {
     mat4 projection;
     mat4 view;
     mat4 world;

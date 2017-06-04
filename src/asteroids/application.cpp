@@ -186,11 +186,16 @@ void Application::on_resize(int width, int height)
 void Application::on_frame(float const delta_time)
 {
     // render
-    auto* const constant_buffer = _graphics->get_upload_data<ConstantBuffer>();
-    if (constant_buffer != nullptr) {
+    auto* const vs_const_buffer = _graphics->get_upload_data<VSConstantBuffer>();
+    if (vs_const_buffer != nullptr) {
         _constant_buffer.world *=
             mathfu::float4x4::FromRotationMatrix(mathfu::float4x4::RotationY(delta_time));
-        *constant_buffer = _constant_buffer;
+        *vs_const_buffer = _constant_buffer;
+    }
+
+    auto const ps_const_buffer = _graphics->get_upload_data<PSConstantBuffer>();
+    if (ps_const_buffer) {
+        ps_const_buffer->color = {1, 0, 1, 1};
     }
 
     auto* const command_buffer = _graphics->command_buffer();
@@ -199,7 +204,8 @@ void Application::on_frame(float const delta_time)
         command_buffer->set_render_state(_render_state.get());
         command_buffer->set_vertex_buffer(_cube_model.vertex_buffer.get());
         command_buffer->set_index_buffer(_cube_model.index_buffer.get());
-        command_buffer->set_constant_data(constant_buffer, sizeof(*constant_buffer));
+        command_buffer->set_vertex_constant_data(vs_const_buffer, sizeof(*vs_const_buffer));
+        command_buffer->set_pixel_constant_data(ps_const_buffer, sizeof(*ps_const_buffer));
         command_buffer->draw_indexed(_cube_model.index_count);
         command_buffer->end_render_pass();
         auto const result = _graphics->execute(command_buffer);

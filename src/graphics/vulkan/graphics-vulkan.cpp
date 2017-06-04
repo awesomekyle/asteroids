@@ -424,8 +424,15 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         {
             0,                                  // binding
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
-            1,                                  // descriptorCount
+            4,                                  // descriptorCount
             VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
+            nullptr,                            // pImmutableSamplers
+        },
+        {
+            1,                                  // binding
+            VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
+            4,                                  // descriptorCount
+            VK_SHADER_STAGE_FRAGMENT_BIT,       // stageFlags
             nullptr,                            // pImmutableSamplers
         },
     };

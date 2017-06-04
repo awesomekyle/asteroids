@@ -22,11 +22,15 @@ class Application
     void on_frame(float delta_time);
 
    private:
-    struct ConstantBuffer
+    struct VSConstantBuffer
     {
         mathfu::float4x4 projection;
         mathfu::float4x4 view;
         mathfu::float4x4 world;
+    };
+    struct PSConstantBuffer
+    {
+        mathfu::float4 color;
     };
 
     struct Model
@@ -48,5 +52,5 @@ class Application
 
     std::unique_ptr<ak::RenderState> _render_state;
 
-    ConstantBuffer _constant_buffer = {};
+    VSConstantBuffer _constant_buffer = {};
 };
