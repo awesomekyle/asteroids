@@ -237,6 +237,7 @@
     </CustomBuild>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\src\asteroids\application.cpp" />
     <ClCompile Include="..\..\src\asteroids\main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -268,6 +269,9 @@
     <CustomBuild Include="..\..\src\asteroids\assets\shaders\glsl\simple.vert">
       <FileType>Document</FileType>
     </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\asteroids\application.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
