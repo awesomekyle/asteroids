@@ -1002,6 +1002,13 @@ void GraphicsVulkan::create_upload_buffer()
     _upload_buffer =
         create_buffer(kUploadBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
                       VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+    VkResult const result = vkMapMemory(_device, _upload_buffer->_memory, 0, kUploadBufferSize, 0,
+                                        reinterpret_cast<void**>(&_upload_start));
+    assert(VK_SUCCEEDED(result));
+
+    _upload_current = _upload_start;
+    _upload_end = _upload_start + kUploadBufferSize;
 }
 
 uint32_t GraphicsVulkan::get_back_buffer()
