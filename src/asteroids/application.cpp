@@ -68,32 +68,98 @@ struct Mesh
     std::vector<Vertex> vertices;
     std::vector<uint16_t> indices;
 
+    void spherify(float const radius)
+    {
+        for (auto& v : vertices) {
+            float const n =
+                radius / std::sqrt(v.pos.x * v.pos.x + v.pos.y * v.pos.y + v.pos.z * v.pos.z);
+            v.pos.x *= n;
+            v.pos.y *= n;
+            v.pos.z *= n;
+        }
+    }
+
     static Mesh icosahedron()
     {
         float const a = std::sqrt(2.0f / (5.0f - std::sqrt(5.0f)));
         float const b = std::sqrt(2.0f / (5.0f + std::sqrt(5.0f)));
+        // clang-format off
         Mesh const mesh = {
-
             {
-                {{-b, a, 0}},
-                {{b, a, 0}},
-                {{-b, -a, 0}},
-                {{b, -a, 0}},
-                {{0, -b, a}},
-                {{0, b, a}},
-                {{0, -b, -a}},
-                {{0, b, -a}},
-                {{a, 0, -b}},
-                {{a, 0, b}},
-                {{-a, 0, -b}},
-                {{-a, 0, b}},
+                { {-b,  a,  0}, },
+                { { b,  a,  0}, },
+                { {-b, -a,  0}, },
+                { { b, -a,  0}, },
+                { { 0, -b,  a}, },
+                { { 0,  b,  a}, },
+                { { 0, -b, -a}, },
+                { { 0,  b, -a}, },
+                { { a,  0, -b}, },
+                { { a,  0,  b}, },
+                { {-a,  0, -b}, },
+                { {-a,  0,  b}, },
             },
             {
-                0,  5,  11, 0,  1,  5, 0, 7, 1, 0,  10, 7, 0,  11, 10, 1, 9, 5, 5, 4,
-                11, 11, 2,  10, 10, 6, 7, 7, 8, 1,  3,  4, 9,  3,  2,  4, 3, 6, 2, 3,
-                8,  6,  3,  9,  8,  4, 5, 9, 2, 11, 4,  6, 10, 2,  8,  7, 6, 9, 1, 8,
+                 0,  5, 11,
+                 0,  1,  5,
+                 0,  7,  1,
+                 0, 10,  7,
+                 0, 11, 10,
+                 1,  9,  5,
+                 5,  4, 11,
+                11,  2, 10,
+                10,  6,  7,
+                 7,  8,  1,
+                 3,  4,  9,
+                 3,  2,  4,
+                 3,  6,  2,
+                 3,  8,  6,
+                 3,  9,  8,
+                 4,  5,  9,
+                 2, 11,  4,
+                 6, 10,  2,
+                 8,  7,  6,
+                 9,  1,  8,
             },
         };
+        // clang-format on
+        return mesh;
+    }
+    static Mesh cube()
+    {
+        // clang-format off
+        Mesh const mesh = {
+            {
+                { {-0.5f,  0.5f,  0.5f}, {0.5f, 0.0f, 0.0f}, },
+                { {-0.5f,  0.5f, -0.5f}, {0.0f, 0.5f, 0.0f}, },
+                { { 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 0.5f}, },
+                { { 0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}, },
+                { {-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, },
+                { {-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, },
+                { { 0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, },
+                { { 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 0.0f}, },
+            },
+            {
+                0, 2, 1,  // top
+                2, 0, 3,  //
+
+                1, 2, 6,  // front
+                6, 5, 1,  //
+
+                2, 3, 7,  // right
+                7, 6, 2,  //
+
+                3, 0, 4,  // back
+                4, 7, 3,  //
+
+                0, 1, 5,  // left
+                5, 4, 0,  //
+
+                4, 5, 6,  // bottom
+                6, 7, 4,  //
+            },
+        };
+        // clang-format on
         return mesh;
     }
 };
@@ -108,89 +174,31 @@ Application::Application(void* native_window, void* native_instance)
     bool const result = _graphics->create_swap_chain(_window, _instance);
     assert(result && "Could not create swap chain");
 
-//
-// Create resources
-//
-#if 0
-    struct Vertex
-    {
-        float pos[3];
-        float col[4];
-    };
-    Vertex const vertices[] = {
-        {
-            {-0.5f, 0.5f, 0.5f}, {0.5f, 0.0f, 0.0f, 1.0f},
-        },
-        {
-            {-0.5f, 0.5f, -0.5f}, {0.0f, 0.5f, 0.0f, 1.0f},
-        },
-        {
-            {0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 0.5f, 1.0f},
-        },
-        {
-            {0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f, 1.0f},
-        },
-
-        {
-            {-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f},
-        },
-        {
-            {-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f, 1.0f},
-        },
-        {
-            {0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f, 1.0f},
-        },
-        {
-            {0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 0.0f, 1.0f},
-        },
-    };
-    uint16_t const indices[] = {
-        0, 2, 1,  // top
-        2, 0, 3,  //
-
-        1, 2, 6,  // front
-        6, 5, 1,  //
-
-        2, 3, 7,  // right
-        7, 6, 2,  //
-
-        3, 0, 4,  // back
-        4, 7, 3,  //
-
-        0, 1, 5,  // left
-        5, 4, 0,  //
-
-        4, 5, 6,  // bottom
-        6, 7, 4,  //
-    };
-
-    _cube_model.vertex_buffer = _graphics->create_vertex_buffer(sizeof(vertices), vertices);
-    _cube_model.index_buffer = _graphics->create_index_buffer(sizeof(indices), indices);
-    _cube_model.index_count = array_length(indices);
-    _cube_model.vertex_count = array_length(vertices);
-#else
-    auto icosahedron = Mesh::icosahedron();
+    //
+    // Create resources
+    //
+    auto mesh = Mesh::icosahedron();
+    // mesh.spherify(1.0f);
     std::random_device rd;
     std::mt19937 gen(rd());
-    for (auto& vertex : icosahedron.vertices) {
+    for (auto& vertex : mesh.vertices) {
         vertex.col = {
-            std::uniform_real_distribution<float>(0.5f, 1.0f)(gen),
-            std::uniform_real_distribution<float>(0.5f, 1.0f)(gen),
-            std::uniform_real_distribution<float>(0.5f, 1.0f)(gen),
+            std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
+            std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
+            std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
         };
     }
-    auto const index_count = static_cast<uint32_t>(icosahedron.indices.size());
-    auto const vertex_count = static_cast<uint32_t>(icosahedron.vertices.size());
+    auto const index_count = static_cast<uint32_t>(mesh.indices.size());
+    auto const vertex_count = static_cast<uint32_t>(mesh.vertices.size());
     _cube_model.vertex_buffer =
-        _graphics->create_vertex_buffer(vertex_count * sizeof(icosahedron.vertices[0]),
-                                        icosahedron.vertices.data());
+        _graphics->create_vertex_buffer(vertex_count * sizeof(mesh.vertices[0]),
+                                        mesh.vertices.data());
     _cube_model.vertex_count = vertex_count;
     _cube_model.index_buffer =
-        _graphics->create_index_buffer(index_count * sizeof(icosahedron.indices[0]),
-                                       icosahedron.indices.data());
+        _graphics->create_index_buffer(index_count * sizeof(mesh.indices[0]), mesh.indices.data());
     _cube_model.index_count = index_count;
-#endif
 
+    // Render state
     std::vector<uint8_t> vs_bytecode;
     std::vector<uint8_t> ps_bytecode;
     switch (_graphics->api_type()) {
@@ -210,7 +218,7 @@ Application::Application(void* native_window, void* native_instance)
             "POSITION", 0, 3,
         },
         {
-            "COLOR", 1, 4,
+            "COLOR", 1, 3,
         },
         ak::kEndLayout,
     };
