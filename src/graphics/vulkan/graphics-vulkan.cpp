@@ -16,7 +16,7 @@ namespace {
 /// Constants
 ///
 constexpr char const* kDesiredExtensions[] = {
-    VK_KHR_SURFACE_EXTENSION_NAME,
+    VK_KHR_SURFACE_EXTENSION_NAME, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
     VK_KHR_WIN32_SURFACE_EXTENSION_NAME,
 #endif
@@ -72,11 +72,13 @@ GraphicsVulkan::GraphicsVulkan()
     vkGetDeviceQueue(_device, _queue_index, 0, &_render_queue);
 
     create_command_buffers();
+    create_upload_buffer();
 }
 
 GraphicsVulkan::~GraphicsVulkan()
 {
     vkDeviceWaitIdle(_device);
+    _upload_buffer.reset();
     for (auto const& buffer : _command_buffers) {
         vkDestroyCommandPool(_device, buffer._pool, _vk_allocator);
         vkDestroyFence(_device, buffer._fence, _vk_allocator);
@@ -428,11 +430,11 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         },
     };
     VkDescriptorSetLayoutCreateInfo const descriptor_set_info = {
-        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,  // sType
-        nullptr,                                              // pNext
-        0,                                                    // flags
-        array_length(layout_bindings),                        // bindingCount
-        layout_bindings,                                      // pBindings
+        VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,      // sType
+        nullptr,                                                  // pNext
+        VK_DESCRIPTOR_SET_LAYOUT_CREATE_PUSH_DESCRIPTOR_BIT_KHR,  // flags
+        array_length(layout_bindings),                            // bindingCount
+        layout_bindings,                                          // pBindings
     };
     result = vkCreateDescriptorSetLayout(_device, &descriptor_set_info, _vk_allocator,
                                          &state->_desc_set_layout);
@@ -834,7 +836,8 @@ void GraphicsVulkan::create_device()
         gsl::make_span(queuePriorities).data(),      // pQueuePriorities
     };
     constexpr char const* known_extensions[] = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME,  // TODO(kw): Check this is supported
+        // TODO(kw): Check these are supported
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME,
     };
     constexpr uint32_t const num_known_extensions = array_length(known_extensions);
     VkDeviceCreateInfo const device_info = {
@@ -1063,7 +1066,7 @@ size_t GraphicsVulkan::align_upload_buffer(size_t const alignment)
     return offset;
 }
 
-uint8_t* GraphicsVulkan::get_upload_data(size_t const size, size_t const alignment)
+void* GraphicsVulkan::get_upload_data(size_t const size, size_t const alignment)
 {
     size_t const offset = align_upload_buffer(alignment);
     size_t const available = _upload_end - _upload_current;

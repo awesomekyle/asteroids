@@ -66,3 +66,4 @@ VK_DEVICE_FUNCTION(vkFlushMappedMemoryRanges)
 VK_DEVICE_FUNCTION(vkUnmapMemory)
 
 VK_DEVICE_FUNCTION(vkGetBufferMemoryRequirements)
+VK_DEVICE_FUNCTION(vkCmdPushDescriptorSetKHR)

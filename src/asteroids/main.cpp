@@ -250,12 +250,23 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         fps_elapsed_time += delta_time;
 
         // render
+        struct ConstantBuffer
+        {
+            float color[4];
+        };
+        ConstantBuffer* const constant_buffer =
+            static_cast<ConstantBuffer*>(graphics->get_upload_data(sizeof(*constant_buffer)));
+        *constant_buffer = {
+            {1, 1, 1, 1},
+        };
+
         auto* const command_buffer = graphics->command_buffer();
         if (command_buffer != nullptr) {
             command_buffer->begin_render_pass();
             command_buffer->set_render_state(render_state.get());
             command_buffer->set_vertex_buffer(vertex_buffer.get());
             command_buffer->set_index_buffer(index_buffer.get());
+            command_buffer->set_constant_data(constant_buffer, sizeof(*constant_buffer));
             command_buffer->draw_indexed(6);
             command_buffer->end_render_pass();
             auto const result = graphics->execute(command_buffer);

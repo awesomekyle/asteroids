@@ -45,12 +45,13 @@ class CommandBuffer
     /// framebuffer.
     virtual bool begin_render_pass() = 0;
 
-    /// @brief Sets the current render state used for rendering
+    /// @brief Sets constant buffer in vertex shader slot 0
+    /// @param[in] upload_data A pointer previously retrieved from `get_upload_buffer`
+    virtual void set_constant_data(void const* upload_data, size_t size) = 0;
+
+    /// Resource setting
     virtual void set_render_state(RenderState* const state) = 0;
-
-    /// @brief Sets the vertex buffer in slot 0
     virtual void set_vertex_buffer(Buffer* const buffer) = 0;
-
     virtual void set_index_buffer(Buffer* const buffer) = 0;
 
     /// @brief Makes a non-indexed draw call
@@ -129,6 +130,9 @@ class Graphics
 
     /// @brief Waits on the CPU until the GPU is idle
     virtual void wait_for_idle() = 0;
+
+    /// @brief Allocates memory from the upload buffer to use as constant buffer data
+    virtual void* get_upload_data(size_t const size, size_t const alignment = 256) = 0;
 
     virtual std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) = 0;
     virtual std::unique_ptr<Buffer> create_vertex_buffer(uint32_t size, void const* data) = 0;

@@ -71,10 +71,40 @@ bool CommandBufferVulkan::begin_render_pass()
     return true;
 }
 
+void CommandBufferVulkan::set_constant_data(void const* const upload_data, size_t size)
+{
+    if (!_current_render_state) {
+        return;
+    }
+    auto const upload_offset = static_cast<VkDeviceSize>(static_cast<uint8_t const*>(upload_data) -
+                                                         _graphics->_upload_start);
+    VkDescriptorBufferInfo const buffer_info = {
+        _graphics->_upload_buffer->_buffer,  // buffer
+        upload_offset,                       // offset
+        size,                                // range
+    };
+
+    VkWriteDescriptorSet const set_info = {
+        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,  // sType
+        nullptr,                                 // pNext
+        VK_NULL_HANDLE,                          // dstSet
+        0,                                       // dstBinding
+        0,                                       // dstArrayElement
+        1,                                       // descriptorCount
+        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,       // descriptorType
+        nullptr,                                 // pImageInfo
+        &buffer_info,                            // pBufferInfo
+        nullptr,                                 // pTexelBufferView
+    };
+    _graphics->vkCmdPushDescriptorSetKHR(_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                         _current_render_state->_pipeline_layout, 0, 1, &set_info);
+}
+
 void CommandBufferVulkan::set_render_state(RenderState* const state)
 {
     auto* const vulkan_state = static_cast<RenderStateVulkan*>(state);
     _graphics->vkCmdBindPipeline(_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_state->_pso);
+    _current_render_state = vulkan_state;
 }
 
 void CommandBufferVulkan::set_vertex_buffer(Buffer* const buffer)

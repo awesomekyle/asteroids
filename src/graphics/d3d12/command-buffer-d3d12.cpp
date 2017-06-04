@@ -49,6 +49,10 @@ bool CommandBufferD3D12::begin_render_pass()
     return true;
 }
 
+void CommandBufferD3D12::set_constant_data(void const* /*upload_data*/, size_t /*size*/)
+{
+}
+
 void CommandBufferD3D12::set_render_state(RenderState* const state)
 {
     auto* const d3d12_state = static_cast<RenderStateD3D12*>(state);

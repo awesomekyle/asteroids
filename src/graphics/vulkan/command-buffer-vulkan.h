@@ -13,6 +13,7 @@ class CommandBufferVulkan : public CommandBuffer
    public:
     void reset() final;
     bool begin_render_pass() final;
+    void set_constant_data(void const* upload_data, size_t size) final;
     void set_render_state(RenderState* const state) final;
     void set_vertex_buffer(Buffer* const buffer) final;
     void set_index_buffer(Buffer* const buffer) final;
@@ -25,6 +26,7 @@ class CommandBufferVulkan : public CommandBuffer
 
     GraphicsVulkan* _graphics = nullptr;
 
+    class RenderStateVulkan* _current_render_state = nullptr;
     VkCommandPool _pool = VK_NULL_HANDLE;
     VkCommandBuffer _buffer = VK_NULL_HANDLE;
     VkFence _fence = VK_NULL_HANDLE;

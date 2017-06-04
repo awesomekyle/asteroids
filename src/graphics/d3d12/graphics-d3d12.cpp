@@ -260,6 +260,11 @@ void GraphicsD3D12::wait_for_idle()
     }
 }
 
+void* GraphicsD3D12::get_upload_data(size_t const /*size*/, size_t const /*alignment*/)
+{
+    return nullptr;
+}
+
 std::unique_ptr<RenderState> GraphicsD3D12::create_render_state(RenderStateDesc const& desc)
 {
     auto state = std::make_unique<RenderStateD3D12>();
