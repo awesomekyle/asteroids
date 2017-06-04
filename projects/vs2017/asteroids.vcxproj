@@ -239,6 +239,8 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\asteroids\application.cpp" />
     <ClCompile Include="..\..\src\asteroids\main.cpp" />
+    <ClCompile Include="..\..\src\asteroids\mesh.cpp" />
+    <ClCompile Include="..\..\src\asteroids\simplexnoise1234.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="glfw.vcxproj">
@@ -272,6 +274,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\asteroids\application.h" />
+    <ClInclude Include="..\..\src\asteroids\mesh.h" />
+    <ClInclude Include="..\..\src\asteroids\noise.h" />
+    <ClInclude Include="..\..\src\asteroids\simplexnoise1234.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
