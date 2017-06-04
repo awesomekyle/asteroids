@@ -9,6 +9,10 @@
 #include <codecvt>
 #include <fstream>
 #include <vector>
+#if defined(_WIN32)
+#include <Windows.h>
+#include <Pathcch.h>
+#endif
 
 #if defined(_WIN32)
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -22,8 +26,13 @@
 
 #include "graphics/graphics.h"
 
-#if defined(_WIN32)
-#include <Pathcch.h>
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4201)  // nameless struct/union
+#endif
+#include <mathfu/hlsl_mappings.h>
+#if defined(_MSC_VER)
+#pragma warning(pop)
 #endif
 
 namespace {
@@ -110,6 +119,13 @@ std::vector<uint8_t> get_file_contents(char const* const filename)
     std::vector<uint8_t> contents(filesize);
     file.read(reinterpret_cast<char*>(&contents[0]), contents.size());
     return contents;
+}
+
+std::pair<int, int> get_window_size(GLFWwindow* const window)
+{
+    std::pair<int, int> dimensions = {};
+    glfwGetFramebufferSize(window, &dimensions.first, &dimensions.second);
+    return dimensions;
 }
 
 ////
@@ -252,11 +268,18 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         // render
         struct ConstantBuffer
         {
-            float color[4];
+            mathfu::float4x4 projection;
+            mathfu::float4x4 view;
+            mathfu::float4x4 world;
         };
         auto* const constant_buffer = graphics->get_upload_data<ConstantBuffer>();
+        auto const dimensions = get_window_size(window);
+        auto const half_width = dimensions.first / 2;
+        auto const half_height = dimensions.second / 2;
         *constant_buffer = {
-            {1, 1, 1, 1},
+            mathfu::float4x4::Identity(),  // mathfu::float4x4::Ortho(-half_width, half_width,
+                                           // -half_height, half_height, 0, 1.0f),
+            mathfu::float4x4::Identity(), mathfu::float4x4::Identity(),
         };
 
         auto* const command_buffer = graphics->command_buffer();

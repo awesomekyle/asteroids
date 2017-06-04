@@ -4,7 +4,9 @@ layout(location=0) in vec4 position;
 layout(location=1) in vec4 color;
 
 layout(binding = 0) uniform Uniforms {
-    vec4 color;
+    mat4 projection;
+    mat4 view;
+    mat4 world;
 } uniforms;
 
 out gl_PerVertex
@@ -15,6 +17,10 @@ out gl_PerVertex
 layout(location=0) out vec4 int_color;
 
 void main() {
-    gl_Position = position;
-    int_color = color * uniforms.color;
+    vec4 out_position =     position * uniforms.world;
+    out_position      = out_position * uniforms.view;
+    out_position      = out_position * uniforms.projection;
+
+    gl_Position = out_position;
+    int_color = color;
 }
