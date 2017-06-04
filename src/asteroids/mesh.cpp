@@ -17,12 +17,19 @@
 #include "mesh.h"
 #include "noise.h"
 #include <map>
+
+#if _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4244)  // double -> float conversion
-#include <random>
-#pragma warning(pop)
+#pragma warning(disable : 4201)  // nameless struct/union
+#endif                           // _MSC_VER
 
-using namespace DirectX;
+#include <mathfu/hlsl_mappings.h>
+#include <random>
+
+#if _MSC_VER
+#pragma warning(pop)
+#endif  // _MSC_VER
 
 void CreateIcosahedron(Mesh *outMesh)
 {
@@ -256,7 +263,7 @@ void CreateSkyboxMesh(std::vector<SkyboxVertex> *outVertices)
 
     // Cube mesh centered at zero
     static const float c = 0.5f;
-    static const DirectX::XMFLOAT3 vertexPos[] = {
+    static const mathfu::float3 vertexPos[] = {
         // x, y, z
         {-c, c, -c},   // 0
         {c, c, -c},    // 1
