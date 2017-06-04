@@ -133,6 +133,11 @@ class Graphics
 
     /// @brief Allocates memory from the upload buffer to use as constant buffer data
     virtual void* get_upload_data(size_t const size, size_t const alignment = 256) = 0;
+    template<typename T>
+    T* get_upload_data()
+    {
+        return static_cast<T*>(get_upload_data(sizeof(T)));
+    }
 
     virtual std::unique_ptr<RenderState> create_render_state(RenderStateDesc const& desc) = 0;
     virtual std::unique_ptr<Buffer> create_vertex_buffer(uint32_t size, void const* data) = 0;

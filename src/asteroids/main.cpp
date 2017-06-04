@@ -254,8 +254,7 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         {
             float color[4];
         };
-        ConstantBuffer* const constant_buffer =
-            static_cast<ConstantBuffer*>(graphics->get_upload_data(sizeof(*constant_buffer)));
+        auto* const constant_buffer = graphics->get_upload_data<ConstantBuffer>();
         *constant_buffer = {
             {1, 1, 1, 1},
         };
