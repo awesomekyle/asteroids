@@ -67,21 +67,21 @@ Application::Application(void* native_window, void* native_instance)
     };
     Vertex const vertices[] = {
         {
-            {-0.7f, -0.7f, 0.0f}, {1.0f, 0.0f, 0.0f, 0.0f},
+            {-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f},
         },
         {
-            {-0.7f, 0.7f, 0.0f}, {0.0f, 1.0f, 0.0f, 0.0f},
+            {-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f, 1.0f},
         },
         {
-            {0.7f, -0.7f, 0.0f}, {0.0f, 0.0f, 1.0f, 0.0f},
+            {0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f, 1.0f},
         },
         {
-            {0.7f, 0.7f, 0.0f}, {0.0f, 0.0f, 0.0f, 0.0f},
+            {0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 0.0f, 1.0f},
         },
     };
     uint16_t const indices[] = {
         0, 1, 2,  //
-        2, 3, 1,  //
+        2, 3, 0,  //
     };
 
     _vertex_buffer = _graphics->create_vertex_buffer(sizeof(vertices), vertices);
@@ -136,17 +136,24 @@ void Application::on_resize(int width, int height)
     _graphics->resize(width, height);
 
     // update projection
-    auto const half_width = width / 64.0f;
-    auto const half_height = height / 64.0f;
+    float const fov = 3.1415926f / 2;
     _constant_buffer.projection =
-        mathfu::float4x4::Ortho(-half_width, half_width, -half_height, half_height, 0.0f, 1.0f);
+        mathfu::float4x4::Perspective(fov, width / static_cast<float>(height), 0.1f, 100.0f);
+    _constant_buffer.view = mathfu::float4x4::LookAt({0, 0, 0}, {0, 2, 3}, {0, 1, 0}, 1);
+
+    if (_graphics->api_type() == ak::Graphics::kVulkan) {
+        // In Vulkan, Y goes down the screen. Flip the projection matrix to account for this
+        _constant_buffer.projection(1, 1) *= -1;
+    }
 }
 
 void Application::on_frame(float /*delta_time*/)
 {
     // render
     auto* const constant_buffer = _graphics->get_upload_data<ConstantBuffer>();
-    *constant_buffer = _constant_buffer;
+    if (constant_buffer != nullptr) {
+        *constant_buffer = _constant_buffer;
+    }
 
     auto* const command_buffer = _graphics->command_buffer();
     if (command_buffer != nullptr) {

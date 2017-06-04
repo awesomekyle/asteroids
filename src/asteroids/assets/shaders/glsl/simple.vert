@@ -9,18 +9,14 @@ layout(binding = 0) uniform Uniforms {
     mat4 world;
 } uniforms;
 
-out gl_PerVertex
-{
-    vec4 gl_Position;
-};
-
 layout(location=0) out vec4 int_color;
 
 void main() {
-    vec4 out_position =     position * uniforms.world;
-    out_position      = out_position * uniforms.view;
-    out_position      = out_position * uniforms.projection;
+    vec4 out_position = uniforms.world      *     position;
+    out_position      = uniforms.view       * out_position;
+    out_position      = uniforms.projection * out_position;
 
     gl_Position = out_position;
+
     int_color = color;
 }
