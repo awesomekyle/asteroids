@@ -82,10 +82,13 @@ class GraphicsVulkan : public Graphics
     void create_device();
     void create_render_passes();
     void create_command_buffers();
-    std::unique_ptr<BufferVulkan> create_buffer(uint32_t size, VkBufferUsageFlags usage);
+    std::unique_ptr<BufferVulkan> create_buffer(uint32_t size, VkBufferUsageFlags usage,
+                                                VkMemoryPropertyFlags property_flags);
     void create_upload_buffer();
     uint32_t get_memory_type_index(VkMemoryRequirements const& requirements,
                                    VkMemoryPropertyFlags const property_flags);
+    size_t align_upload_buffer(size_t const alignment);
+    uint8_t* get_upload_data(size_t const size, size_t const alignment);
 
     uint32_t get_back_buffer();
 
@@ -93,6 +96,8 @@ class GraphicsVulkan : public Graphics
     // constants
     //
     static constexpr uint32_t kMaxBackBuffers = 8;
+    static constexpr uint32_t kUploadBufferSize = 1024 * 1024 * 64;  // 64MiB upload buffer
+
     VkAllocationCallbacks const* const _vk_allocator = nullptr;  // TODO(kw): change if needed
 
     //
@@ -152,7 +157,10 @@ class GraphicsVulkan : public Graphics
     std::atomic<uint32_t> _current_command_buffer = {};
 
     // upload buffer
-    BufferVulkan _upload_buffer;
+    std::unique_ptr<BufferVulkan> _upload_buffer;
+    uint8_t* _upload_start = nullptr;
+    uint8_t const* _upload_end = nullptr;
+    uint8_t* _upload_current = nullptr;
 
 #if defined(_DEBUG)
     VkDebugReportCallbackEXT _debug_report = VK_NULL_HANDLE;

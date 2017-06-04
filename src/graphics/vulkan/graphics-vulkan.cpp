@@ -643,7 +643,8 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
 std::unique_ptr<Buffer> GraphicsVulkan::create_vertex_buffer(uint32_t const size,
                                                              void const* const data)
 {
-    auto vertex_buffer = create_buffer(size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    auto vertex_buffer =
+        create_buffer(size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
     // upload data
     void* gpu_data = nullptr;
@@ -669,7 +670,8 @@ std::unique_ptr<Buffer> GraphicsVulkan::create_vertex_buffer(uint32_t const size
 std::unique_ptr<Buffer> GraphicsVulkan::create_index_buffer(uint32_t const size,
                                                             void const* const data)
 {
-    auto index_buffer = create_buffer(size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    auto index_buffer =
+        create_buffer(size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
 
     // upload data
     void* gpu_data = nullptr;
@@ -948,7 +950,8 @@ void GraphicsVulkan::create_command_buffers()
     }
 }
 
-std::unique_ptr<BufferVulkan> GraphicsVulkan::create_buffer(uint32_t size, VkBufferUsageFlags usage)
+std::unique_ptr<BufferVulkan> GraphicsVulkan::create_buffer(uint32_t size, VkBufferUsageFlags usage,
+                                                            VkMemoryPropertyFlags property_flags)
 {
     VkBufferCreateInfo const buffer_info = {
         VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // sType
@@ -968,8 +971,7 @@ std::unique_ptr<BufferVulkan> GraphicsVulkan::create_buffer(uint32_t size, VkBuf
     VkMemoryRequirements memory_requirements = {};
     vkGetBufferMemoryRequirements(_device, buffer, &memory_requirements);
 
-    uint32_t const memory_type_index =
-        get_memory_type_index(memory_requirements, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT);
+    uint32_t const memory_type_index = get_memory_type_index(memory_requirements, property_flags);
     assert(memory_type_index != UINT32_MAX && "Could not find acceptalbe memory type");
 
     // Allocate memory
@@ -997,6 +999,9 @@ std::unique_ptr<BufferVulkan> GraphicsVulkan::create_buffer(uint32_t size, VkBuf
 
 void GraphicsVulkan::create_upload_buffer()
 {
+    _upload_buffer =
+        create_buffer(kUploadBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 }
 
 uint32_t GraphicsVulkan::get_back_buffer()
@@ -1031,6 +1036,37 @@ uint32_t GraphicsVulkan::get_memory_type_index(VkMemoryRequirements const& requi
         }
     }
     return UINT32_MAX;
+}
+
+size_t GraphicsVulkan::align_upload_buffer(size_t const alignment)
+{
+    uintptr_t current = (uintptr_t)_upload_current;
+    size_t offset = 0;
+    if (current % alignment != 0) {
+        if (current + alignment > (uintptr_t)_upload_end) {
+            offset = (uintptr_t)_upload_end - current;
+            current = (uintptr_t)_upload_start;
+        } else {
+            current += alignment;
+            current &= ~(alignment - 1);
+            offset = current - (uintptr_t)_upload_current;
+        }
+        _upload_current = (uint8_t*)current;
+    }
+    return offset;
+}
+
+uint8_t* GraphicsVulkan::get_upload_data(size_t const size, size_t const alignment)
+{
+    size_t const offset = align_upload_buffer(alignment);
+    size_t const available = _upload_end - _upload_current;
+    if (available < size) {
+        _upload_current = _upload_start;
+    }
+    uint8_t* const data = _upload_current;
+    _upload_current += size;
+    assert(_upload_current < _upload_end);
+    return data;
 }
 
 ScopedGraphics create_graphics_vulkan()
