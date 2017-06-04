@@ -29,6 +29,14 @@ class Application
         mathfu::float4x4 world;
     };
 
+    struct Model
+    {
+        std::unique_ptr<ak::Buffer> vertex_buffer;
+        std::unique_ptr<ak::Buffer> index_buffer;
+        uint32_t index_count;
+        uint32_t vertex_count;
+    };
+
     void* const _window = nullptr;
     void* const _instance = nullptr;
     ak::ScopedGraphics const _graphics = nullptr;
@@ -36,8 +44,8 @@ class Application
     int _width = 0;
     int _height = 0;
 
-    std::unique_ptr<ak::Buffer> _vertex_buffer;
-    std::unique_ptr<ak::Buffer> _index_buffer;
+    Model _cube_model = {};
+
     std::unique_ptr<ak::RenderState> _render_state;
 
     ConstantBuffer _constant_buffer = {};

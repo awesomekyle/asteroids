@@ -13,6 +13,12 @@
 
 namespace {
 
+template<typename T, uint32_t kSize>
+constexpr uint32_t array_length(T (&)[kSize])
+{
+    return kSize;
+}
+
 std::string get_executable_directory()
 {
 #if defined(_WIN32)
@@ -67,6 +73,19 @@ Application::Application(void* native_window, void* native_instance)
     };
     Vertex const vertices[] = {
         {
+            {-0.5f, 0.5f, 0.5f}, {0.5f, 0.0f, 0.0f, 1.0f},
+        },
+        {
+            {-0.5f, 0.5f, -0.5f}, {0.0f, 0.5f, 0.0f, 1.0f},
+        },
+        {
+            {0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, 0.5f, 1.0f},
+        },
+        {
+            {0.5f, 0.5f, 0.5f}, {1.0f, 1.0f, 1.0f, 1.0f},
+        },
+
+        {
             {-0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f, 1.0f},
         },
         {
@@ -80,12 +99,29 @@ Application::Application(void* native_window, void* native_instance)
         },
     };
     uint16_t const indices[] = {
-        0, 1, 2,  //
-        2, 3, 0,  //
+        0, 2, 1,  // top
+        2, 0, 3,  //
+
+        1, 2, 6,  // front
+        6, 5, 1,  //
+
+        2, 3, 7,  // right
+        7, 6, 2,  //
+
+        3, 0, 4,  // back
+        4, 7, 3,  //
+
+        0, 1, 5,  // left
+        5, 4, 0,  //
+
+        4, 5, 6,  // bottom
+        6, 7, 4,  //
     };
 
-    _vertex_buffer = _graphics->create_vertex_buffer(sizeof(vertices), vertices);
-    _index_buffer = _graphics->create_index_buffer(sizeof(indices), indices);
+    _cube_model.vertex_buffer = _graphics->create_vertex_buffer(sizeof(vertices), vertices);
+    _cube_model.index_buffer = _graphics->create_index_buffer(sizeof(indices), indices);
+    _cube_model.index_count = array_length(indices);
+    _cube_model.vertex_count = array_length(vertices);
 
     std::vector<uint8_t> vs_bytecode;
     std::vector<uint8_t> ps_bytecode;
@@ -138,8 +174,8 @@ void Application::on_resize(int width, int height)
     // update projection
     float const fov = 3.1415926f / 2;
     _constant_buffer.projection =
-        mathfu::float4x4::Perspective(fov, width / static_cast<float>(height), 0.1f, 100.0f);
-    _constant_buffer.view = mathfu::float4x4::LookAt({0, 0, 0}, {0, 2, 3}, {0, 1, 0}, 1);
+        mathfu::float4x4::Perspective(fov, width / static_cast<float>(height), 0.1f, 100.0f, -1);
+    _constant_buffer.view = mathfu::float4x4::LookAt({0, 0, 0}, {0, 2, -3}, {0, 1, 0}, -1);
 
     if (_graphics->api_type() == ak::Graphics::kVulkan) {
         // In Vulkan, Y goes down the screen. Flip the projection matrix to account for this
@@ -147,11 +183,13 @@ void Application::on_resize(int width, int height)
     }
 }
 
-void Application::on_frame(float /*delta_time*/)
+void Application::on_frame(float const delta_time)
 {
     // render
     auto* const constant_buffer = _graphics->get_upload_data<ConstantBuffer>();
     if (constant_buffer != nullptr) {
+        _constant_buffer.world *=
+            mathfu::float4x4::FromRotationMatrix(mathfu::float4x4::RotationY(delta_time));
         *constant_buffer = _constant_buffer;
     }
 
@@ -159,10 +197,10 @@ void Application::on_frame(float /*delta_time*/)
     if (command_buffer != nullptr) {
         command_buffer->begin_render_pass();
         command_buffer->set_render_state(_render_state.get());
-        command_buffer->set_vertex_buffer(_vertex_buffer.get());
-        command_buffer->set_index_buffer(_index_buffer.get());
+        command_buffer->set_vertex_buffer(_cube_model.vertex_buffer.get());
+        command_buffer->set_index_buffer(_cube_model.index_buffer.get());
         command_buffer->set_constant_data(constant_buffer, sizeof(*constant_buffer));
-        command_buffer->draw_indexed(6);
+        command_buffer->draw_indexed(_cube_model.index_count);
         command_buffer->end_render_pass();
         auto const result = _graphics->execute(command_buffer);
         assert(result);
