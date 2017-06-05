@@ -22,6 +22,14 @@ class Application
     void on_frame(float delta_time);
 
    private:
+    //
+    // constants
+    //
+    static constexpr int kNumAsteroids = 50000;
+
+    //
+    // types
+    //
     struct VSConstantBuffer
     {
         mathfu::float4x4 projection;
@@ -33,13 +41,24 @@ class Application
         mathfu::float4 color;
     };
 
+    struct Asteroid
+    {
+        mathfu::float4x4 world;
+        float scale;
+        float spin_velocity;
+        float orbit_velocity;
+    };
+
     struct Model
     {
         std::unique_ptr<ak::Buffer> vertex_buffer;
         std::unique_ptr<ak::Buffer> index_buffer;
         uint32_t index_count;
-        uint32_t vertex_count;
     };
+
+    //
+    // data members
+    //
 
     void* const _window = nullptr;
     void* const _instance = nullptr;
@@ -53,4 +72,6 @@ class Application
     std::unique_ptr<ak::RenderState> _render_state;
 
     VSConstantBuffer _constant_buffer = {};
+
+    Asteroid _asteroids[kNumAsteroids] = {};
 };

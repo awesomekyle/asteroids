@@ -3,7 +3,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\asteroids\main.cpp" />
     <ClCompile Include="..\..\src\asteroids\application.cpp" />
-    <ClCompile Include="..\..\src\asteroids\mesh.cpp" />
     <ClCompile Include="..\..\src\asteroids\simplexnoise1234.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -38,7 +37,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\asteroids\application.h" />
-    <ClInclude Include="..\..\src\asteroids\mesh.h" />
     <ClInclude Include="..\..\src\asteroids\simplexnoise1234.h" />
     <ClInclude Include="..\..\src\asteroids\noise.h" />
   </ItemGroup>

@@ -115,8 +115,8 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     //
     // Initialize
     //
-    Application app(native_window(window), native_instance());
-    glfwSetWindowUserPointer(window, &app);
+    auto app = std::make_unique<Application>(native_window(window), native_instance());
+    glfwSetWindowUserPointer(window, app.get());
 
     // The framebuffer is set here after graphics initialization to trigger the
     // GLFW callback
@@ -146,7 +146,7 @@ int main(int const /*argc*/, char const* const /*argv*/[])
         //
         // Frame
         //
-        app.on_frame(delta_time);
+        app->on_frame(delta_time);
     }
 
     //

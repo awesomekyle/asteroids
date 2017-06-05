@@ -236,7 +236,6 @@ Application::Application(void* native_window, void* native_instance)
     _cube_model.vertex_buffer =
         _graphics->create_vertex_buffer(vertex_count * sizeof(mesh.vertices[0]),
                                         mesh.vertices.data());
-    _cube_model.vertex_count = vertex_count;
     _cube_model.index_buffer =
         _graphics->create_index_buffer(index_count * sizeof(mesh.indices[0]), mesh.indices.data());
     _cube_model.index_count = index_count;
@@ -275,6 +274,33 @@ Application::Application(void* native_window, void* native_instance)
     _constant_buffer = {
         mathfu::float4x4::Identity(), mathfu::float4x4::Identity(), mathfu::float4x4::Identity(),
     };
+
+    // initialize asteroids
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    constexpr float sim_disc_radius = 120.0f;
+    std::uniform_real_distribution<float> scale_dist(0.5f, 1.5f);
+    std::uniform_real_distribution<float> orbit_dist(sim_disc_radius * 0.6f, 450.0f);
+    std::uniform_real_distribution<float> radial_velocity_dist(5.0f, 15.0f);
+    std::uniform_real_distribution<float> height_dist(-0.2f, 0.2f);
+    std::uniform_real_distribution<float> angle_dist(-3.14159265358979323846f,
+                                                     3.14159265358979323846f);
+
+    for (auto& asteroid : _asteroids) {
+        auto const scale = scale_dist(gen);
+        auto const orbit_radius = orbit_dist(gen);
+        auto const position_angle = angle_dist(gen);
+        auto const height = sim_disc_radius * height_dist(gen);
+
+        asteroid.scale = scale;
+        asteroid.orbit_velocity = radial_velocity_dist(gen) / (scale * orbit_radius);
+
+        asteroid.world =
+            mathfu::float4x4::FromRotationMatrix(mathfu::float4x4::RotationY(position_angle)) *
+            mathfu::float4x4::FromTranslationVector({orbit_radius, height, 0.0f}) *
+            mathfu::float4x4::FromScaleVector({scale, scale, scale});
+    }
 }
 
 Application::~Application()
@@ -296,8 +322,8 @@ void Application::on_resize(int width, int height)
     // to get better depth buffer precision, a "reversed" depth buffer is used
     // https://developer.nvidia.com/content/depth-precision-visualized
     _constant_buffer.projection =
-        mathfu::float4x4::Perspective(fov, width / static_cast<float>(height), 100.0f, 0.001f, -1);
-    _constant_buffer.view = mathfu::float4x4::LookAt({0, 0, 0}, {0, 2, -3}, {0, 1, 0}, -1);
+        mathfu::float4x4::Perspective(fov, width / static_cast<float>(height), 10000.0f, 0.1f, -1);
+    _constant_buffer.view = mathfu::float4x4::LookAt({0, 0, 0}, {0, 70, -500}, {0, 1, 0}, -1);
 
     if (_graphics->api_type() == ak::Graphics::kVulkan) {
         // In Vulkan, Y goes down the screen. Flip the projection matrix to account for this
@@ -308,13 +334,6 @@ void Application::on_resize(int width, int height)
 void Application::on_frame(float const delta_time)
 {
     // render
-    auto* const vs_const_buffer = _graphics->get_upload_data<VSConstantBuffer>();
-    if (vs_const_buffer != nullptr) {
-        _constant_buffer.world *=
-            mathfu::float4x4::FromRotationMatrix(mathfu::float4x4::RotationY(delta_time));
-        *vs_const_buffer = _constant_buffer;
-    }
-
     auto const ps_const_buffer = _graphics->get_upload_data<PSConstantBuffer>();
     if (ps_const_buffer) {
         ps_const_buffer->color = {1, 1, 1, 1};
@@ -326,9 +345,22 @@ void Application::on_frame(float const delta_time)
         command_buffer->set_render_state(_render_state.get());
         command_buffer->set_vertex_buffer(_cube_model.vertex_buffer.get());
         command_buffer->set_index_buffer(_cube_model.index_buffer.get());
-        command_buffer->set_vertex_constant_data(vs_const_buffer, sizeof(*vs_const_buffer));
         command_buffer->set_pixel_constant_data(ps_const_buffer, sizeof(*ps_const_buffer));
-        command_buffer->draw_indexed(_cube_model.index_count);
+
+        for (auto& asteroid : _asteroids) {
+            auto* const vs_const_buffer = _graphics->get_upload_data<VSConstantBuffer>();
+            if (vs_const_buffer != nullptr) {
+                auto const orbit = mathfu::float4x4::FromRotationMatrix(
+                    mathfu::float4x4::RotationY(asteroid.orbit_velocity * delta_time));
+                asteroid.world = orbit * asteroid.world;
+                _constant_buffer.world = asteroid.world;
+                *vs_const_buffer = _constant_buffer;
+            }
+
+            command_buffer->set_vertex_constant_data(vs_const_buffer, sizeof(*vs_const_buffer));
+            command_buffer->draw_indexed(_cube_model.index_count);
+        }
+
         command_buffer->end_render_pass();
         auto const result = _graphics->execute(command_buffer);
         assert(result);
