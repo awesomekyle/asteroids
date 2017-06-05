@@ -1,7 +1,7 @@
 #version 450
 
 layout(location=0) in vec4 position;
-layout(location=1) in vec4 color;
+layout(location=1) in vec3 norm;
 
 layout(set = 0,binding = 0) uniform Uniforms {
     mat4 projection;
@@ -9,7 +9,7 @@ layout(set = 0,binding = 0) uniform Uniforms {
     mat4 world;
 } uniforms;
 
-layout(location=0) out vec4 int_color;
+layout(location=0) out vec3 out_norm;
 
 void main() {
     vec4 out_position = uniforms.world      *     position;
@@ -18,5 +18,5 @@ void main() {
 
     gl_Position = out_position;
 
-    int_color = color;
+    out_norm = (uniforms.world * vec4(norm,0)).xyz;
 }

@@ -62,7 +62,7 @@ struct Mesh
     struct Vertex
     {
         mathfu::float3 pos;
-        mathfu::float3 col;
+        mathfu::float3 norm;
     };
 
     std::vector<Vertex> vertices;
@@ -130,33 +130,54 @@ struct Mesh
         // clang-format off
         Mesh const mesh = {
             {
-                { {-0.5f,  0.5f,  0.5f}, {0.5f, 0.0f, 0.0f}, },
-                { {-0.5f,  0.5f, -0.5f}, {0.0f, 0.5f, 0.0f}, },
-                { { 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 0.5f}, },
-                { { 0.5f,  0.5f,  0.5f}, {1.0f, 1.0f, 1.0f}, },
-                { {-0.5f, -0.5f,  0.5f}, {1.0f, 0.0f, 0.0f}, },
-                { {-0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, },
-                { { 0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, },
-                { { 0.5f, -0.5f,  0.5f}, {0.0f, 0.0f, 0.0f}, },
+                { { -0.5f,  0.5f, -0.5f }, {  0.0f,  1.0f,  0.0f } },
+                { {  0.5f,  0.5f, -0.5f }, {  0.0f,  1.0f,  0.0f } },
+                { {  0.5f,  0.5f,  0.5f }, {  0.0f,  1.0f,  0.0f } },
+                { { -0.5f,  0.5f,  0.5f }, {  0.0f,  1.0f,  0.0f } },
+
+                { { -0.5f, -0.5f, -0.5f }, {  0.0f, -1.0f,  0.0f } },
+                { {  0.5f, -0.5f, -0.5f }, {  0.0f, -1.0f,  0.0f } },
+                { {  0.5f, -0.5f,  0.5f }, {  0.0f, -1.0f,  0.0f } },
+                { { -0.5f, -0.5f,  0.5f }, {  0.0f, -1.0f,  0.0f } },
+
+                { { -0.5f, -0.5f,  0.5f }, { -1.0f,  0.0f,  0.0f } },
+                { { -0.5f, -0.5f, -0.5f }, { -1.0f,  0.0f,  0.0f } },
+                { { -0.5f,  0.5f, -0.5f }, { -1.0f,  0.0f,  0.0f } },
+                { { -0.5f,  0.5f,  0.5f }, { -1.0f,  0.0f,  0.0f } },
+
+                { {  0.5f, -0.5f,  0.5f }, {  1.0f,  0.0f,  0.0f } },
+                { {  0.5f, -0.5f, -0.5f }, {  1.0f,  0.0f,  0.0f } },
+                { {  0.5f,  0.5f, -0.5f }, {  1.0f,  0.0f,  0.0f } },
+                { {  0.5f,  0.5f,  0.5f }, {  1.0f,  0.0f,  0.0f } },
+
+                { { -0.5f, -0.5f, -0.5f }, {  0.0f,  0.0f, -1.0f } },
+                { {  0.5f, -0.5f, -0.5f }, {  0.0f,  0.0f, -1.0f } },
+                { {  0.5f,  0.5f, -0.5f }, {  0.0f,  0.0f, -1.0f } },
+                { { -0.5f,  0.5f, -0.5f }, {  0.0f,  0.0f, -1.0f } },
+
+                { { -0.5f, -0.5f,  0.5f }, {  0.0f,  0.0f,  1.0f } },
+                { {  0.5f, -0.5f,  0.5f }, {  0.0f,  0.0f,  1.0f } },
+                { {  0.5f,  0.5f,  0.5f }, {  0.0f,  0.0f,  1.0f } },
+                { { -0.5f,  0.5f,  0.5f }, {  0.0f,  0.0f,  1.0f } },
             },
             {
-                0, 2, 1,  // top
-                2, 0, 3,  //
+                3,1,0,
+                2,1,3,
 
-                1, 2, 6,  // front
-                6, 5, 1,  //
+                6,4,5,
+                7,4,6,
 
-                2, 3, 7,  // right
-                7, 6, 2,  //
+                11,9,8,
+                10,9,11,
 
-                3, 0, 4,  // back
-                4, 7, 3,  //
+                14,12,13,
+                15,12,14,
 
-                0, 1, 5,  // left
-                5, 4, 0,  //
+                19,17,16,
+                18,17,19,
 
-                4, 5, 6,  // bottom
-                6, 7, 4,  //
+                22,20,21,
+                23,20,22,
             },
         };
         // clang-format on
@@ -177,17 +198,17 @@ Application::Application(void* native_window, void* native_instance)
     //
     // Create resources
     //
-    auto mesh = Mesh::icosahedron();
+    auto mesh = Mesh::cube();
     // mesh.spherify(1.0f);
     std::random_device rd;
     std::mt19937 gen(rd());
-    for (auto& vertex : mesh.vertices) {
-        vertex.col = {
-            std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
-            std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
-            std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
-        };
-    }
+    // for (auto& vertex : mesh.vertices) {
+    //    vertex.col = {
+    //        std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
+    //        std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
+    //        std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
+    //    };
+    //}
     auto const index_count = static_cast<uint32_t>(mesh.indices.size());
     auto const vertex_count = static_cast<uint32_t>(mesh.vertices.size());
     _cube_model.vertex_buffer =
