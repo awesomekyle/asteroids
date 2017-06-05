@@ -49,7 +49,8 @@ bool CommandBufferD3D12::begin_render_pass()
     return true;
 }
 
-void CommandBufferD3D12::set_vertex_constant_data(void const* /*upload_data*/, size_t /*size*/)
+void CommandBufferD3D12::set_vertex_constant_data(uint32_t /*slot*/, void const* /*upload_data*/,
+                                                  size_t /*size*/)
 {
     // UNIMPLEMENTED
 }

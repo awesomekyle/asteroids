@@ -10,6 +10,8 @@
 #include <Pathcch.h>
 #endif  // _WIN32
 
+#include <GLFW/glfw3.h>
+
 #include "graphics/graphics.h"
 
 namespace {
@@ -272,7 +274,7 @@ Application::Application(void* native_window, void* native_instance)
     });
 
     _constant_buffer = {
-        mathfu::float4x4::Identity(), mathfu::float4x4::Identity(), mathfu::float4x4::Identity(),
+        mathfu::float4x4::Identity(), mathfu::float4x4::Identity(),
     };
 
     // initialize asteroids
@@ -333,6 +335,15 @@ void Application::on_resize(int width, int height)
 
 void Application::on_frame(float const delta_time)
 {
+    // update
+    if (_simulate) {
+        for (auto& asteroid : _asteroids) {
+            auto const orbit = mathfu::float4x4::FromRotationMatrix(
+                mathfu::float4x4::RotationY(asteroid.orbit_velocity * delta_time));
+            asteroid.world = orbit * asteroid.world;
+        }
+    }
+
     // render
     auto const ps_const_buffer = _graphics->get_upload_data<PSConstantBuffer>();
     if (ps_const_buffer) {
@@ -347,17 +358,20 @@ void Application::on_frame(float const delta_time)
         command_buffer->set_index_buffer(_cube_model.index_buffer.get());
         command_buffer->set_pixel_constant_data(ps_const_buffer, sizeof(*ps_const_buffer));
 
+        // set per-frame constants
+        auto* const vs_const_buffer = _graphics->get_upload_data<PerFrameConstants>();
+        if (vs_const_buffer != nullptr) {
+            *vs_const_buffer = _constant_buffer;
+        }
+        command_buffer->set_vertex_constant_data(0, vs_const_buffer, sizeof(*vs_const_buffer));
+
         for (auto& asteroid : _asteroids) {
-            auto* const vs_const_buffer = _graphics->get_upload_data<VSConstantBuffer>();
-            if (vs_const_buffer != nullptr) {
-                auto const orbit = mathfu::float4x4::FromRotationMatrix(
-                    mathfu::float4x4::RotationY(asteroid.orbit_velocity * delta_time));
-                asteroid.world = orbit * asteroid.world;
-                _constant_buffer.world = asteroid.world;
-                *vs_const_buffer = _constant_buffer;
+            auto* const model_buffer = _graphics->get_upload_data<PerModelConstants>();
+            if (model_buffer != nullptr) {
+                model_buffer->world = asteroid.world;
             }
 
-            command_buffer->set_vertex_constant_data(vs_const_buffer, sizeof(*vs_const_buffer));
+            command_buffer->set_vertex_constant_data(1, model_buffer, sizeof(*model_buffer));
             command_buffer->draw_indexed(_cube_model.index_count);
         }
 
@@ -367,4 +381,11 @@ void Application::on_frame(float const delta_time)
     }
 
     _graphics->present();
+}
+
+void Application::on_keyup(int const glfw_key)
+{
+    if (glfw_key == GLFW_KEY_SPACE) {
+        _simulate = !_simulate;
+    }
 }

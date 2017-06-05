@@ -4,7 +4,7 @@ layout(location=0) in vec3 in_norm;
 
 layout(location=0) out vec4 out_Color;
 
-layout(set = 0, binding = 1) uniform Uniforms {
+layout(binding = 2) uniform Uniforms {
     vec4 color;
 } uniforms;
 

@@ -47,7 +47,7 @@ class CommandBuffer
 
     /// @brief Sets constant buffer in vertex shader slot 0
     /// @param[in] upload_data A pointer previously retrieved from `get_upload_buffer`
-    virtual void set_vertex_constant_data(void const* upload_data, size_t size) = 0;
+    virtual void set_vertex_constant_data(uint32_t slot, void const* upload_data, size_t size) = 0;
 
     /// @brief Sets constant buffer in pixel shader slot 0
     /// @param[in] upload_data A pointer previously retrieved from `get_upload_buffer`

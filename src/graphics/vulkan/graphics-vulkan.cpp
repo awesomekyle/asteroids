@@ -430,22 +430,30 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
     assert(VK_SUCCEEDED(result));
 
     // pipeline layout
-    VkDescriptorSetLayoutBinding const layout_bindings[] = {
-        {
-            0,                                  // binding
+    // We specify 2 bindings for both vertex and pixel shaders
+    uint32_t constexpr num_vertex_bindings = 2;
+    uint32_t constexpr num_pixel_bindings = 2;
+    VkDescriptorSetLayoutBinding layout_bindings[num_vertex_bindings + num_pixel_bindings] = {};
+
+    for (uint32_t ii = 0; ii < num_vertex_bindings; ++ii) {
+        layout_bindings[ii] = {
+            ii,                                 // binding
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
-            4,                                  // descriptorCount
+            1,                                  // descriptorCount
             VK_SHADER_STAGE_VERTEX_BIT,         // stageFlags
             nullptr,                            // pImmutableSamplers
-        },
-        {
-            1,                                  // binding
+        };
+    }
+    for (uint32_t ii = 0; ii < num_pixel_bindings; ++ii) {
+        layout_bindings[ii + num_vertex_bindings] = {
+            ii + num_vertex_bindings,           // binding
             VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,  // descriptorType
-            4,                                  // descriptorCount
+            1,                                  // descriptorCount
             VK_SHADER_STAGE_FRAGMENT_BIT,       // stageFlags
             nullptr,                            // pImmutableSamplers
-        },
-    };
+        };
+    }
+
     VkDescriptorSetLayoutCreateInfo const descriptor_set_info = {
         VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO,      // sType
         nullptr,                                                  // pNext

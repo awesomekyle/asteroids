@@ -79,11 +79,13 @@ void glfw_error_callback(int const error, char const* description)
 {
     std::cout << "GLFW Error: " << error << " - " << description << std::endl;
 }
-void glfw_keyboard_callback(GLFWwindow* window, int key, int /*scancode*/, int /*action*/,
-                            int /*mods*/)
+void glfw_keyboard_callback(GLFWwindow* window, int key, int /*scancode*/, int action, int /*mods*/)
 {
     if (key == GLFW_KEY_ESCAPE) {
         glfwSetWindowShouldClose(window, 1);
+    }
+    if (action == GLFW_RELEASE) {
+        get_window_application(window)->on_keyup(key);
     }
 }
 void glfw_framebuffer_callback(GLFWwindow* window, int width, int height)

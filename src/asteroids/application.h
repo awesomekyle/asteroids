@@ -20,20 +20,29 @@ class Application
 
     void on_resize(int width, int height);
     void on_frame(float delta_time);
+    void on_keyup(int glfw_key);
 
    private:
-    //
-    // constants
-    //
+//
+// constants
+//
+
+#if defined(_DEBUG)
+    static constexpr int kNumAsteroids = 500;
+#else
     static constexpr int kNumAsteroids = 50000;
+#endif
 
     //
     // types
     //
-    struct VSConstantBuffer
+    struct PerFrameConstants
     {
         mathfu::float4x4 projection;
         mathfu::float4x4 view;
+    };
+    struct PerModelConstants
+    {
         mathfu::float4x4 world;
     };
     struct PSConstantBuffer
@@ -64,6 +73,8 @@ class Application
     void* const _instance = nullptr;
     ak::ScopedGraphics const _graphics = nullptr;
 
+    bool _simulate = true;
+
     int _width = 0;
     int _height = 0;
 
@@ -71,7 +82,7 @@ class Application
 
     std::unique_ptr<ak::RenderState> _render_state;
 
-    VSConstantBuffer _constant_buffer = {};
+    PerFrameConstants _constant_buffer = {};
 
     Asteroid _asteroids[kNumAsteroids] = {};
 };

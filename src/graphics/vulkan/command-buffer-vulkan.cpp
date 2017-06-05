@@ -61,7 +61,8 @@ bool CommandBufferVulkan::begin_render_pass()
     return true;
 }
 
-void CommandBufferVulkan::set_vertex_constant_data(void const* const upload_data, size_t size)
+void CommandBufferVulkan::set_vertex_constant_data(uint32_t slot, void const* const upload_data,
+                                                   size_t size)
 {
     if (!_current_render_state) {
         return;
@@ -79,7 +80,7 @@ void CommandBufferVulkan::set_vertex_constant_data(void const* const upload_data
         nullptr,                                 // pNext
         VK_NULL_HANDLE,                          // dstSet
         0,                                       // dstBinding
-        0,                                       // dstArrayElement
+        slot,                                    // dstArrayElement
         1,                                       // descriptorCount
         VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,       // descriptorType
         nullptr,                                 // pImageInfo
