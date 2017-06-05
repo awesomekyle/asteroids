@@ -78,6 +78,36 @@ struct Mesh
             v.pos.z *= n;
         }
     }
+    void calculate_normals()
+    {
+        for (auto& v : vertices) {
+            v.norm = {0, 0, 0};
+        }
+
+        assert(indices.size() % 3 == 0);  // trilist
+        for (size_t ii = 0; ii < indices.size(); ii += 3) {
+            auto& v1 = vertices[indices[ii + 0]];
+            auto& v2 = vertices[indices[ii + 1]];
+            auto& v3 = vertices[indices[ii + 2]];
+
+            // Two edge vectors u,v
+            auto const u = v2.pos - v1.pos;
+            auto const v = v3.pos - v1.pos;
+
+            // cross(u,v)
+            auto const n = mathfu::float3::CrossProduct(u, v);
+
+            // Add them all together
+            v1.norm += n;
+            v2.norm += n;
+            v3.norm += n;
+        }
+
+        // Normalize
+        for (auto& v : vertices) {
+            v.norm.Normalize();
+        }
+    }
 
     static Mesh icosahedron()
     {
@@ -198,7 +228,8 @@ Application::Application(void* native_window, void* native_instance)
     //
     // Create resources
     //
-    auto mesh = Mesh::cube();
+    auto mesh = Mesh::icosahedron();
+    mesh.calculate_normals();
     // mesh.spherify(1.0f);
     std::random_device rd;
     std::mt19937 gen(rd());
