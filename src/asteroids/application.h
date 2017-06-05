@@ -40,9 +40,11 @@ class Application
     {
         mathfu::float4x4 projection;
         mathfu::float4x4 view;
+        mathfu::float4x4 viewproj;
     };
     struct PerModelConstants
     {
+        mathfu::float4x4 wvp;
         mathfu::float4x4 world;
     };
     struct PSConstantBuffer
@@ -52,6 +54,8 @@ class Application
 
     struct Asteroid
     {
+        // TODO(kw): Split into static and dynamic data for better caching
+        mathfu::float4x4 wvp;
         mathfu::float4x4 world;
         float scale;
         float spin_velocity;
