@@ -589,7 +589,7 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         0,                                                           // flags
         VK_TRUE,                                                     // depthTestEnable
         VK_TRUE,                                                     // depthWriteEnable
-        VK_COMPARE_OP_LESS,                                          // depthCompareOp
+        VK_COMPARE_OP_GREATER,                                       // depthCompareOp
         VK_FALSE,                                                    // depthBoundsTestEnable
         VK_FALSE,                                                    // stencilTestEnable
         {},                                                          // front

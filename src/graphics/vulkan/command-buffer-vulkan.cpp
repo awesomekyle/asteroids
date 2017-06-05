@@ -24,7 +24,7 @@ bool CommandBufferVulkan::begin_render_pass()
     auto const back_buffer_index = _graphics->get_back_buffer();
     VkClearValue clear_values[2] = {};
     clear_values[0].color = {{0.0f, 0.75f, 1.0f, 1.0f}};
-    clear_values[1].depthStencil.depth = 1.0f;
+    clear_values[1].depthStencil.depth = 0.0f;
     constexpr uint32_t num_clear_values = array_length(clear_values);
 
     auto const extent = _graphics->_surface_capabilities.currentExtent;

@@ -292,8 +292,11 @@ void Application::on_resize(int width, int height)
 
     // update projection
     float const fov = 3.1415926f / 2;
+
+    // to get better depth buffer precision, a "reversed" depth buffer is used
+    // https://developer.nvidia.com/content/depth-precision-visualized
     _constant_buffer.projection =
-        mathfu::float4x4::Perspective(fov, width / static_cast<float>(height), 0.1f, 100.0f, -1);
+        mathfu::float4x4::Perspective(fov, width / static_cast<float>(height), 100.0f, 0.001f, -1);
     _constant_buffer.view = mathfu::float4x4::LookAt({0, 0, 0}, {0, 2, -3}, {0, 1, 0}, -1);
 
     if (_graphics->api_type() == ak::Graphics::kVulkan) {
