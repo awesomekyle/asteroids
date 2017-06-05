@@ -89,6 +89,9 @@ GraphicsVulkan::~GraphicsVulkan()
     for (auto const& framebuffer : _framebuffers) {
         vkDestroyFramebuffer(_device, framebuffer, _vk_allocator);
     }
+    vkDestroyImageView(_device, _depth_view, _vk_allocator);
+    vkFreeMemory(_device, _depth_buffer_memory, _vk_allocator);
+    vkDestroyImage(_device, _depth_buffer, _vk_allocator);
     vkDestroyRenderPass(_device, _render_pass, _vk_allocator);
     vkDestroySwapchainKHR(_device, _swap_chain, _vk_allocator);
     vkDestroySemaphore(_device, _swap_chain_semaphore, _vk_allocator);
@@ -220,7 +223,7 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
     uint32_t const num_images = _surface_capabilities.minImageCount + 1;
 
     // Create swap chain
-    VkSwapchainCreateInfoKHR const swapChainInfo = {
+    VkSwapchainCreateInfoKHR const swap_chain_info = {
         VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,  // sType
         nullptr,                                      // pNext
         0,                                            // flags
@@ -241,7 +244,7 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
         _swap_chain,                                  // oldSwapchain
     };
     VkSwapchainKHR new_swap_chain = VK_NULL_HANDLE;
-    result = vkCreateSwapchainKHR(_device, &swapChainInfo, nullptr, &new_swap_chain);
+    result = vkCreateSwapchainKHR(_device, &swap_chain_info, nullptr, &new_swap_chain);
     assert(VK_SUCCEEDED(result) && "Could not create swap chain");
     if (_swap_chain != VK_NULL_HANDLE) {
         vkDestroySwapchainKHR(_device, _swap_chain, nullptr);
@@ -262,7 +265,7 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
         vkDestroyFramebuffer(_device, gsl::at(_framebuffers, ii), nullptr);
         vkDestroyImageView(_device, gsl::at(_back_buffer_views, ii), nullptr);
         // Image view
-        VkImageViewCreateInfo const imageViewInfo = {
+        VkImageViewCreateInfo const image_view_info = {
             VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,  // sType
             nullptr,                                   // pNext
             0,                                         // flags
@@ -279,11 +282,11 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
             kFullSubresourceRange,  // subresourceRange
         };
         result =
-            vkCreateImageView(_device, &imageViewInfo, nullptr, &gsl::at(_back_buffer_views, ii));
+            vkCreateImageView(_device, &image_view_info, nullptr, &gsl::at(_back_buffer_views, ii));
         assert(VK_SUCCEEDED(result) && "Could not create image view");
 
         // Framebuffer
-        VkFramebufferCreateInfo const framebufferInfo = {
+        VkFramebufferCreateInfo const framebuffer_info = {
             VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,   // sType
             nullptr,                                     // pNext
             0,                                           // flags
@@ -295,7 +298,7 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
             1,                                           // layers
         };
         result =
-            vkCreateFramebuffer(_device, &framebufferInfo, nullptr, &gsl::at(_framebuffers, ii));
+            vkCreateFramebuffer(_device, &framebuffer_info, nullptr, &gsl::at(_framebuffers, ii));
         assert(VK_SUCCEEDED(result) && "Could not create framebuffer");
     }
     return true;
@@ -958,6 +961,77 @@ void GraphicsVulkan::create_command_buffers()
 
         buffer._graphics = this;
     }
+}
+
+void GraphicsVulkan::create_depth_buffer()
+{
+    // destroy existing depth buffer
+    vkDestroyImageView(_device, _depth_view, _vk_allocator);
+    vkFreeMemory(_device, _depth_buffer_memory, _vk_allocator);
+    vkDestroyImage(_device, _depth_buffer, _vk_allocator);
+
+    // create image
+    VkExtent3D const extent = {
+        _surface_capabilities.currentExtent.width, _surface_capabilities.currentExtent.height, 1,
+    };
+    VkImageCreateInfo const image_info = {
+        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,               // sType
+        nullptr,                                           // pNext
+        0,                                                 // flags
+        VK_IMAGE_TYPE_2D,                                  // imageType
+        VK_FORMAT_D32_SFLOAT,                              // format
+        extent,                                            // extent
+        1,                                                 // mipLevels
+        1,                                                 // arrayLayers
+        VK_SAMPLE_COUNT_1_BIT,                             // samples
+        VK_IMAGE_TILING_OPTIMAL,                           // tiling
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,       // usage
+        VK_SHARING_MODE_EXCLUSIVE,                         // sharingMode
+        0,                                                 // queueFamilyIndexCount
+        nullptr,                                           // pQueueFamilyIndices
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,  // initialLayout
+    };
+
+    VkResult result = vkCreateImage(_device, &image_info, _vk_allocator, &_depth_buffer);
+    assert(VK_SUCCEEDED(result));
+
+    // allocate memory
+    VkMemoryRequirements memory_requirements = {};
+    vkGetImageMemoryRequirements(_device, _depth_buffer, &memory_requirements);
+
+    uint32_t const memory_type_index =
+        get_memory_type_index(memory_requirements, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    assert(memory_type_index != UINT32_MAX && "Could not find acceptalbe memory type");
+    VkMemoryAllocateInfo const alloc_info = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // sType
+        nullptr,                                 // pNext
+        memory_requirements.size,                // allocationSize
+        memory_type_index,                       // memoryTypeIndex
+    };
+    result = vkAllocateMemory(_device, &alloc_info, _vk_allocator, &_depth_buffer_memory);
+    assert(VK_SUCCEEDED(result));
+
+    result = vkBindImageMemory(_device, _depth_buffer, _depth_buffer_memory, 0);
+    assert(VK_SUCCEEDED(result));
+
+    VkImageViewCreateInfo const image_view_info = {
+        VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,  // sType
+        nullptr,                                   // pNext
+        0,                                         // flags
+        _depth_buffer,                             // image
+        VK_IMAGE_VIEW_TYPE_2D,                     // viewType
+        image_info.format,                         // format
+        // components
+        {
+            VK_COMPONENT_SWIZZLE_IDENTITY,  // r
+            VK_COMPONENT_SWIZZLE_IDENTITY,  // g
+            VK_COMPONENT_SWIZZLE_IDENTITY,  // b
+            VK_COMPONENT_SWIZZLE_IDENTITY,  // a
+        },
+        kFullSubresourceRange,  // subresourceRange
+    };
+    result = vkCreateImageView(_device, &image_view_info, _vk_allocator, &_depth_view);
+    assert(VK_SUCCEEDED(result));
 }
 
 std::unique_ptr<BufferVulkan> GraphicsVulkan::create_buffer(uint32_t size, VkBufferUsageFlags usage,

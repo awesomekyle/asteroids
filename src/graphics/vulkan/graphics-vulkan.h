@@ -84,6 +84,7 @@ class GraphicsVulkan : public Graphics
     void create_device();
     void create_render_passes();
     void create_command_buffers();
+    void create_depth_buffer();
     std::unique_ptr<BufferVulkan> create_buffer(uint32_t size, VkBufferUsageFlags usage,
                                                 VkMemoryPropertyFlags property_flags);
     void create_upload_buffer();
@@ -148,6 +149,11 @@ class GraphicsVulkan : public Graphics
     uint32_t _num_back_buffers = 0;
     uint32_t _back_buffer_index = UINT32_MAX;
     VkFramebuffer _framebuffers[kMaxBackBuffers] = {};
+
+    // depth
+    VkImage _depth_buffer = VK_NULL_HANDLE;
+    VkDeviceMemory _depth_buffer_memory = VK_NULL_HANDLE;
+    VkImageView _depth_view = VK_NULL_HANDLE;
 
     // Render pass info
     VkRenderPass _render_pass = VK_NULL_HANDLE;

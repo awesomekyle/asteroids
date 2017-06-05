@@ -5,6 +5,10 @@ VK_DEVICE_FUNCTION(vkGetDeviceQueue)
 
 VK_DEVICE_FUNCTION(vkCreateImageView)
 VK_DEVICE_FUNCTION(vkDestroyImageView)
+VK_DEVICE_FUNCTION(vkCreateImage)
+VK_DEVICE_FUNCTION(vkDestroyImage)
+VK_DEVICE_FUNCTION(vkGetImageMemoryRequirements)
+VK_DEVICE_FUNCTION(vkBindImageMemory)
 
 VK_DEVICE_FUNCTION(vkCreateFramebuffer)
 VK_DEVICE_FUNCTION(vkDestroyFramebuffer)
