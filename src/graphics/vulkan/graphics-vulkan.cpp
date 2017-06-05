@@ -251,6 +251,9 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
     }
     _swap_chain = new_swap_chain;
 
+    // depth buffer
+    create_depth_buffer();
+
     // Get images
     result = vkGetSwapchainImagesKHR(_device, _swap_chain, &_num_back_buffers, nullptr);
     assert(VK_SUCCEEDED(result));
@@ -286,13 +289,16 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
         assert(VK_SUCCEEDED(result) && "Could not create image view");
 
         // Framebuffer
+        VkImageView const attachments[] = {
+            gsl::at(_back_buffer_views, ii), _depth_view,
+        };
         VkFramebufferCreateInfo const framebuffer_info = {
             VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,   // sType
             nullptr,                                     // pNext
             0,                                           // flags
             _render_pass,                                // renderPass
-            1,                                           // attachmentCount
-            &gsl::at(_back_buffer_views, ii),            // pAttachments
+            array_length(attachments),                   // attachmentCount
+            attachments,                                 // pAttachments
             _surface_capabilities.currentExtent.width,   // width
             _surface_capabilities.currentExtent.height,  // height
             1,                                           // layers
@@ -301,6 +307,7 @@ bool GraphicsVulkan::resize(int /*width*/, int /*height*/)
             vkCreateFramebuffer(_device, &framebuffer_info, nullptr, &gsl::at(_framebuffers, ii));
         assert(VK_SUCCEEDED(result) && "Could not create framebuffer");
     }
+
     return true;
 }
 
@@ -575,6 +582,22 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         VK_FALSE                                                   // alphaToOneEnable
     };
 
+    // depth/stencil
+    VkPipelineDepthStencilStateCreateInfo const depth_info = {
+        VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,  // sType
+        nullptr,                                                     // pNext
+        0,                                                           // flags
+        VK_TRUE,                                                     // depthTestEnable
+        VK_TRUE,                                                     // depthWriteEnable
+        VK_COMPARE_OP_LESS,                                          // depthCompareOp
+        VK_FALSE,                                                    // depthBoundsTestEnable
+        VK_FALSE,                                                    // stencilTestEnable
+        {},                                                          // front
+        {},                                                          // back
+        0.0f,                                                        // minDepthBounds
+        0.0f,                                                        // maxDepthBounds
+    };
+
     // blending
     VkPipelineColorBlendAttachmentState const color_blend_states[] = {
         {
@@ -636,7 +659,7 @@ std::unique_ptr<RenderState> GraphicsVulkan::create_render_state(RenderStateDesc
         &viewport_info,                                   // pViewportState
         &rasterization_info,                              // pRasterizationState
         &msaa_info,                                       // pMultisampleState
-        nullptr,                                          // pDepthStencilState
+        &depth_info,                                      // pDepthStencilState
         &color_blend_state_info,                          // pColorBlendState
         &dynamic_info,                                    // pDynamicState
         state->_pipeline_layout,                          // layout
@@ -886,6 +909,17 @@ void GraphicsVulkan::create_render_passes()
             VK_IMAGE_LAYOUT_UNDEFINED,         // initialLayout
             VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,   // finalLayout
         },
+        {
+            0,                                                 // flags
+            VK_FORMAT_D32_SFLOAT,                              // format
+            VK_SAMPLE_COUNT_1_BIT,                             // samples
+            VK_ATTACHMENT_LOAD_OP_CLEAR,                       // loadOp
+            VK_ATTACHMENT_STORE_OP_STORE,                      // storeOp
+            VK_ATTACHMENT_LOAD_OP_DONT_CARE,                   // stencilLoadOp
+            VK_ATTACHMENT_STORE_OP_DONT_CARE,                  // stencilStoreOp
+            VK_IMAGE_LAYOUT_UNDEFINED,                         // initialLayout
+            VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,  // finalLayout
+        },
     };
     constexpr uint32_t const num_attachments = array_length(attachments);
 
@@ -897,6 +931,11 @@ void GraphicsVulkan::create_render_passes()
     };
     constexpr uint32_t const num_color_references = array_length(color_attachment_references);
 
+    constexpr VkAttachmentReference const depth_attachment_reference = {
+        1,                                                 // attachment
+        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,  // layout
+    };
+
     VkSubpassDescription const subpasses[] = {
         {
             0,                                                   // flags
@@ -906,7 +945,7 @@ void GraphicsVulkan::create_render_passes()
             num_color_references,                                // colorAttachmentCount
             gsl::make_span(color_attachment_references).data(),  // pColorAttachments
             nullptr,                                             // pResolveAttachments
-            nullptr,                                             // pDepthStencilAttachment
+            &depth_attachment_reference,                         // pDepthStencilAttachment
             0,                                                   // preserveAttachmentCount
             nullptr,                                             // pPreserveAttachments
         },
@@ -975,21 +1014,21 @@ void GraphicsVulkan::create_depth_buffer()
         _surface_capabilities.currentExtent.width, _surface_capabilities.currentExtent.height, 1,
     };
     VkImageCreateInfo const image_info = {
-        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,               // sType
-        nullptr,                                           // pNext
-        0,                                                 // flags
-        VK_IMAGE_TYPE_2D,                                  // imageType
-        VK_FORMAT_D32_SFLOAT,                              // format
-        extent,                                            // extent
-        1,                                                 // mipLevels
-        1,                                                 // arrayLayers
-        VK_SAMPLE_COUNT_1_BIT,                             // samples
-        VK_IMAGE_TILING_OPTIMAL,                           // tiling
-        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,       // usage
-        VK_SHARING_MODE_EXCLUSIVE,                         // sharingMode
-        0,                                                 // queueFamilyIndexCount
-        nullptr,                                           // pQueueFamilyIndices
-        VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,  // initialLayout
+        VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,          // sType
+        nullptr,                                      // pNext
+        0,                                            // flags
+        VK_IMAGE_TYPE_2D,                             // imageType
+        VK_FORMAT_D32_SFLOAT,                         // format
+        extent,                                       // extent
+        1,                                            // mipLevels
+        1,                                            // arrayLayers
+        VK_SAMPLE_COUNT_1_BIT,                        // samples
+        VK_IMAGE_TILING_OPTIMAL,                      // tiling
+        VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,  // usage
+        VK_SHARING_MODE_EXCLUSIVE,                    // sharingMode
+        0,                                            // queueFamilyIndexCount
+        nullptr,                                      // pQueueFamilyIndices
+        VK_IMAGE_LAYOUT_UNDEFINED,                    // initialLayout
     };
 
     VkResult result = vkCreateImage(_device, &image_info, _vk_allocator, &_depth_buffer);
@@ -1014,22 +1053,28 @@ void GraphicsVulkan::create_depth_buffer()
     result = vkBindImageMemory(_device, _depth_buffer, _depth_buffer_memory, 0);
     assert(VK_SUCCEEDED(result));
 
-    VkImageViewCreateInfo const image_view_info = {
-        VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,  // sType
-        nullptr,                                   // pNext
-        0,                                         // flags
-        _depth_buffer,                             // image
-        VK_IMAGE_VIEW_TYPE_2D,                     // viewType
-        image_info.format,                         // format
-        // components
-        {
-            VK_COMPONENT_SWIZZLE_IDENTITY,  // r
-            VK_COMPONENT_SWIZZLE_IDENTITY,  // g
-            VK_COMPONENT_SWIZZLE_IDENTITY,  // b
-            VK_COMPONENT_SWIZZLE_IDENTITY,  // a
-        },
-        kFullSubresourceRange,  // subresourceRange
-    };
+    VkImageViewCreateInfo const image_view_info =
+        {VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,  // sType
+         nullptr,                                   // pNext
+         0,                                         // flags
+         _depth_buffer,                             // image
+         VK_IMAGE_VIEW_TYPE_2D,                     // viewType
+         image_info.format,                         // format
+         // components
+         {
+             VK_COMPONENT_SWIZZLE_IDENTITY,  // r
+             VK_COMPONENT_SWIZZLE_IDENTITY,  // g
+             VK_COMPONENT_SWIZZLE_IDENTITY,  // b
+             VK_COMPONENT_SWIZZLE_IDENTITY,  // a
+         },
+         {
+             // subresourceRange
+             VK_IMAGE_ASPECT_DEPTH_BIT,  // aspectMask
+             0,                          // baseMipLevel
+             1,                          // levelCount
+             0,                          // baseArrayLayer
+             1,                          // layerCount
+         }};
     result = vkCreateImageView(_device, &image_view_info, _vk_allocator, &_depth_view);
     assert(VK_SUCCEEDED(result));
 }

@@ -22,19 +22,9 @@ bool CommandBufferVulkan::begin_render_pass()
         return false;
     }
     auto const back_buffer_index = _graphics->get_back_buffer();
-    constexpr VkClearValue clear_values[] = {
-        {
-            // color
-            {
-                {0.0f, 0.75f, 1.0f, 1.0f},
-            },
-            // depthStencil
-            {
-                0.0f,  // depth
-                0x0,   // stencil
-            },
-        },
-    };
+    VkClearValue clear_values[2] = {};
+    clear_values[0].color = {{0.0f, 0.75f, 1.0f, 1.0f}};
+    clear_values[1].depthStencil.depth = 1.0f;
     constexpr uint32_t num_clear_values = array_length(clear_values);
 
     auto const extent = _graphics->_surface_capabilities.currentExtent;
