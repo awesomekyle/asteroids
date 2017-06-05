@@ -229,17 +229,8 @@ Application::Application(void* native_window, void* native_instance)
     // Create resources
     //
     auto mesh = Mesh::icosahedron();
+    mesh.spherify(1.0f);
     mesh.calculate_normals();
-    // mesh.spherify(1.0f);
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    // for (auto& vertex : mesh.vertices) {
-    //    vertex.col = {
-    //        std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
-    //        std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
-    //        std::uniform_real_distribution<float>(0.25f, 1.0f)(gen),
-    //    };
-    //}
     auto const index_count = static_cast<uint32_t>(mesh.indices.size());
     auto const vertex_count = static_cast<uint32_t>(mesh.vertices.size());
     _cube_model.vertex_buffer =
