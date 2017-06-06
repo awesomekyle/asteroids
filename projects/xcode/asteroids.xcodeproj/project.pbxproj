@@ -567,8 +567,10 @@
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../3rd-party/gsl/include";
+				OBJROOT = "$(PROJECT_DIR)/obj";
 				OTHER_CFLAGS = "--system-header-prefix=GLFW/";
 				RUN_CLANG_STATIC_ANALYZER = YES;
+				SYMROOT = "$(PROJECT_DIR)/../../bin";
 			};
 			name = Debug;
 		};
@@ -609,8 +611,10 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../3rd-party/gsl/include";
 				LLVM_LTO = YES;
+				OBJROOT = "$(PROJECT_DIR)/obj";
 				OTHER_CFLAGS = "--system-header-prefix=GLFW/";
 				RUN_CLANG_STATIC_ANALYZER = YES;
+				SYMROOT = "$(PROJECT_DIR)/../../bin";
 			};
 			name = Release;
 		};
