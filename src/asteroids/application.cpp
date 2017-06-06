@@ -258,6 +258,9 @@ Application::Application(void* native_window, void* native_instance)
             vs_bytecode = get_file_contents("simple.vert.spv");
             ps_bytecode = get_file_contents("simple.frag.spv");
             break;
+        case ak::Graphics::kMetal:
+            // TODO: Load shaders (from DefaultLibrary or as file like Vk/D3D?)
+            break;
         default:
             break;
     }

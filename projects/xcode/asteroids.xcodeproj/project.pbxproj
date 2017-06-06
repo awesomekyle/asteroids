@@ -208,9 +208,9 @@
 			isa = PBXGroup;
 			children = (
 				2715156A1EDBA00F00B58139 /* graphics-metal.h */,
-				2715156B1EDBA00F00B58139 /* command-buffer-metal.mm */,
-				2715156C1EDBA00F00B58139 /* command-buffer-metal.h */,
 				2715156D1EDBA00F00B58139 /* graphics-metal.mm */,
+				2715156C1EDBA00F00B58139 /* command-buffer-metal.h */,
+				2715156B1EDBA00F00B58139 /* command-buffer-metal.mm */,
 			);
 			path = metal;
 			sourceTree = "<group>";
