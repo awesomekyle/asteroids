@@ -39,7 +39,7 @@ bool GraphicsMetal::create_swap_chain(void* window, void* /*application*/)
     _layer.opaque = true;
     _layer.pixelFormat = MTLPixelFormatBGRA8Unorm_sRGB;
     _layer.wantsExtendedDynamicRangeContent = YES;
-    _layer.displaySyncEnabled = NO; // disable V-Sync
+    // _layer.displaySyncEnabled = NO; // disable V-Sync
 
     _window.contentView.wantsLayer = true;
     _window.contentView.layer = _layer;
