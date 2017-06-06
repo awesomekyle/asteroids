@@ -567,6 +567,7 @@
 				GCC_WARN_UNUSED_PARAMETER = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../3rd-party/gsl/include";
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				OBJROOT = "$(PROJECT_DIR)/obj";
 				OTHER_CFLAGS = "--system-header-prefix=GLFW/";
 				RUN_CLANG_STATIC_ANALYZER = YES;
@@ -611,6 +612,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(PROJECT_DIR)/../../3rd-party/gsl/include";
 				LLVM_LTO = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				OBJROOT = "$(PROJECT_DIR)/obj";
 				OTHER_CFLAGS = "--system-header-prefix=GLFW/";
 				RUN_CLANG_STATIC_ANALYZER = YES;
@@ -668,7 +670,7 @@
 					"$(PROJECT_DIR)/../../3rd-party/mathfu/include",
 					"$(PROJECT_DIR)/../../3rd-party/mathfu/dependencies/vectorial/include",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
@@ -725,7 +727,7 @@
 					"$(PROJECT_DIR)/../../3rd-party/mathfu/include",
 					"$(PROJECT_DIR)/../../3rd-party/mathfu/dependencies/vectorial/include",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 10.13;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				OTHER_CFLAGS = (
 					"--system-header-prefix=GLFW/",
