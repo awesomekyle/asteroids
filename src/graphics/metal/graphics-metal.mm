@@ -99,6 +99,17 @@ bool GraphicsMetal::execute(CommandBuffer* command_buffer)
     [metal_buffer->_buffer commit];
     return true;
 }
+void GraphicsMetal::wait_for_idle()
+{
+    id<MTLCommandBuffer> flusher = [_render_queue commandBufferWithUnretainedReferences];
+    [flusher commit];
+    [flusher waitUntilCompleted];
+}
+void* GraphicsMetal::get_upload_data(size_t const /*size*/, size_t const /*alignment*/)
+{
+    // UNIMPLEMENTED
+    return nullptr;
+}
 
 std::unique_ptr<RenderState> GraphicsMetal::create_render_state(RenderStateDesc const& /*desc*/)
 {

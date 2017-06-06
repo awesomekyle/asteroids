@@ -32,6 +32,9 @@ std::string get_executable_directory()
     assert(SUCCEEDED(hr));
     std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
     return converter.to_bytes(exe_name);
+#else
+    // TODO
+    return std::string();
 #endif
 }
 
@@ -52,7 +55,8 @@ std::vector<uint8_t> get_file_contents(char const* const filename)
     file.seekg(0, std::ios::beg);
 
     std::vector<uint8_t> contents(filesize);
-    file.read(reinterpret_cast<char*>(&contents[0]), contents.size());
+    file.read(reinterpret_cast<char*>(&contents[0]),
+              static_cast<std::streamsize>(contents.size()));
     return contents;
 }
 
@@ -222,7 +226,7 @@ struct Mesh
 Application::Application(void* native_window, void* native_instance)
     : _window(native_window)
     , _instance(native_instance)
-    , _graphics(ak::create_graphics(ak::Graphics::kVulkan))
+    , _graphics(ak::create_graphics())
 {
     bool const result = _graphics->create_swap_chain(_window, _instance);
     assert(result && "Could not create swap chain");

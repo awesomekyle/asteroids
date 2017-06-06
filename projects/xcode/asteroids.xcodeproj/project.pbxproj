@@ -37,6 +37,7 @@
 		274205031EDB9A9800C966CC /* libgraphics.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 274204C71EDB3F3D00C966CC /* libgraphics.a */; };
 		2742050C1EDB9ABC00C966CC /* libcatch.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 274204F71EDB9A0800C966CC /* libcatch.a */; };
 		2742050D1EDB9ADF00C966CC /* libglfw.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 274204A31EDB38F000C966CC /* libglfw.a */; };
+		27DC95A71EE6561F00B93DD9 /* application.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 27DC95A61EE6561F00B93DD9 /* application.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -98,6 +99,8 @@
 		274204F81EDB9A1800C966CC /* catch.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = catch.cpp; path = "../../../../3rd-party/catch-1.9.4/catch.cpp"; sourceTree = "<group>"; };
 		274204F91EDB9A1800C966CC /* catch.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; name = catch.hpp; path = "../../../../3rd-party/catch-1.9.4/catch.hpp"; sourceTree = "<group>"; };
 		274205091EDB9A9800C966CC /* graphics-test */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "graphics-test"; sourceTree = BUILT_PRODUCTS_DIR; };
+		27DC95A51EE6561F00B93DD9 /* application.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = application.h; sourceTree = "<group>"; };
+		27DC95A61EE6561F00B93DD9 /* application.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = application.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,6 +187,8 @@
 		271515661EDBA00F00B58139 /* asteroids */ = {
 			isa = PBXGroup;
 			children = (
+				27DC95A61EE6561F00B93DD9 /* application.cpp */,
+				27DC95A51EE6561F00B93DD9 /* application.h */,
 				271515671EDBA00F00B58139 /* main.cpp */,
 			);
 			path = asteroids;
@@ -466,6 +471,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				27DC95A71EE6561F00B93DD9 /* application.cpp in Sources */,
 				271515901EDBA02400B58139 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -655,10 +661,16 @@
 					"$(PROJECT_DIR)/../../3rd-party/gsl/include",
 					"$(PROJECT_DIR)/../../3rd-party/glfw-e4e3e50/include",
 					"$(PROJECT_DIR)/../../src/graphics/include",
+					"$(PROJECT_DIR)/../../3rd-party/mathfu/include",
+					"$(PROJECT_DIR)/../../3rd-party/mathfu/dependencies/vectorial/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				OTHER_CFLAGS = (
+					"--system-header-prefix=GLFW/",
+					"--system-header-prefix=mathfu/",
+				);
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -706,9 +718,15 @@
 					"$(PROJECT_DIR)/../../3rd-party/gsl/include",
 					"$(PROJECT_DIR)/../../3rd-party/glfw-e4e3e50/include",
 					"$(PROJECT_DIR)/../../src/graphics/include",
+					"$(PROJECT_DIR)/../../3rd-party/mathfu/include",
+					"$(PROJECT_DIR)/../../3rd-party/mathfu/dependencies/vectorial/include",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MTL_ENABLE_DEBUG_INFO = NO;
+				OTHER_CFLAGS = (
+					"--system-header-prefix=GLFW/",
+					"--system-header-prefix=mathfu/",
+				);
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
