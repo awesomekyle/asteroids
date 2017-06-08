@@ -23,6 +23,7 @@
 #include <GLFW/glfw3.h>
 
 #include "graphics/graphics.h"
+#include "noise.h"
 
 namespace {
 
@@ -94,6 +95,27 @@ struct Mesh
             v.pos.x *= n;
             v.pos.y *= n;
             v.pos.z *= n;
+        }
+    }
+    void bumpify()
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+
+        std::uniform_real_distribution<float> random_noise(0.0f, 10000.0f);
+        std::normal_distribution<float> random_persistence(0.95f, 0.04f);
+        float const noise_scale = 0.5f;
+        float const radius_scale = 0.9f;
+        float const radius_bias = 0.3f;
+
+        NoiseOctaves<4> const texture_noise(random_persistence(gen));
+        float const noise = random_noise(gen);
+
+        for (auto& v : vertices) {
+            float radius = texture_noise(v.pos.x * noise_scale, v.pos.y * noise_scale,
+                                         v.pos.z * noise_scale, noise);
+            radius = radius * radius_scale + radius_bias;
+            v.pos *= radius;
         }
     }
     void calculate_normals()
@@ -248,6 +270,7 @@ Application::Application(void* native_window, void* native_instance)
     //
     auto mesh = Mesh::icosahedron();
     mesh.spherify(1.0f);
+    mesh.bumpify();
     mesh.calculate_normals();
     auto const index_count = static_cast<uint32_t>(mesh.indices.size());
     auto const vertex_count = static_cast<uint32_t>(mesh.vertices.size());
@@ -298,7 +321,7 @@ Application::Application(void* native_window, void* native_instance)
 
     // initialize asteroids
     std::random_device rd;
-    std::mt19937 gen(1337);
+    std::mt19937 gen(rd());
 
     std::normal_distribution<float> scale_dist(1.3f, 0.7f);
     std::normal_distribution<float> orbit_dist(kSimOrbitRadius, kSimDiscRadius * 0.6f);
