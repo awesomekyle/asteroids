@@ -3,7 +3,17 @@
 #include <vector>
 #include <codecvt>
 #include <fstream>
+
+#if defined(_MSC_VER)
+#pragma warning(push)
+#pragma warning(disable : 4244)  // double -> float conversion
+#endif                           // _MSC_VER
+
 #include <random>
+
+#if defined(_MSC_VER)
+#pragma warning(pop)
+#endif  // _MSC_VER
 
 #if defined(_WIN32)
 #include <Windows.h>
@@ -15,6 +25,11 @@
 #include "graphics/graphics.h"
 
 namespace {
+
+constexpr float kSimOrbitRadius = 450.0f;
+constexpr float kSimDiscRadius = 120.0f;
+constexpr float kMinScale = 0.2f;
+constexpr float kPi = 3.14159265358979323846f;
 
 template<typename T, uint32_t kSize>
 constexpr uint32_t array_length(T (&)[kSize])
@@ -55,8 +70,7 @@ std::vector<uint8_t> get_file_contents(char const* const filename)
     file.seekg(0, std::ios::beg);
 
     std::vector<uint8_t> contents(filesize);
-    file.read(reinterpret_cast<char*>(&contents[0]),
-              static_cast<std::streamsize>(contents.size()));
+    file.read(reinterpret_cast<char*>(&contents[0]), static_cast<std::streamsize>(contents.size()));
     return contents;
 }
 
@@ -226,7 +240,7 @@ struct Mesh
 Application::Application(void* native_window, void* native_instance)
     : _window(native_window)
     , _instance(native_instance)
-    , _graphics(ak::create_graphics())
+    , _graphics(ak::create_graphics(ak::Graphics::kVulkan))
 {
     bool const result = _graphics->create_swap_chain(_window, _instance);
     assert(result && "Could not create swap chain");
@@ -286,24 +300,23 @@ Application::Application(void* native_window, void* native_instance)
 
     // initialize asteroids
     std::random_device rd;
-    std::mt19937 gen(rd());
+    std::mt19937 gen(1337);
 
-    constexpr float sim_disc_radius = 120.0f;
-    std::uniform_real_distribution<float> scale_dist(0.5f, 1.5f);
-    std::uniform_real_distribution<float> orbit_dist(sim_disc_radius * 0.6f, 450.0f);
+    std::normal_distribution<float> scale_dist(1.3f, 0.7f);
+    std::normal_distribution<float> orbit_dist(kSimOrbitRadius, kSimDiscRadius * 0.6f);
+    std::normal_distribution<float> height_dist(0.0f, 0.4f);
     std::uniform_real_distribution<float> radial_velocity_dist(5.0f, 15.0f);
-    std::uniform_real_distribution<float> height_dist(-0.2f, 0.2f);
-    std::uniform_real_distribution<float> angle_dist(-3.14159265358979323846f,
-                                                     3.14159265358979323846f);
+    std::uniform_real_distribution<float> angle_dist(-kPi, kPi);
 
     for (auto& asteroid : _asteroids) {
-        auto const scale = scale_dist(gen);
+        auto const scale = std::max(scale_dist(gen), kMinScale);
         auto const orbit_radius = orbit_dist(gen);
         auto const position_angle = angle_dist(gen);
-        auto const height = sim_disc_radius * height_dist(gen);
+        auto const height = kSimDiscRadius * height_dist(gen);
 
         asteroid.scale = scale;
-        asteroid.orbit_velocity = radial_velocity_dist(gen) / (scale * orbit_radius);
+        asteroid.orbit_velocity = -radial_velocity_dist(gen) / (scale * orbit_radius);
+        assert(asteroid.orbit_velocity < 0.0f);
 
         asteroid.world =
             mathfu::float4x4::FromRotationMatrix(mathfu::float4x4::RotationY(position_angle)) *
@@ -326,13 +339,21 @@ void Application::on_resize(int width, int height)
     _graphics->resize(width, height);
 
     // update projection
-    float const fov = 3.1415926f / 2;
+    float const fov = kPi / 2;
 
     // to get better depth buffer precision, a "reversed" depth buffer is used
     // https://developer.nvidia.com/content/depth-precision-visualized
     _constant_buffer.projection =
         mathfu::float4x4::Perspective(fov, width / static_cast<float>(height), 10000.0f, 0.1f, -1);
-    _constant_buffer.view = mathfu::float4x4::LookAt({0, 0, 0}, {0, 70, -500}, {0, 1, 0}, -1);
+
+    mathfu::float3 const center(0.0f, -0.4f * kSimDiscRadius, 0.0f);
+    float const radius = kSimDiscRadius + kSimOrbitRadius + 10.0f;
+    float const long_angle = 4.5f;
+    float const lat_angle = 1.45f;
+    mathfu::float3 const position(radius * std::sin(lat_angle) * std::cos(long_angle),
+                                  radius * std::cos(lat_angle),
+                                  radius * std::sin(lat_angle) * std::sin(long_angle));
+    _constant_buffer.view = mathfu::float4x4::LookAt(center, position, {0, 1, 0}, -1);
 
     if (_graphics->api_type() == ak::Graphics::kVulkan) {
         // In Vulkan, Y goes down the screen. Flip the projection matrix to account for this
