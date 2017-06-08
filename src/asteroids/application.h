@@ -21,8 +21,11 @@ class Application
     void on_resize(int width, int height);
     void on_frame(float delta_time);
     void on_keyup(int glfw_key);
+    void on_mouse_move(float delta_x, float delta_y);
 
    private:
+    void recalculate_camera();
+
 //
 // constants
 //
@@ -89,4 +92,10 @@ class Application
     PerFrameConstants _constant_buffer = {};
 
     Asteroid _asteroids[kNumAsteroids] = {};
+
+    // camera
+    mathfu::float2 _last_cursor_delta = {};
+
+    float _long_angle = 4.5f;
+    float _lat_angle = 1.45f;
 };

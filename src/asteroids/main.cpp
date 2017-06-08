@@ -25,6 +25,9 @@ namespace {
 constexpr int kInitialWidth = 1920;
 constexpr int kInitialHeight = 1080;
 
+bool s_cursor_disabled = false;  // TODO(kw): remove global
+mathfu::float2 s_prev_cursor_pos = {};
+
 ////
 // GLFW helpers
 ////
@@ -93,6 +96,27 @@ void glfw_framebuffer_callback(GLFWwindow* window, int width, int height)
     std::cout << "Window Resize: (" << width << ", " << height << ")\n";
     get_window_application(window)->on_resize(width, height);
 }
+void glfw_mouse_button_callback(GLFWwindow* window, int button, int action, int /*mods*/)
+{
+    if (button == GLFW_MOUSE_BUTTON_RIGHT || button == GLFW_MOUSE_BUTTON_LEFT) {
+        if (action == GLFW_PRESS) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            s_cursor_disabled = true;
+        } else if (action == GLFW_RELEASE) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            s_cursor_disabled = false;
+        }
+    }
+}
+void glfw_mouse_pos_callback(GLFWwindow* window, double x, double y)
+{
+    mathfu::float2 const curr_cursor_pos(static_cast<float>(x), static_cast<float>(y));
+    auto const delta = curr_cursor_pos - s_prev_cursor_pos;
+    if (s_cursor_disabled) {
+        get_window_application(window)->on_mouse_move(delta.x, delta.y);
+    }
+    s_prev_cursor_pos = curr_cursor_pos;
+}
 
 }  // namespace
 
@@ -113,6 +137,8 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     GLFWwindow* const window = glfwCreateWindow(800, 600, "Asteroids", nullptr, nullptr);
     glfwSetKeyCallback(window, glfw_keyboard_callback);
     glfwSetFramebufferSizeCallback(window, glfw_framebuffer_callback);
+    glfwSetMouseButtonCallback(window, glfw_mouse_button_callback);
+    glfwSetCursorPosCallback(window, glfw_mouse_pos_callback);
 
     //
     // Initialize
