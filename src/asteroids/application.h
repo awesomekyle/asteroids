@@ -22,14 +22,17 @@ class Application
     void on_frame(float delta_time);
     void on_keyup(int glfw_key);
     void on_mouse_move(float delta_x, float delta_y);
+    void on_scroll(float scroll);
 
    private:
     void recalculate_camera();
 
-//
-// constants
-//
+    //
+    // constants
+    //
 
+    static constexpr float kSimOrbitRadius = 450.0f;
+    static constexpr float kSimDiscRadius = 120.0f;
 #if defined(_DEBUG)
     static constexpr int kNumAsteroids = 500;
 #else
@@ -94,8 +97,10 @@ class Application
     Asteroid _asteroids[kNumAsteroids] = {};
 
     // camera
-    mathfu::float2 _last_cursor_delta = {};
+    mathfu::float2 _cursor_delta = {0, 0};
+    float _wheel_delta = 0.0f;
 
-    float _long_angle = 4.5f;
-    float _lat_angle = 1.45f;
+    float _cam_radius = kSimDiscRadius + kSimOrbitRadius + 10.0f;
+    float _cam_long_angle = 4.5f;
+    float _cam_lat_angle = 1.45f;
 };

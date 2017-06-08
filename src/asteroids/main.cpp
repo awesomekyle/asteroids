@@ -117,6 +117,10 @@ void glfw_mouse_pos_callback(GLFWwindow* window, double x, double y)
     }
     s_prev_cursor_pos = curr_cursor_pos;
 }
+void glfw_mouse_scroll_callback(GLFWwindow* window, double /*xoffset*/, double yoffset)
+{
+    get_window_application(window)->on_scroll(static_cast<float>(yoffset));
+}
 
 }  // namespace
 
@@ -139,6 +143,7 @@ int main(int const /*argc*/, char const* const /*argv*/[])
     glfwSetFramebufferSizeCallback(window, glfw_framebuffer_callback);
     glfwSetMouseButtonCallback(window, glfw_mouse_button_callback);
     glfwSetCursorPosCallback(window, glfw_mouse_pos_callback);
+    glfwSetScrollCallback(window, glfw_mouse_scroll_callback);
 
     //
     // Initialize

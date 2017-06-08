@@ -26,8 +26,6 @@
 
 namespace {
 
-constexpr float kSimOrbitRadius = 450.0f;
-constexpr float kSimDiscRadius = 120.0f;
 constexpr float kMinScale = 0.2f;
 constexpr float kPi = 3.14159265358979323846f;
 
@@ -357,14 +355,18 @@ void Application::on_resize(int width, int height)
 void Application::on_frame(float const delta_time)
 {
     // camera
-    _long_angle += _last_cursor_delta.x * -delta_time;
+    constexpr float min_radius = kSimOrbitRadius - 3.0f * kSimDiscRadius;
+    _cam_radius = std::max(min_radius, _cam_radius + _wheel_delta * delta_time * -300.0f);
+    _wheel_delta = 0.0f;
+
+    _cam_long_angle += _cursor_delta.x * -delta_time;
 
     float const limit = kPi * 0.00625f;
-    _lat_angle =
-        std::max(limit, std::min(kPi - limit, _lat_angle + _last_cursor_delta.y * -delta_time));
+    _cam_lat_angle =
+        std::max(limit, std::min(kPi - limit, _cam_lat_angle + _cursor_delta.y * -delta_time));
 
     recalculate_camera();
-    _last_cursor_delta = {0, 0};
+    _cursor_delta = {0, 0};
 
     // update
     if (_simulate) {
@@ -429,23 +431,29 @@ void Application::on_keyup(int const glfw_key)
 
 void Application::on_mouse_move(float delta_x, float delta_y)
 {
-    _long_angle += delta_x * 0.0001f;
+    _cam_long_angle += delta_x * 0.0001f;
 
     float const limit = kPi * 0.01f;
-    _lat_angle = std::max(limit, std::min(kPi - limit, _lat_angle + delta_y * 0.0001f));
+    _cam_lat_angle = std::max(limit, std::min(kPi - limit, _cam_lat_angle + delta_y * 0.0001f));
 
-    _last_cursor_delta = {delta_x, delta_y};
+    _cursor_delta = {delta_x, delta_y};
 
     recalculate_camera();
+}
+
+void Application::on_scroll(float scroll)
+{
+    _wheel_delta = scroll;
 }
 
 void Application::recalculate_camera()
 {
     mathfu::float3 const center(0.0f, -0.4f * kSimDiscRadius, 0.0f);
-    float const radius = kSimDiscRadius + kSimOrbitRadius + 10.0f;
-    mathfu::float3 const position(radius * std::sin(_lat_angle) * std::cos(_long_angle),
-                                  radius * std::cos(_lat_angle),
-                                  radius * std::sin(_lat_angle) * std::sin(_long_angle));
+    mathfu::float3 const position(_cam_radius * std::sin(_cam_lat_angle) *
+                                      std::cos(_cam_long_angle),
+                                  _cam_radius * std::cos(_cam_lat_angle),
+                                  _cam_radius * std::sin(_cam_lat_angle) *
+                                      std::sin(_cam_long_angle));
     _constant_buffer.view = mathfu::float4x4::LookAt(center, position, {0, 1, 0}, -1);
 
     _constant_buffer.viewproj = _constant_buffer.projection * _constant_buffer.view;
