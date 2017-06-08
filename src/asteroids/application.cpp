@@ -3,6 +3,7 @@
 #include <vector>
 #include <codecvt>
 #include <fstream>
+#include <map>
 
 #if defined(_MSC_VER)
 #pragma warning(push)
@@ -78,6 +79,24 @@ std::vector<uint8_t> get_file_contents(char const* const filename)
 //
 struct Mesh
 {
+    using IndexType = uint16_t;
+
+    struct Edge
+    {
+        Edge(IndexType i0, IndexType i1)
+            : v0(i0)
+            , v1(i1)
+        {
+            if (v0 > v1) {
+                std::swap(v0, v1);
+            }
+        }
+        IndexType v0;
+        IndexType v1;
+
+        bool operator<(const Edge& c) const { return v0 < c.v0 || (v0 == c.v0 && v1 < c.v1); }
+    };
+
     struct Vertex
     {
         mathfu::float3 pos;
@@ -85,7 +104,7 @@ struct Mesh
     };
 
     std::vector<Vertex> vertices;
-    std::vector<uint16_t> indices;
+    std::vector<IndexType> indices;
 
     void spherify(float const radius)
     {
@@ -118,6 +137,49 @@ struct Mesh
             v.pos *= radius;
         }
     }
+    void subdivide()
+    {
+        std::map<Edge, IndexType> midpoints;
+        auto const add_midpoint = [&](Edge const& edge) -> IndexType {
+            auto const found = midpoints.find(edge);
+            if (found != midpoints.end()) {
+                return found->second;
+            }
+
+            auto const& p0 = vertices[edge.v0].pos;
+            auto const& p1 = vertices[edge.v1].pos;
+
+            Vertex const mid = {{
+                (p0 + p1) * 0.5f,
+            }};
+
+            IndexType const new_index = static_cast<IndexType>(vertices.size());
+            vertices.push_back(mid);
+            midpoints[edge] = new_index;
+            return new_index;
+        };
+
+        std::vector<IndexType> new_indices;
+        new_indices.reserve(indices.size());
+
+        for (size_t ii = 0; ii < indices.size(); ii += 3) {
+            auto& i0 = indices[ii + 0];
+            auto& i1 = indices[ii + 1];
+            auto& i2 = indices[ii + 2];
+
+            auto const m0 = add_midpoint(Edge(i0, i1));
+            auto const m1 = add_midpoint(Edge(i1, i2));
+            auto const m2 = add_midpoint(Edge(i2, i0));
+
+            IndexType const updated_indices[] = {
+                i0, m0, m2, m0, i1, m1, m0, m1, m2, m2, m1, i2,
+            };
+            new_indices.insert(new_indices.end(), updated_indices,
+                               updated_indices + array_length(updated_indices));
+        }
+
+        std::swap(indices, new_indices);
+    }
     void calculate_normals()
     {
         for (auto& v : vertices) {
@@ -126,21 +188,21 @@ struct Mesh
 
         assert(indices.size() % 3 == 0);  // trilist
         for (size_t ii = 0; ii < indices.size(); ii += 3) {
-            auto& v1 = vertices[indices[ii + 0]];
-            auto& v2 = vertices[indices[ii + 1]];
-            auto& v3 = vertices[indices[ii + 2]];
+            auto& v0 = vertices[indices[ii + 0]];
+            auto& v1 = vertices[indices[ii + 1]];
+            auto& v2 = vertices[indices[ii + 2]];
 
             // Two edge vectors u,v
-            auto const u = v2.pos - v1.pos;
-            auto const v = v3.pos - v1.pos;
+            auto const u = v1.pos - v0.pos;
+            auto const v = v2.pos - v0.pos;
 
             // cross(u,v)
             auto const n = mathfu::float3::CrossProduct(u, v);
 
             // Add them all together
+            v0.norm += n;
             v1.norm += n;
             v2.norm += n;
-            v3.norm += n;
         }
 
         // Normalize
@@ -269,6 +331,8 @@ Application::Application(void* native_window, void* native_instance)
     // Create resources
     //
     auto mesh = Mesh::icosahedron();
+    mesh.subdivide();
+    mesh.subdivide();
     mesh.spherify(1.0f);
     mesh.bumpify();
     mesh.calculate_normals();
