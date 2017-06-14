@@ -61,6 +61,7 @@ class Application
     {
         // TODO(kw): Split into static and dynamic data for better caching
         mathfu::float4x4 world;
+        mathfu::float3 spin_axis;
         float scale;
         float spin_velocity;
         float orbit_velocity;

@@ -391,7 +391,9 @@ Application::Application(void* native_window, void* native_instance)
     std::normal_distribution<float> orbit_dist(kSimOrbitRadius, kSimDiscRadius * 0.6f);
     std::normal_distribution<float> height_dist(0.0f, 0.4f);
     std::uniform_real_distribution<float> radial_velocity_dist(5.0f, 15.0f);
+    std::uniform_real_distribution<float> spin_velocity_dist(-2.0f, 2.0f);
     std::uniform_real_distribution<float> angle_dist(-kPi, kPi);
+    std::normal_distribution<float> spin_axis_dist;
 
     for (auto& asteroid : _asteroids) {
         auto const scale = std::max(scale_dist(gen), kMinScale);
@@ -399,6 +401,10 @@ Application::Application(void* native_window, void* native_instance)
         auto const position_angle = angle_dist(gen);
         auto const height = kSimDiscRadius * height_dist(gen);
 
+        asteroid.spin_axis =
+            mathfu::float3(spin_axis_dist(gen), spin_axis_dist(gen), spin_axis_dist(gen))
+                .Normalized();
+        asteroid.spin_velocity = spin_velocity_dist(gen) / scale;
         asteroid.scale = scale;
         asteroid.orbit_velocity = -radial_velocity_dist(gen) / (scale * orbit_radius);
         assert(asteroid.orbit_velocity < 0.0f);
@@ -460,7 +466,11 @@ void Application::on_frame(float const delta_time)
         for (auto& asteroid : _asteroids) {
             auto const orbit = mathfu::float4x4::FromRotationMatrix(
                 mathfu::float4x4::RotationY(asteroid.orbit_velocity * delta_time));
-            asteroid.world = orbit * asteroid.world;
+            auto const spin =
+                mathfu::Quaternion<float>::FromAngleAxis(asteroid.spin_velocity * delta_time,
+                                                         asteroid.spin_axis)
+                    .ToMatrix4();
+            asteroid.world = orbit * asteroid.world * spin;
         }
     }
 
