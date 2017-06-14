@@ -50,7 +50,6 @@ class Application
     };
     struct PerModelConstants
     {
-        mathfu::float4x4 wvp;
         mathfu::float4x4 world;
     };
     struct PSConstantBuffer
@@ -61,7 +60,6 @@ class Application
     struct Asteroid
     {
         // TODO(kw): Split into static and dynamic data for better caching
-        mathfu::float4x4 wvp;
         mathfu::float4x4 world;
         float scale;
         float spin_velocity;

@@ -461,11 +461,6 @@ void Application::on_frame(float const delta_time)
             auto const orbit = mathfu::float4x4::FromRotationMatrix(
                 mathfu::float4x4::RotationY(asteroid.orbit_velocity * delta_time));
             asteroid.world = orbit * asteroid.world;
-            asteroid.wvp = _constant_buffer.viewproj * asteroid.world;
-        }
-    } else {
-        for (auto& asteroid : _asteroids) {
-            asteroid.wvp = _constant_buffer.viewproj * asteroid.world;
         }
     }
 
@@ -493,7 +488,6 @@ void Application::on_frame(float const delta_time)
         for (auto& asteroid : _asteroids) {
             auto* const model_buffer = _graphics->get_upload_data<PerModelConstants>();
             if (model_buffer != nullptr) {
-                model_buffer->wvp = asteroid.wvp;
                 model_buffer->world = asteroid.world;
             }
 
