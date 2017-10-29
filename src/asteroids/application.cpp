@@ -322,7 +322,7 @@ struct Mesh
 Application::Application(void* native_window, void* native_instance)
     : _window(native_window)
     , _instance(native_instance)
-    , _graphics(ak::create_graphics(ak::Graphics::kVulkan))
+    , _graphics(ak::create_graphics(ak::Graphics::kDefault))
 {
     bool const result = _graphics->create_swap_chain(_window, _instance);
     assert(result && "Could not create swap chain");

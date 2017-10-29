@@ -44,7 +44,7 @@ class NoiseOctaves
     {
         float r = 0.0f;
         for (size_t i = 0; i < N; ++i) {
-            r += mWeights[i] * snoise3(x, y, z);
+            r += mWeights[i] * SimplexNoise1234::noise(x, y, z);
             x *= 2.0f;
             y *= 2.0f;
             z *= 2.0f;
